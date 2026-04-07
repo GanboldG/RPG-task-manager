@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:rpg_task_manager/app_colors.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
     TaskScreen(),
     ShopScreen(),
     ProfileScreen(),
-    SettingsScreen(),
+    SettingsScreen(), 
   ];
 
   @override
