@@ -1,19 +1,15 @@
-# rpg_task_manager
+Documentation / History:
 
-A new Flutter project.
+2026.03.31 (Ганболд):
+Нэмсэн:
+- 
 
-Very nice
-
-Pog
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-Pog
-samples, guidance on mobile development, and a full API refere
-sdsdsd
+2026.03.31 (Ганболд):
+Нэмсэн:
+- pubspec.yaml тохиргооны файлд дараах сангуудыг нэмсэн:
+    - flutter_launcher_icons (App-н icon-ийг өөрчлөх сан)
+    - just_audio (Дуун файл тоглуулах сан)
+- Файлуудын үндсэн бүтцийг үүсгэсэн
+- Өнгөнүүдийг зөвхөн AppColors.dart файлд тодорхойлж, ThemeData-с өнгөө хэрэглэнэ.
+- Bottom Navigation UI нэмсэн
+- Top Resource bar UI нэмсэн
