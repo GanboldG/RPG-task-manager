@@ -9,7 +9,9 @@ class AppColors {
   static const surface = Color.fromARGB(255, 0, 0, 0);
 
   static const textPrimary = Color.fromARGB(255, 0, 0, 0);
-  static const textSecondary = Color.fromARGB(255, 141, 141, 141);
+  static const textPrimaryLight = Color.fromARGB(255, 141, 141, 141);
+  static const textSecondary = Color.fromARGB(255, 70, 7, 171);
+  static const textSecondaryLight = Color.fromARGB(255, 141, 70, 255);
 
   // Appbar
   static const appBarSecondary = Color.fromARGB(255, 204, 204, 204);
@@ -19,4 +21,10 @@ class AppColors {
   static const experience = Color.fromARGB(255, 166, 243, 255);
   static const gold = Color.fromARGB(255, 255, 240, 156);   
   static const gemstone = Color.fromARGB(255, 109, 253, 172);
+
+  // Difficulty colors
+  static const taskEasy = Color.fromARGB(255, 183, 255, 179);
+  static const taskMedium = Color.fromARGB(255, 255, 237, 163);
+  static const taskHard = Color.fromARGB(255, 255, 134, 134);
+  static const taskExpert = Color.fromARGB(255, 255, 76, 76);
 }
