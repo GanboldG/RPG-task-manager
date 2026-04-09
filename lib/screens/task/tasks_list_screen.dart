@@ -50,22 +50,111 @@ class _TaskScreenState extends State<TaskScreen>{
     final tasks = controller.tasks;
 
     return Container(
-      height: 150,
       width: double.infinity,
-      padding: EdgeInsets.all(20),
-      margin: EdgeInsets.all(6),
+      padding: EdgeInsets.all(10),
+      margin: EdgeInsets.all(5),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
         color: AppColors.primary,
+        borderRadius: BorderRadius.all(Radius.circular(20)),
       ),
-      child: Center(
-        child: Text(
-          tasks.isNotEmpty ? tasks[0].name : "No tasks available :D",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 25,
-          )
-        )
+
+      child: Column(
+        children:[
+          Row(
+            children: [
+              // Circular Progress
+              Column(
+                children: [
+                  Icon(
+                    Icons.run_circle_outlined,
+                    color: AppColors.textSecondary,
+                    size: 80,
+                  ),
+                  // Text("${tasks[0].doneMinutes}m/${tasks[0].baseMinutes}m")
+                ]
+              ),
+
+              // Task name / description
+              Expanded(
+                child: Center(
+                  child: Text(
+                    tasks[0].name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,  // Add "..." when overflow),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: AppFonts.sizeMedium,
+                    )
+                  ),
+                )
+              )
+            ]
+          ),
+
+          SizedBox(height: 10),
+
+          // Datetime info
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
+                children: [
+                  Text(
+                    "To Finish:",
+                    style: TextStyle(
+                      fontSize: AppFonts.sizeMedium,
+                    )
+                  ),
+
+                  Text(
+                     tasks[0].getRemainingTimeString(),
+                     style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: AppFonts.sizeBig,
+                    )
+                  )
+                ]
+              ),
+
+              Column(
+                children: [
+                  Text(
+                    "Time till deadline:",
+                    style: TextStyle(
+                      fontSize: AppFonts.sizeMedium,
+                    )
+                  ),
+
+                  Text(
+                     tasks[0].getTimeTillDeadlineString(),
+                     style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: AppFonts.sizeBig,
+                    )
+                  )
+                ]
+              ),
+            ]
+          ),
+
+          SizedBox(height: 10),
+
+          // Button to start / pause the timer
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              foregroundColor: AppColors.background,
+              backgroundColor: AppColors.textSecondary
+            ),
+            onPressed: () => {},
+            child: Text(
+              "Start",
+              style: TextStyle(
+                fontSize: AppFonts.sizeBig,
+                fontWeight: FontWeight.bold,
+              )
+            )
+         )
+        ]
       )
     );
   }
@@ -80,25 +169,7 @@ class _TaskScreenState extends State<TaskScreen>{
         buildDefaultDragHandles: true, 
         children: <Widget>[
           for (int i = 0; i < tasks.length; i++)
-          TaskTile(
-              key: ValueKey(tasks[i].id),
-              task: tasks[i],
-              index: i,
-              onRemoved: (){
-                String deletedTaskName = controller.deleteTask(tasks[i].id);
-                HelperFunctions.showMessage(context, "Removed Task \"$deletedTaskName\"");
-              },
-              onFinished: (){
-               // Ask confirmation
-               // Mark as finished;
-               // Give rewards
-               // Remove from list
-              },
-              onEdited: (){
-                // Move the the add screen (But it is now edit)
-                // Refill the variables with old values
-              }
-            ),
+          _buildTaskTile(i),
         ],
         onReorder: (oldIndex, newIndex){
           setState(() {
@@ -140,6 +211,34 @@ class _TaskScreenState extends State<TaskScreen>{
           )
         ),
       )
+    );
+  }
+
+
+  Widget _buildTaskTile(int i){
+    final TaskController controller = context.read<TaskController>();
+
+    return TaskTile(
+      key: ValueKey(controller.tasks[i].id),
+      task: controller.tasks[i],
+      index: i,
+      onRemoved: (){
+        String deletedTaskName = controller.deleteTask(controller.tasks[i].id);
+        HelperFunctions.showMessage(context, "Removed Task \"$deletedTaskName\"");
+      },
+      onFinished: (){
+        String deletedTaskName = controller.deleteTask(controller.tasks[i].id);
+        HelperFunctions.showMessage(context, "Finished Task \"$deletedTaskName\"");
+
+        // Ask confirmation
+        // Mark as finished;
+        // Give rewards
+        // Remove from list
+      },
+      onEdited: (){
+        // Move the the add screen (But it is now edit)
+        // Refill the variables with old values
+      }
     );
   }
 }
