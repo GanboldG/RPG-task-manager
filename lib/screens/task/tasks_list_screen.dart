@@ -88,6 +88,16 @@ class _TaskScreenState extends State<TaskScreen>{
                 String deletedTaskName = controller.deleteTask(tasks[i].id);
                 HelperFunctions.showMessage(context, "Removed Task \"$deletedTaskName\"");
               },
+              onFinished: (){
+               // Ask confirmation
+               // Mark as finished;
+               // Give rewards
+               // Remove from list
+              },
+              onEdited: (){
+                // Move the the add screen (But it is now edit)
+                // Refill the variables with old values
+              }
             ),
         ],
         onReorder: (oldIndex, newIndex){

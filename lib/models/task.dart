@@ -4,8 +4,8 @@ class Task {
   int id;
   String name;
   Difficulty difficulty;
-  double baseMinutes;
-  double doneMinutes = 0;
+  int baseMinutes;
+  int doneMinutes = 0;
 
   Task({required this.id, 
         required this.name,
