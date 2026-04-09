@@ -1,7 +1,5 @@
 // ============================================================
-// RPG Task Manager – Shop Screen  (updated)
-// Add to pubspec.yaml:
-//   image_picker: ^1.0.7
+// RPG Task Manager – Shop Screen (Updated with Yellow Theme)
 // ============================================================
 
 import 'dart:io';
@@ -9,21 +7,21 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
-const kBg        = Color(0xFF0F0E1A);
-const kCard      = Color(0xFF1A1828);
-const kCardAlt   = Color(0xFF252438);
-const kBorder    = Color(0xFF2E2C45);
+const kBg        = Color(0xFFF9F9F9); // Light background for the screen
+const kCard      = Color.fromARGB(255, 225, 180, 254); // Your requested color (255, 235, 155)
+const kCardAlt   = Color.fromARGB(255, 171, 155, 179); // Slightly darker for contrast 3 text field color
+const kBorder    = Color.fromARGB(255, 0, 0, 0); // Gold/Brown border for visibility
 const kPurple    = Color(0xFF7C3AED);
-const kPurpleMid = Color(0xFF9F67F5);
+const kPurpleMid = Color(0xFF6D28D9); 
 const kPurpleDim = Color(0xFF4C2A8A);
-const kGold      = Color(0xFFF59E0B);
-const kGreen     = Color(0xFF22C55E);
-const kRed       = Color(0xFFEF4444);
-const kBlue      = Color(0xFF3B82F6);
-const kTxt       = Color(0xFFE2E8F0);
-const kTxtSub    = Color(0xFF9CA3AF);
+const kGold      = Color(0xFFB45309); // Darker gold for text readability
+const kGreen     = Color(0xFF15803D);
+const kRed       = Color(0xFFB91C1C);
+const kBlue      = Color(0xFF1D4ED8);
+const kTxt       = Color(0xFF000000); // Black text
+const kTxtSub    = Color(0xFF4B5563); // Dark Grey subtext
 
-// ─── Cart model (covers both token & custom items) ────────────────────────────
+// ─── Cart model ──────────────────────────────────────────────────────────────
 class CartEntry {
   final String   id;
   final String   name;
@@ -69,7 +67,6 @@ class CustomItem {
     this.imagePath, this.purchaseCount = 0,
   });
 
-  // NEW = uploaded ≤ 3 days ago
   bool get isNew => DateTime.now().difference(uploadedAt).inDays < 3;
 }
 
@@ -78,7 +75,6 @@ const _abilities = [
   '0.1% Token boost','0.5% Token boost','1.0% Token boost','2.0% Token boost',
 ];
 
-// Global state — swap with your Provider/Riverpod/Bloc
 List<CustomItem> gCustomItems = [];
 int gPlayerTokens = 6000;
 
@@ -88,9 +84,7 @@ class ShopScreen extends StatefulWidget {
   @override State<ShopScreen> createState() => _ShopScreenState();
 }
 
-class _ShopScreenState extends State<ShopScreen>
-    with SingleTickerProviderStateMixin {
-
+class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
   final List<CartEntry> _cart = [];
 
@@ -124,9 +118,8 @@ class _ShopScreenState extends State<ShopScreen>
 
   void _openCart() {
     showModalBottomSheet(
-      context: context, backgroundColor: kCard, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      context: context, backgroundColor: kBg, isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => StatefulBuilder(
         builder: (_, setBS) => _CartSheet(
           cart: _cart, playerTokens: gPlayerTokens,
@@ -140,16 +133,15 @@ class _ShopScreenState extends State<ShopScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 111, 100, 113),
+      backgroundColor: kBg,
       body: Column(children: [
-        // Tab bar (flush to top — your existing nav provides safe area)
         Container(
-          color: const Color.fromARGB(255, 72, 43, 82),
+          color: kCard,
           padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
           child: TabBar(
             controller: _tab,
-            indicatorColor: kPurpleMid, indicatorWeight: 3,
-            labelColor: kPurpleMid, unselectedLabelColor: kTxtSub,
+            indicatorColor: kPurple, indicatorWeight: 3,
+            labelColor: kPurple, unselectedLabelColor: kTxtSub,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             tabs: const [Tab(text: 'Token Shop'), Tab(text: 'Custom Shop')],
           ),
@@ -172,7 +164,6 @@ class _ShopScreenState extends State<ShopScreen>
                       builder: (_) => AddItemScreen(
                         onItemAdded: (item) => setState(() => gCustomItems.add(item)),
                       )));
-                 // setState(() {});
                 },
               ),
             ],
@@ -237,20 +228,14 @@ class _CustomShopTab extends StatefulWidget {
 }
 
 class _CustomShopTabState extends State<_CustomShopTab> {
-
-  /// Top-2 most purchased (must have ≥1 purchase)
   List<CustomItem> get _best {
-    final s = [...gCustomItems]
-      ..sort((a, b) => b.purchaseCount.compareTo(a.purchaseCount));
+    final s = [...gCustomItems]..sort((a, b) => b.purchaseCount.compareTo(a.purchaseCount));
     return s.where((e) => e.purchaseCount > 0).take(2).toList();
   }
 
   Set<String> get _bestIds => _best.map((e) => e.id).toSet();
 
-  /// Remaining sorted newest first
-  List<CustomItem> get _rest => gCustomItems
-      .where((e) => !_bestIds.contains(e.id))
-      .toList()
+  List<CustomItem> get _rest => gCustomItems.where((e) => !_bestIds.contains(e.id)).toList()
     ..sort((a, b) => b.uploadedAt.compareTo(a.uploadedAt));
 
   Widget _card(CustomItem item) {
@@ -261,8 +246,8 @@ class _CustomShopTabState extends State<_CustomShopTab> {
         leading: _Avatar(imagePath: item.imagePath, size: 50),
         name: item.name, subtitle: item.ability, price: item.price,
         tags: [
-          if (isBest) const _TagSpec('Best', kRed),
-          if (!isBest && item.isNew) const _TagSpec('New', kBlue),
+          if (isBest) const _TagSpec('Best', Colors.red),
+          if (!isBest && item.isNew) const _TagSpec('New', Colors.blue),
         ],
         onDetail: () => widget.onViewDetail(item),
         onAdd: () => widget.onAddToCart(CartEntry(
@@ -278,31 +263,26 @@ class _CustomShopTabState extends State<_CustomShopTab> {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 90),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
-        // Best section (only if items have been purchased)
         if (_best.isNotEmpty) ...[
           const _SecTitle('Best Custom Item of week:'),
           const SizedBox(height: 8),
           ..._best.map(_card),
           const SizedBox(height: 16),
         ],
-
-        // All items
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           const _SecTitle('All Custom Items:'),
           _AddItemBtn(onTap: () async { await widget.onNavigateAdd(); setState(() {}); }),
         ]),
         const SizedBox(height: 8),
-
         if (gCustomItems.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 40),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
             child: Center(child: Column(children: [
-              const Icon(Icons.add_box_outlined, color: kTxtSub, size: 42),
-              const SizedBox(height: 10),
+              Icon(Icons.add_box_outlined, color: kTxtSub, size: 42),
+              SizedBox(height: 10),
               Text('No items yet.\nTap +ADD Item to create one.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: const Color.fromARGB(255, 16, 23, 35), fontSize: 13, height: 1.5)),
+                  style: TextStyle(color: kTxtSub, fontSize: 13, height: 1.5)),
             ])),
           )
         else
@@ -349,30 +329,23 @@ class _AddItemScreenState extends State<AddItemScreen> {
       uploadedAt: DateTime.now(), imagePath: _image?.path,
     ));
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Item uploaded! 🎉'), backgroundColor: kGreen));
   }
 
-  @override void dispose() {
-    _nameCtrl.dispose(); _priceCtrl.dispose(); _descCtrl.dispose(); super.dispose();
-  }
+  @override void dispose() { _nameCtrl.dispose(); _priceCtrl.dispose(); _descCtrl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: kBg,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 188, 90, 220),
-        iconTheme: const IconThemeData(color: kPurpleMid),
-        title: const Text('Add Custom Item',
-            style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
+        backgroundColor: kCard,
+        iconTheme: const IconThemeData(color: kTxt),
+        title: const Text('Add Custom Item', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
-
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Image upload
             Flexible(
               flex: 1,
               child: GestureDetector(
@@ -380,25 +353,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: Container(
-                    decoration: BoxDecoration(color: kCard,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: kBorder, width: 1.5)),
+                    decoration: BoxDecoration(color: const Color.fromARGB(255, 171, 155, 179), borderRadius: BorderRadius.circular(12), border: Border.all(color: kBorder)),
                     clipBehavior: Clip.antiAlias,
                     child: _image != null
                         ? Image.file(_image!, fit: BoxFit.cover)
-                        : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            const Icon(Icons.image_outlined, color: kTxtSub, size: 34),
-                            const SizedBox(height: 6),
-                            const Text('upload image',
-                                style: TextStyle(color: kTxtSub, fontSize: 11)),
+                        : const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(Icons.image_outlined, color: kTxtSub, size: 34),
+                            SizedBox(height: 6),
+                            Text('upload image', style: TextStyle(color: kTxtSub, fontSize: 11)),
                           ]),
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 12),
-
-            // Fields
             Flexible(
               flex: 2,
               child: Column(children: [
@@ -407,8 +375,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 _Dropdown(value: _ability, onChanged: (v) => setState(() => _ability = v)),
                 const SizedBox(height: 8),
                 Row(children: [
-                  Expanded(child: _Field(ctrl: _priceCtrl, hint: 'Buy item price',
-                      isNumber: true, onChanged: (_) => setState(() {}))),
+                  Expanded(child: _Field(ctrl: _priceCtrl, hint: 'Buy item price', isNumber: true, onChanged: (_) => setState(() {}))),
                   const SizedBox(width: 6),
                   const Icon(Icons.monetization_on, color: kGold, size: 20),
                 ]),
@@ -417,15 +384,10 @@ class _AddItemScreenState extends State<AddItemScreen> {
               ]),
             ),
           ]),
-
           const SizedBox(height: 12),
-
-          // Description
           Container(
             height: 100, padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: kCard,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: kBorder)),
+            decoration: BoxDecoration(color: const Color.fromARGB(255, 171, 155, 179), borderRadius: BorderRadius.circular(10), border: Border.all(color: kBorder)),
             child: TextField(
               controller: _descCtrl, maxLines: null, expands: true,
               style: const TextStyle(color: kTxt, fontSize: 13),
@@ -436,20 +398,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: kCard,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: kBorder)),
+            decoration: BoxDecoration(color: const Color.fromARGB(255, 171, 155, 179), borderRadius: BorderRadius.circular(10), border: Border.all(color: kBorder)),
             child: _PriceInfo(label: 'To upload you pay:', value: _fee),
           ),
-
           const Spacer(),
           Row(children: [
-            Expanded(child: _OutlineBtn(label: 'Back', color: kRed,
-                onTap: () => Navigator.pop(context))),
+            Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
             Expanded(child: _SolidBtn(label: 'Upload Item', onTap: _submit)),
           ]),
@@ -465,8 +422,7 @@ class ItemDetailScreen extends StatelessWidget {
   final CustomItem item;
   final int playerTokens;
   final void Function(CartEntry) onAddToCart;
-  const ItemDetailScreen({super.key, required this.item,
-      required this.playerTokens, required this.onAddToCart});
+  const ItemDetailScreen({super.key, required this.item, required this.playerTokens, required this.onAddToCart});
 
   @override
   Widget build(BuildContext context) {
@@ -475,9 +431,8 @@ class ItemDetailScreen extends StatelessWidget {
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kPurpleMid),
-        title: const Text('Item Detail',
-            style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
+        iconTheme: const IconThemeData(color: kTxt),
+        title: const Text('Item Detail', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -487,27 +442,23 @@ class ItemDetailScreen extends StatelessWidget {
             child: SizedBox(width: double.infinity, height: 180,
               child: item.imagePath != null
                   ? Image.file(File(item.imagePath!), fit: BoxFit.cover)
-                  : Container(color: kCardAlt,
-                      child: const Icon(Icons.person, color: kPurpleMid, size: 64))),
+                  : Container(color: kCardAlt, child: const Icon(Icons.person, color: kPurpleMid, size: 64))),
           ),
           const SizedBox(height: 12),
-          Text(item.name, style: const TextStyle(
-              color: kTxt, fontWeight: FontWeight.bold, fontSize: 20)),
+          Text(item.name, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 20)),
           const SizedBox(height: 4),
           Text(item.ability, style: const TextStyle(color: kPurpleMid, fontSize: 14)),
           const SizedBox(height: 12),
           Container(
             width: double.infinity, padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: kCard,
-                borderRadius: BorderRadius.circular(10), border: Border.all(color: kBorder)),
+            decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(10), border: Border.all(color: kBorder)),
             child: Text(item.description.isEmpty ? 'No description.' : item.description,
-                style: const TextStyle(color: kTxtSub, fontSize: 13, height: 1.5)),
+                style: const TextStyle(color: kTxt, fontSize: 13, height: 1.5)),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: kCard,
-                borderRadius: BorderRadius.circular(10), border: Border.all(color: kBorder)),
+            decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(10), border: Border.all(color: kBorder)),
             child: Column(children: [
               _SimpleRow('Item Cost', '${item.price}', kGold),
               const Divider(color: kBorder, height: 14),
@@ -518,21 +469,12 @@ class ItemDetailScreen extends StatelessWidget {
           ),
           const Spacer(),
           Row(children: [
-            Expanded(child: _OutlineBtn(label: 'Back', color: kRed,
-                onTap: () => Navigator.pop(context))),
+            Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(
-              label: '+ADD Cart',
-              onTap: () {
-                onAddToCart(CartEntry(id: item.id, name: item.name,
-                    subtitle: item.ability, price: item.price,
-                    isToken: false, imagePath: item.imagePath));
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Added to cart!'), backgroundColor: kGreen,
-                    duration: Duration(seconds: 1)));
-              },
-            )),
+            Expanded(child: _SolidBtn(label: '+ADD Cart', onTap: () {
+              onAddToCart(CartEntry(id: item.id, name: item.name, subtitle: item.ability, price: item.price, isToken: false, imagePath: item.imagePath));
+              Navigator.pop(context);
+            })),
           ]),
           const SizedBox(height: 16),
         ]),
@@ -547,8 +489,7 @@ class _CartSheet extends StatelessWidget {
   final int playerTokens;
   final VoidCallback onQtyChange;
   final VoidCallback onBuy;
-  const _CartSheet({required this.cart, required this.playerTokens,
-      required this.onQtyChange, required this.onBuy});
+  const _CartSheet({required this.cart, required this.playerTokens, required this.onQtyChange, required this.onBuy});
 
   int get _total => cart.fold(0, (s, e) => s + e.price * e.qty);
   bool get _canBuy => playerTokens >= _total;
@@ -556,17 +497,15 @@ class _CartSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      color: kCard, // Yellow background for cart
       constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.68),
       padding: const EdgeInsets.only(top: 8, bottom: 20),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(color: kBorder, borderRadius: BorderRadius.circular(2))),
-
         const Padding(padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Align(alignment: Alignment.centerLeft,
-            child: Text('Cart Items', style: TextStyle(
-                color: kTxt, fontWeight: FontWeight.bold, fontSize: 16)))),
-
+            child: Text('Cart Items', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 16)))),
         cart.isEmpty
           ? const Padding(padding: EdgeInsets.all(32),
               child: Text('Your cart is empty', style: TextStyle(color: kTxtSub)))
@@ -583,21 +522,14 @@ class _CartSheet extends StatelessWidget {
                       _Avatar(imagePath: e.imagePath, tokenIcon: e.tokenIcon, size: 40),
                       const SizedBox(width: 10),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(e.name, style: const TextStyle(color: kTxt,
-                            fontWeight: FontWeight.w600, fontSize: 13)),
+                        Text(e.name, style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)),
                         Text(e.subtitle, style: const TextStyle(color: kPurpleMid, fontSize: 11)),
                       ])),
                       Row(children: [
-                        Text('${e.price}', style: const TextStyle(
-                            color: kGold, fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('${e.price}', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 12)),
                         const SizedBox(width: 8),
-                        _QtyBtn('-', () {
-                          if (e.qty > 1) { e.qty--; } else { cart.removeAt(i); }
-                          onQtyChange();
-                        }),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text('${e.qty}', style: const TextStyle(
-                              color: kTxt, fontWeight: FontWeight.bold))),
+                        _QtyBtn('-', () { if (e.qty > 1) e.qty--; else cart.removeAt(i); onQtyChange(); }),
+                        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('${e.qty}', style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold))),
                         _QtyBtn('+', () { e.qty++; onQtyChange(); }),
                       ]),
                     ]),
@@ -605,31 +537,22 @@ class _CartSheet extends StatelessWidget {
                 },
               ),
             ),
-
         const Divider(color: kBorder, height: 16),
-
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(children: [
             _SimpleRow('Total Cost', '$_total', kGold),
             const SizedBox(height: 4),
-            _SimpleRow('Your Token', '$playerTokens', kGold,
-                suffix: _canBuy ? ' Buyable' : ' Not Buyable',
-                suffixColor: _canBuy ? kGreen : kRed),
+            _SimpleRow('Your Token', '$playerTokens', kGold, suffix: _canBuy ? ' Buyable' : ' Not Buyable', suffixColor: _canBuy ? kGreen : kRed),
           ]),
         ),
-
         const SizedBox(height: 14),
-
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(children: [
-            Expanded(child: _OutlineBtn(label: 'Back', color: kRed,
-                onTap: () => Navigator.pop(context))),
+            Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(
-                label: 'Buy Item',
-                onTap: (cart.isEmpty || !_canBuy) ? null : onBuy)),
+            Expanded(child: _SolidBtn(label: 'Buy Item', onTap: (cart.isEmpty || !_canBuy) ? null : onBuy)),
           ]),
         ),
       ]),
@@ -640,29 +563,20 @@ class _CartSheet extends StatelessWidget {
 // ─── SHARED WIDGETS ───────────────────────────────────────────────────────────
 
 class _ShopCard extends StatelessWidget {
-  final Widget leading;
-  final String name, subtitle;
-  final int price;
-  final List<_TagSpec> tags;
-  final VoidCallback? onDetail;
-  final VoidCallback onAdd;
-
-  const _ShopCard({required this.leading, required this.name,
-      required this.subtitle, required this.price, required this.tags,
-      required this.onAdd, this.onDetail});
+  final Widget leading; final String name, subtitle; final int price; final List<_TagSpec> tags;
+  final VoidCallback? onDetail; final VoidCallback onAdd;
+  const _ShopCard({required this.leading, required this.name, required this.subtitle, required this.price, required this.tags, required this.onAdd, this.onDetail});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-      decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: kBorder)),
+      decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(12), border: Border.all(color: kBorder)),
       child: Row(children: [
         leading, const SizedBox(width: 10),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Flexible(child: Text(name, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13))),
+            Flexible(child: Text(name, overflow: TextOverflow.ellipsis, style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13))),
             const SizedBox(width: 4),
             if (onDetail != null) _DetailBtn(onTap: onDetail!),
             for (final t in tags) ...[const SizedBox(width: 4), _TagWidget(t.label, t.color)],
@@ -672,8 +586,7 @@ class _ShopCard extends StatelessWidget {
         ])),
         const SizedBox(width: 6),
         Row(children: [
-          Text('$price', style: const TextStyle(
-              color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
+          Text('$price', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
           const SizedBox(width: 3),
           const Icon(Icons.monetization_on, color: kGold, size: 14),
           const SizedBox(width: 6),
@@ -684,10 +597,7 @@ class _ShopCard extends StatelessWidget {
   }
 }
 
-class _TagSpec {
-  final String label; final Color color;
-  const _TagSpec(this.label, this.color);
-}
+class _TagSpec { final String label; final Color color; const _TagSpec(this.label, this.color); }
 
 class _TagWidget extends StatelessWidget {
   final String label; final Color color;
@@ -695,8 +605,7 @@ class _TagWidget extends StatelessWidget {
   @override Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
     decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-    child: Text(label, style: const TextStyle(
-        color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+    child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
   );
 }
 
@@ -706,11 +615,7 @@ class _Avatar extends StatelessWidget {
   @override Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(8),
     child: SizedBox(width: size, height: size,
-      child: imagePath != null
-          ? Image.file(File(imagePath!), fit: BoxFit.cover)
-          : Container(color: kCardAlt,
-              child: Icon(tokenIcon ?? Icons.person,
-                  color: kPurpleMid, size: size * 0.55))),
+      child: imagePath != null ? Image.file(File(imagePath!), fit: BoxFit.cover) : Container(color: kCardAlt, child: Icon(tokenIcon ?? Icons.person, color: kPurpleMid, size: size * 0.55))),
   );
 }
 
@@ -722,8 +627,7 @@ class _DetailBtn extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(color: kPurple, borderRadius: BorderRadius.circular(5)),
-      child: const Text('Detail', style: TextStyle(
-          color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: const Text('Detail', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
     ),
   );
 }
@@ -733,9 +637,7 @@ class _PlusBtn extends StatelessWidget {
   const _PlusBtn({required this.onTap});
   @override Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
-    child: Container(width: 26, height: 26,
-      decoration: BoxDecoration(color: kPurple, borderRadius: BorderRadius.circular(6)),
-      child: const Icon(Icons.add, color: Colors.white, size: 18)),
+    child: Container(width: 26, height: 26, decoration: BoxDecoration(color: kPurple, borderRadius: BorderRadius.circular(6)), child: const Icon(Icons.add, color: Colors.white, size: 18)),
   );
 }
 
@@ -744,11 +646,8 @@ class _QtyBtn extends StatelessWidget {
   const _QtyBtn(this.label, this.onTap);
   @override Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
-    child: Container(width: 24, height: 24,
-      decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: kBorder)),
-      child: Center(child: Text(label, style: const TextStyle(
-          color: kPurpleMid, fontWeight: FontWeight.bold, fontSize: 14)))),
+    child: Container(width: 24, height: 24, decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(6), border: Border.all(color: kBorder)),
+      child: Center(child: Text(label, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 14)))),
   );
 }
 
@@ -763,8 +662,7 @@ class _AddItemBtn extends StatelessWidget {
       child: const Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(Icons.add, color: Colors.white, size: 14),
         SizedBox(width: 4),
-        Text('+ADD Item', style: TextStyle(
-            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text('+ADD Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
       ]),
     ),
   );
@@ -773,17 +671,12 @@ class _AddItemBtn extends StatelessWidget {
 class _SecTitle extends StatelessWidget {
   final String text;
   const _SecTitle(this.text);
-  @override Widget build(BuildContext context) => Text(text,
-      style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 14));
+  @override Widget build(BuildContext context) => Text(text, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 14));
 }
 
 class _Field extends StatelessWidget {
-  final TextEditingController ctrl;
-  final String hint;
-  final bool isNumber;
-  final void Function(String)? onChanged;
-  const _Field({required this.ctrl, required this.hint,
-      this.isNumber = false, this.onChanged});
+  final TextEditingController ctrl; final String hint; final bool isNumber; final void Function(String)? onChanged;
+  const _Field({required this.ctrl, required this.hint, this.isNumber = false, this.onChanged});
 
   @override Widget build(BuildContext context) => TextField(
     controller: ctrl, onChanged: onChanged,
@@ -791,14 +684,11 @@ class _Field extends StatelessWidget {
     style: const TextStyle(color: kTxt, fontSize: 13),
     decoration: InputDecoration(
       hintText: hint, hintStyle: const TextStyle(color: kTxtSub, fontSize: 13),
-      filled: true, fillColor: kCard,
+      filled: true, fillColor: kCardAlt,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: kBorder)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: kBorder)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: kPurple, width: 1.5)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: kBorder)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: kBorder)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: kPurple, width: 1.5)),
     ),
   );
 }
@@ -807,17 +697,13 @@ class _Dropdown extends StatelessWidget {
   final String? value; final void Function(String?) onChanged;
   const _Dropdown({required this.value, required this.onChanged});
   @override Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-    decoration: BoxDecoration(color: kCard, borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: kBorder)),
+    padding: const EdgeInsets.symmetric(horizontal: 12),
+    decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(8), border: Border.all(color: kBorder)),
     child: DropdownButton<String>(
-      value: value, isExpanded: true,
-      dropdownColor: kCardAlt, underline: const SizedBox(),
-      style: const TextStyle(color: kTxt, fontSize: 13),
-      icon: const Icon(Icons.keyboard_arrow_down, color: kPurpleMid),
-      hint: const Text('Choose Item ability', style: TextStyle(color: kTxtSub, fontSize: 13)),
+      value: value, isExpanded: true, dropdownColor: const Color.fromARGB(255, 171, 155, 179), underline: const SizedBox(),
+      hint: const Text('Select Item Ability', style: TextStyle(color: kTxtSub, fontSize: 13)),
+      items: _abilities.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: kTxt, fontSize: 13)))).toList(),
       onChanged: onChanged,
-      items: _abilities.map((a) => DropdownMenuItem(value: a, child: Text(a))).toList(),
     ),
   );
 }
@@ -825,35 +711,37 @@ class _Dropdown extends StatelessWidget {
 class _PriceInfo extends StatelessWidget {
   final String label; final int value;
   const _PriceInfo({required this.label, required this.value});
-  @override Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: const TextStyle(color: kTxtSub, fontSize: 13)),
-      Row(children: [
-        Text('$value', style: const TextStyle(
-            color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
-        const SizedBox(width: 4),
-        const Icon(Icons.monetization_on, color: kGold, size: 14),
-      ]),
-    ],
-  );
+  @override Widget build(BuildContext context) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+    Text(label, style: const TextStyle(color: kTxtSub, fontSize: 13)),
+    Row(children: [
+      Text('$value', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
+      const SizedBox(width: 4),
+      const Icon(Icons.monetization_on, color: kGold, size: 16),
+    ]),
+  ]);
 }
 
 class _SimpleRow extends StatelessWidget {
-  final String label, value; final Color color;
-  final String? suffix; final Color? suffixColor;
-  const _SimpleRow(this.label, this.value, this.color,
-      {this.suffix, this.suffixColor});
-  @override Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: const TextStyle(color: kTxtSub, fontSize: 13)),
-      Row(children: [
-        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 13)),
-        if (suffix != null) Text(suffix!, style: TextStyle(
-            color: suffixColor ?? color, fontWeight: FontWeight.bold, fontSize: 12)),
-      ]),
-    ],
+  final String label, value; final Color valColor; final String? suffix; final Color? suffixColor;
+  const _SimpleRow(this.label, this.value, this.valColor, {this.suffix, this.suffixColor});
+  @override Widget build(BuildContext context) => Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+    Text(label, style: const TextStyle(color: kTxtSub, fontSize: 13)),
+    Row(children: [
+      Text(value, style: TextStyle(color: valColor, fontWeight: FontWeight.bold, fontSize: 13)),
+      const SizedBox(width: 4),
+      const Icon(Icons.monetization_on, color: kGold, size: 14),
+      if (suffix != null) Text(suffix!, style: TextStyle(color: suffixColor, fontSize: 11, fontWeight: FontWeight.bold)),
+    ]),
+  ]);
+}
+
+class _SolidBtn extends StatelessWidget {
+  final String label; final VoidCallback? onTap;
+  const _SolidBtn({required this.label, this.onTap});
+  @override Widget build(BuildContext context) => ElevatedButton(
+    onPressed: onTap,
+    style: ElevatedButton.styleFrom(backgroundColor: kPurple, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+    child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
   );
 }
 
@@ -862,26 +750,7 @@ class _OutlineBtn extends StatelessWidget {
   const _OutlineBtn({required this.label, required this.color, required this.onTap});
   @override Widget build(BuildContext context) => OutlinedButton(
     onPressed: onTap,
-    style: OutlinedButton.styleFrom(
-      side: BorderSide(color: color), foregroundColor: color,
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ),
-    child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-  );
-}
-
-class _SolidBtn extends StatelessWidget {
-  final String label; final VoidCallback? onTap;
-  const _SolidBtn({required this.label, this.onTap});
-  @override Widget build(BuildContext context) => ElevatedButton(
-    onPressed: onTap,
-    style: ElevatedButton.styleFrom(
-      backgroundColor: kPurple, disabledBackgroundColor: kPurpleDim,
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-    ),
+    style: OutlinedButton.styleFrom(side: BorderSide(color: color), foregroundColor: color, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
     child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
   );
 }

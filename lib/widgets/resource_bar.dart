@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:rpg_task_manager/app_colors.dart";
+import "package:rpg_task_manager/helpers/app_colors.dart";
 
 class ResourceBar extends StatefulWidget{
   ResourceBar({super.key});

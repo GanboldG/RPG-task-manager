@@ -1,21 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:rpg_task_manager/app_colors.dart';
+import 'package:rpg_task_manager/controllers/task_controller.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
-import 'package:rpg_task_manager/screens/task_screen.dart';
+import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/timer_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
-void main() {
-  // To hide status bar on android phone
-  WidgetsFlutterBinding.ensureInitialized();
+import 'package:provider/provider.dart';
 
+// In main.dart, make sure the callback is set AFTER controller is created
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
   );
 
-  runApp(const MyApp());
+  // Just create the controller - callback is now set in the constructor
+  final taskController = TaskController();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: taskController),
+      ],
+      child: const MyApp(),
+    )
+  );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -26,7 +41,7 @@ class MyApp extends StatelessWidget {
       title: 'RPG Task Manager',
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
-        primaryColor: AppColors.primary,
+        primaryColor: const Color.from(alpha: 1, red: 0.882, green: 0.706, blue: 0.996),
 
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
@@ -42,6 +57,29 @@ class MyApp extends StatelessWidget {
 
         appBarTheme: AppBarThemeData(
           backgroundColor: AppColors.appBarSecondary
+        ),
+
+        datePickerTheme: DatePickerThemeData(
+          backgroundColor: Colors.white,
+          headerBackgroundColor: AppColors.textSecondary, // Or AppColors.primary
+          headerForegroundColor: Colors.white,
+          dayBackgroundColor: WidgetStateProperty.all(Colors.white),
+          dayForegroundColor: WidgetStateProperty.all(Colors.black87),
+          dayOverlayColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.1)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        
+        timePickerTheme: TimePickerThemeData(
+          backgroundColor: Colors.white,
+          hourMinuteColor: AppColors.primary.withOpacity(0.2),
+          hourMinuteTextColor: Colors.black87,
+          dialBackgroundColor: AppColors.primary.withOpacity(0.1),
+          dialHandColor: AppColors.textSecondary,
+          dialTextColor: Colors.black87,
+          entryModeIconColor: AppColors.textSecondary,
+          hourMinuteShape: const CircleBorder(),
         )
       ),
       home: HomePage(),
@@ -61,7 +99,7 @@ class _HomePageState extends State<HomePage> {
     TaskScreen(),
     ShopScreen(),
     ProfileScreen(),
-    SettingsScreen(),
+    SettingsScreen(), 
   ];
 
   @override
