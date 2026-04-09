@@ -8,7 +8,7 @@ class HelperFunctions{
                      style: TextStyle(
                       color: Colors.white,
                      )),
-        duration: Duration(seconds: 2),
+        duration: Duration(seconds: 1),
       ),
     );
   }

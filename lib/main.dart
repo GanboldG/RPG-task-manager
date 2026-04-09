@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
-import 'package:rpg_task_manager/screens/task_screen.dart';
+import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   // To hide status bar on android phone
@@ -15,7 +17,15 @@ void main() {
     SystemUiMode.immersiveSticky,
   );
 
-  runApp(const MyApp());
+  runApp(
+      MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TaskController()),
+        // ChangeNotifierProvider(create: (_) => PlayerController()),
+      ],
+      child: const MyApp(),
+      )
+  );
 }
 
 class MyApp extends StatelessWidget {
