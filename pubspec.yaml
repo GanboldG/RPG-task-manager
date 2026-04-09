@@ -13,7 +13,9 @@ dependencies:
 
   # Аудио файл ашиглах, тоглуулах сан
   just_audio: ^0.9.36
-
+  # Зураг сонгох сан
+  image_picker: ^1.0.7
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

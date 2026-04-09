@@ -6,7 +6,6 @@ import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task_screen.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
-
 void main() {
   // To hide status bar on android phone
   WidgetsFlutterBinding.ensureInitialized();
