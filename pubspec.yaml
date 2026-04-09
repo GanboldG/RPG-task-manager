@@ -10,18 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-
-  # Аудио файл ашиглах, тоглуулах сан
-  just_audio: ^0.9.36
+  just_audio: ^0.9.36 # To play audio
+  provider: ^6.0.0 # To use inheritedWidget in simpler way
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-
-  # App-ын зургыг өөрчлөх сан
-  flutter_launcher_icons: ^0.13.1
-
+  flutter_launcher_icons: ^0.13.1 # To change the app icon
   path_provider: ^2.0.0
   path: ^1.8.0
 
