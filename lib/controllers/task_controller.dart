@@ -6,9 +6,10 @@ class TaskController extends ChangeNotifier{
 
   List<Task> tasks = [
       Task(id: 0, 
-           name: "Learn\nsdf\nsdfsd\nsf",
+           name: "Learn\nsdfsdfsdfgghdfghdgfdhgfhdgfsfgdshjgfshkjfgsfgwyegfwegcfuwbgefuycgwbuyfgcewuyfgcwuyegfbcuiwegfbcuywgeuf",
            difficulty: Difficulty.easy,
-           baseMinutes: 10),
+           baseMinutes: 10,
+           deadline: DateTime.now()),
       Task(id: 1, 
            name: "Die",
            difficulty: Difficulty.medium,

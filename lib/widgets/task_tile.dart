@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:rpg_task_manager/helpers/app_colors.dart";
 import "package:rpg_task_manager/helpers/app_fonts.dart";
+import "package:rpg_task_manager/helpers/helper_functions.dart";
 import "package:rpg_task_manager/models/task.dart";
 
 class TaskTile extends StatefulWidget{
@@ -32,6 +33,7 @@ class _TaskTileState extends State<TaskTile>{
   @override 
   Widget build(BuildContext context){
     return Container(
+      margin: EdgeInsets.symmetric(vertical: 3),
       decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
@@ -42,12 +44,14 @@ class _TaskTileState extends State<TaskTile>{
             ],
             stops: [0.05, 0.15], 
           ),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
         ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildDragListener(),
           _buildCircularProgress(),
+          SizedBox(width:5),
           _buildTaskInfo(),
           _buildRemoveButton(),
         ]
@@ -79,7 +83,6 @@ class _TaskTileState extends State<TaskTile>{
           color: AppColors.textSecondary,
           size: 80,
         ),
-
         Text("${widget.task.doneMinutes}m/${widget.task.baseMinutes}m")
       ]
     );
@@ -89,7 +92,28 @@ class _TaskTileState extends State<TaskTile>{
   // Builds the main task info
   Widget _buildTaskInfo(){
     return Expanded(
-      child: Text(widget.task.name),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            widget.task.name,
+            maxLines: 2,           // Limit to 2 lines
+            overflow: TextOverflow.ellipsis,  // Add "..." when overflow),
+          ),
+
+          // Deadline datetime text
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Text(
+              HelperFunctions.formatDateTimeToString(widget.task.deadline),
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              )
+            )
+          )
+        ]
+      )
     );
   }
 
