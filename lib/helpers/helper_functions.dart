@@ -12,4 +12,15 @@ class HelperFunctions{
       ),
     );
   }
+
+
+  static String formatDateTimeToString(DateTime? dateTime) {
+    if (dateTime == null) return '';
+    return 'Deadline: ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+
+  static int minToSec(double minutes){
+    return (minutes * 60).round();
+  }
 }

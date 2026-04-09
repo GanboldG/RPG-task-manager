@@ -6,27 +6,31 @@ import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/timer_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 
+// In main.dart, make sure the callback is set AFTER controller is created
 void main() {
-  // To hide status bar on android phone
   WidgetsFlutterBinding.ensureInitialized();
-
+  
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
   );
 
+  // Just create the controller - callback is now set in the constructor
+  final taskController = TaskController();
+
   runApp(
-      MultiProvider(
+    MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => TaskController()),
-        // ChangeNotifierProvider(create: (_) => PlayerController()),
+        ChangeNotifierProvider.value(value: taskController),
       ],
       child: const MyApp(),
-      )
+    )
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -53,6 +57,29 @@ class MyApp extends StatelessWidget {
 
         appBarTheme: AppBarThemeData(
           backgroundColor: AppColors.appBarSecondary
+        ),
+
+        datePickerTheme: DatePickerThemeData(
+          backgroundColor: Colors.white,
+          headerBackgroundColor: AppColors.textSecondary, // Or AppColors.primary
+          headerForegroundColor: Colors.white,
+          dayBackgroundColor: WidgetStateProperty.all(Colors.white),
+          dayForegroundColor: WidgetStateProperty.all(Colors.black87),
+          dayOverlayColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.1)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        
+        timePickerTheme: TimePickerThemeData(
+          backgroundColor: Colors.white,
+          hourMinuteColor: AppColors.primary.withOpacity(0.2),
+          hourMinuteTextColor: Colors.black87,
+          dialBackgroundColor: AppColors.primary.withOpacity(0.1),
+          dialHandColor: AppColors.textSecondary,
+          dialTextColor: Colors.black87,
+          entryModeIconColor: AppColors.textSecondary,
+          hourMinuteShape: const CircleBorder(),
         )
       ),
       home: HomePage(),
