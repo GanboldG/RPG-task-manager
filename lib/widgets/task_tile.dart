@@ -10,14 +10,20 @@ class TaskTile extends StatefulWidget{
   final VoidCallback onEdited;
   final VoidCallback onFinished;
   final int index;
-
+  final VoidCallback onPlayPause; 
+  final bool isRunning;
+  final bool isFirstTask;
+  
   TaskTile(
     {super.key, 
     required this.task,
     required this.index,
     required this.onRemoved,
     required this.onEdited,
-    required this.onFinished
+    required this.onFinished,
+    required this.onPlayPause,
+    this.isRunning = false,
+    required this.isFirstTask,
   });
 
   @override 
@@ -83,7 +89,7 @@ class _TaskTileState extends State<TaskTile>{
           color: AppColors.textSecondary,
           size: 80,
         ),
-        Text("${widget.task.doneMinutes}m/${widget.task.baseMinutes}m")
+        Text("${widget.task.getDoneMinutes()}m/${widget.task.getBaseMinutes()}m")
       ]
     );
   }
