@@ -7,6 +7,7 @@ import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
 import 'package:rpg_task_manager/services/timer_service.dart';
+import 'package:rpg_task_manager/screens/statistics/detailed_statistics.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +19,8 @@ void main() {
     SystemUiMode.immersiveSticky,
   );
 
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   // Just create the controller - callback is now set in the constructor
   final taskController = TaskController();
 
@@ -27,12 +30,13 @@ void main() {
         ChangeNotifierProvider.value(value: taskController),
       ],
       child: const MyApp(),
+<<<<<<< HEAD
     )
-  );
+=======
+    ),
+>>>>>>> 7a4d64a (delgermaa profile detailed static)
 }
 
-
-class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
@@ -56,6 +60,7 @@ class MyApp extends StatelessWidget {
         ),
 
         appBarTheme: AppBarThemeData(
+<<<<<<< HEAD
           backgroundColor: AppColors.appBarSecondary
         ),
 
@@ -81,6 +86,10 @@ class MyApp extends StatelessWidget {
           entryModeIconColor: AppColors.textSecondary,
           hourMinuteShape: const CircleBorder(),
         )
+=======
+          backgroundColor: AppColors.appBarSecondary,
+        ),
+>>>>>>> 7a4d64a (delgermaa profile detailed static)
       ),
       home: HomePage(),
     );
@@ -99,50 +108,41 @@ class _HomePageState extends State<HomePage> {
     TaskScreen(),
     ShopScreen(),
     ProfileScreen(),
-    SettingsScreen(), 
+    SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        extendBodyBehindAppBar: true,
-        body: Column(
-          children: [
-            ResourceBar(),
-            Expanded(
-              child: IndexedStack(
-                index: _index,
-                children: _screens,
-              ),
-            )
-          ]
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: _index,
-          onTap: (i) {
-            setState(() => _index = i);
-          },
+      extendBodyBehindAppBar: true,
+      body: Column(
+        children: [
+          ResourceBar(),
+          Expanded(
+            child: IndexedStack(index: _index, children: _screens),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _index,
+        onTap: (i) {
+          setState(() => _index = i);
+        },
 
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.task),
-              label: "Tasks",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.local_grocery_store),
-              label: "Shop",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.man),
-              label: "Profile",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: "Settings",
-            ),
-          ],
-        ),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_grocery_store),
+            label: "Shop",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.man), label: "Profile"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Settings",
+          ),
+        ],
+      ),
     );
   }
 }
