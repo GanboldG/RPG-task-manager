@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       title: 'RPG Task Manager',
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
-        primaryColor: AppColors.primary,
+        primaryColor: const Color.from(alpha: 1, red: 0.882, green: 0.706, blue: 0.996),
 
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
