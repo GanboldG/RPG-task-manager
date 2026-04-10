@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  fl_chart: ^0.68.0
   cupertino_icons: ^1.0.8
   just_audio: ^0.9.36 # To play audio
   provider: ^6.0.0 # To use inheritedWidget in simpler way
@@ -32,3 +33,4 @@ flutter:
     - assets/
     - assets/images/
     - assets/audio/
+    - assets/icons/
