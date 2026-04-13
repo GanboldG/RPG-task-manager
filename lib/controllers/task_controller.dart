@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
+import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task.dart';
 import 'package:rpg_task_manager/services/timer_service.dart';
 
@@ -13,23 +14,29 @@ class TaskController extends ChangeNotifier {
       id: 0, 
       name: "Learn",
       difficulty: Difficulty.easy,
-      baseSeconds: 180,
+      baseDurationSec: 180,
+      doneDurationSec: 0,
       deadline: DateTime.now(),
-      doneSeconds: 0,
+      createdAt: DateTime.now(),
+      reward: Reward(xp: 0, gold: 0, crystal: 0),
     ),
     Task(
       id: 1, 
       name: "Die",
       difficulty: Difficulty.medium,
-      baseSeconds: 120,
-      doneSeconds: 0,
+      baseDurationSec: 180,
+      doneDurationSec: 0,
+      createdAt: DateTime.now(),
+      reward: Reward(xp: 0, gold: 0, crystal: 0),
     ),
     Task(
       id: 2, 
       name: "Repeat",
       difficulty: Difficulty.hard,
-      baseSeconds: 60,
-      doneSeconds: 0,
+      baseDurationSec: 180,
+      doneDurationSec: 0,
+      createdAt: DateTime.now(),
+      reward: Reward(xp: 0, gold: 0, crystal: 0),
     ),
   ];
   
@@ -54,10 +61,12 @@ class TaskController extends ChangeNotifier {
       id: _getNextId(),
       name: name,
       difficulty: difficulty,
-      baseSeconds: HelperFunctions.minToSec(baseMinutes),
+      baseDurationSec: HelperFunctions.minToSec(baseMinutes),
+      doneDurationSec: 0,
       deadline: deadline,
       description: description,
-      doneSeconds: 0,
+      createdAt: DateTime.now(),
+      reward: Reward(xp: 0, gold: 0, crystal: 0),
     );
     
     _tasks.add(newTask);
@@ -91,7 +100,7 @@ class TaskController extends ChangeNotifier {
     final task = _tasks.firstWhere((k) => k.id == id);
     task.name = name;
     task.difficulty = difficulty;
-    task.baseSeconds = (baseMinutes * 60).round();
+    task.baseDurationSec = (baseMinutes * 60).round();
     task.deadline = deadline;
     task.description = description;
 
@@ -102,7 +111,7 @@ class TaskController extends ChangeNotifier {
   void updateTaskProgress(int taskId, int doneSeconds) {
     final task = _findTaskByID(taskId);
     if (task != null) {
-      task.doneSeconds = doneSeconds;
+      task.doneDurationSec = doneSeconds;
       notifyListeners(); // ← This rebuilds the UI
     }
   }

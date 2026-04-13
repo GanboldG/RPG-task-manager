@@ -113,9 +113,13 @@ Widget _buildCircularProgress() {
         child: FittedBox(
             fit: BoxFit.scaleDown, // Shrinks font to fit, but doesn't stretch
             child: Text(
-              "${(widget.task.getBaseMinutes() - widget.task.getDoneMinutes()).toStringAsFixed(1)} min left",
+              "${widget.task.getRemainingTimeString()} left",
               textAlign: TextAlign.center,
             ),
+            // child: Text(
+            //   "${(widget.task.getBaseMinutes() - widget.task.getDoneMinutes()).toStringAsFixed(1)} min left",
+            //   textAlign: TextAlign.center,
+            // ),
           ),
         ),
       ],

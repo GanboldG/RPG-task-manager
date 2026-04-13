@@ -21,7 +21,7 @@ class TimerService extends ChangeNotifier {
     
     _activeTask = task;
     _isRunning = true;
-    _elapsedSeconds = task.doneSeconds;
+    _elapsedSeconds = task.doneDurationSec;
     
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       _elapsedSeconds++;

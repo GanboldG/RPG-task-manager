@@ -15,6 +15,7 @@ class AppColors {
 
   // Appbar
   static const appBarSecondary = Color.fromARGB(255, 204, 204, 204);
+  static const rewardBar = Color.fromARGB(255, 206, 153, 240);
 
   // Resource icons
   static const level = Color.fromARGB(255, 255, 206, 143);
