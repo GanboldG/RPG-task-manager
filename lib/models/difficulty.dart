@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:hive/hive.dart';
 
+part 'difficulty.g.dart';
+
+@HiveType(typeId: 1)  // Each class needs unique typeId
 enum Difficulty {
+  @HiveField(0)
   easy,
+
+  @HiveField(1)
   medium,
+
+  @HiveField(2)
   hard,
+
+  @HiveField(3)
   expert;
 
   // Computed properties

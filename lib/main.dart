@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/task.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
@@ -20,7 +21,7 @@ void main() async {
   );
 
   // Initialize Hive for data storage
-  _initializeHive();
+  await _initializeHive();
 
   final taskController = TaskController();
 
@@ -35,12 +36,13 @@ void main() async {
 }
 
 
-void _initializeHive() async{
+Future<void> _initializeHive() async{
   await Hive.initFlutter();
   
   // Register your adapters
   Hive.registerAdapter(TaskAdapter());
-  
+  Hive.registerAdapter(DifficultyAdapter());
+
   // Open boxes (creates files on disk)
   await Hive.openBox<Task>('active_tasks');
   await Hive.openBox<Task>('completed_tasks');

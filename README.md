@@ -9,10 +9,13 @@ Things to note:
 
 - InheritedWidget ашиглахын оронд Provider ашиглаж, controller-үүдээ build() руу subscribe хийнэ.
 
+------------------------------------------------------------------------------------
+
+Things to do:
+
 Storage:
 - Add storage files:
     - user_info.json - gold, xp, level, inventory items
-    - current_tasks.json - Stores all the current tasks, for loading fast
     - old_tasks.json - Stores all previously deleted / finished tasks, to show stats
     - tasks_progress.json - Stores all the timestamps of tasks in a year/month/day object - to show stats
     - custom_shop_items.json - Stores the info of custom shop items

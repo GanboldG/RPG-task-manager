@@ -17,7 +17,7 @@ class TaskController extends ChangeNotifier {
 
   TaskController() {
     // Gets all task info from hive box (storage)
-    _tasks = taskService.getAllActiveTasks();
+    debugPrint(_tasks.map((o) => o.name).toString());
 
     // Connects TimerService to TaskController
     // This callback is called every second by the timer
@@ -45,7 +45,7 @@ class TaskController extends ChangeNotifier {
       createdAt: DateTime.now(),
       reward: Reward(xp: 0, gold: 0, crystal: 0),
     );
-    
+
     _tasks.add(newTask);
     taskService.addTask(newTask);
 
@@ -91,12 +91,23 @@ class TaskController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Called whenever "Pause" button's pressed, causing updated duration to be saved in Hive
+  void updateHiveTaskDoneDuration({
+    required int taskId,
+  }){
+    final task = _findTaskByID(taskId);
+
+    if (task != null){
+      taskService.updateTask(task);
+    }
+  }
+
   // This gets called every second by the timer
   void updateTaskProgress(int taskId, int doneSeconds) {
     final task = _findTaskByID(taskId);
     if (task != null) {
       task.doneDurationSec = doneSeconds;
-      notifyListeners(); // ← This rebuilds the UI
+      notifyListeners();
     }
   }
 

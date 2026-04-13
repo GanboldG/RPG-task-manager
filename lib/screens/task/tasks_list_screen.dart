@@ -217,10 +217,16 @@ class _TaskScreenState extends State<TaskScreen>{
               ),
             ),
             onPressed: () {
+              // DEBUG to check if idCounter is working
+              HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString());
+
               setState(() {
                 if (isThisTaskRunning) {
                   timerService.stopTimer();
                   HelperFunctions.showMessage(context, "Timer paused for \"${currentTask.name}\"");
+
+                  // Update doneDuration for storage data
+                  controller.updateHiveTaskDoneDuration(taskId: currentTask.id);
                 } else {
                   // If another task is running, stop it first
                   if (timerService.isRunning && timerService.activeTask?.id != currentTask.id) {
