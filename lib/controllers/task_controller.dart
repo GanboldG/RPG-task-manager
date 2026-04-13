@@ -80,7 +80,7 @@ class TaskController extends ChangeNotifier {
     return "Something went wrong";
   }
 
-  void editTask({    
+  void updateTask({    
     required int id,
     String name = "", 
     Difficulty difficulty = Difficulty.easy, 

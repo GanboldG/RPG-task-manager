@@ -336,6 +336,7 @@ class _TaskScreenState extends State<TaskScreen>{
   // Builds floating task add button
   Widget _buildAddButton(BuildContext context){
     return FloatingActionButton(
+      heroTag: "add_button_fab",
       onPressed: () async {
         final result = await Navigator.push(
           context,
