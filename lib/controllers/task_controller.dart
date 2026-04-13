@@ -3,62 +3,39 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/services/task_id_counter.dart';
+import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/timer_service.dart';
 
 class TaskController extends ChangeNotifier {
   final TimerService _timerService = TimerService();
   TimerService get timerService => _timerService;
-
-  final List<Task> _tasks = [
-    Task(
-      id: 0, 
-      name: "Learn",
-      difficulty: Difficulty.easy,
-      baseDurationSec: 180,
-      doneDurationSec: 0,
-      deadline: DateTime.now(),
-      createdAt: DateTime.now(),
-      reward: Reward(xp: 0, gold: 0, crystal: 0),
-    ),
-    Task(
-      id: 1, 
-      name: "Die",
-      difficulty: Difficulty.medium,
-      baseDurationSec: 180,
-      doneDurationSec: 0,
-      createdAt: DateTime.now(),
-      reward: Reward(xp: 0, gold: 0, crystal: 0),
-    ),
-    Task(
-      id: 2, 
-      name: "Repeat",
-      difficulty: Difficulty.hard,
-      baseDurationSec: 180,
-      doneDurationSec: 0,
-      createdAt: DateTime.now(),
-      reward: Reward(xp: 0, gold: 0, crystal: 0),
-    ),
-  ];
-  
+  final TaskService _taskSerivce = TaskService();
+  TaskService get taskService => _taskSerivce;
+  late List<Task> _tasks;
   List<Task> get tasks => _tasks;
 
-  // Constructor that connects TimerService to TaskController
   TaskController() {
+    // Gets all task info from hive box (storage)
+    _tasks = taskService.getAllActiveTasks();
+
+    // Connects TimerService to TaskController
     // This callback is called every second by the timer
     _timerService.onProgressUpdate = (taskId, doneSeconds) {
       updateTaskProgress(taskId, doneSeconds);
     };
   }
 
-  void addTask({
+  // --------------------ADD----------------------
+  Future<void> addTask({  // Returns future, so the caller is aware it's async
     String name = "", 
     Difficulty difficulty = Difficulty.easy, 
     double baseMinutes = 0,
     DateTime? deadline,
     String description = "",
-  }) {
+  }) async {
     final newTask = Task(
-      id: _getNextId(),
+      id: await TaskIdCounter.getNextId(),
       name: name,
       difficulty: difficulty,
       baseDurationSec: HelperFunctions.minToSec(baseMinutes),
@@ -70,9 +47,12 @@ class TaskController extends ChangeNotifier {
     );
     
     _tasks.add(newTask);
+    taskService.addTask(newTask);
+
     notifyListeners();
   }
 
+  // --------------------DELETE----------------------
   String deleteTask(int id) {
     Task? matchedTask = _findTaskByID(id);
 
@@ -82,6 +62,8 @@ class TaskController extends ChangeNotifier {
       }
       
       _tasks.remove(matchedTask);
+      taskService.deleteTask(matchedTask.id);
+
       notifyListeners();
       return matchedTask.name;
     }
@@ -89,6 +71,7 @@ class TaskController extends ChangeNotifier {
     return "Something went wrong";
   }
 
+  // --------------------UPDATE----------------------
   void updateTask({    
     required int id,
     String name = "", 
@@ -104,6 +87,7 @@ class TaskController extends ChangeNotifier {
     task.deadline = deadline;
     task.description = description;
 
+    taskService.updateTask(task);
     notifyListeners();
   }
 
@@ -116,10 +100,6 @@ class TaskController extends ChangeNotifier {
     }
   }
 
-  int _getNextId() {
-    if (_tasks.isEmpty) return 0;
-    return _tasks.map((t) => t.id).reduce((max, id) => id > max ? id : max) + 1;
-  }
 
   Task? _findTaskByID(int id) {
     try {
