@@ -35,7 +35,7 @@ class TaskController extends ChangeNotifier {
   
   List<Task> get tasks => _tasks;
 
-  // ✅ CRITICAL: Constructor that connects TimerService to TaskController
+  // Constructor that connects TimerService to TaskController
   TaskController() {
     // This callback is called every second by the timer
     _timerService.onProgressUpdate = (taskId, doneSeconds) {
@@ -78,6 +78,24 @@ class TaskController extends ChangeNotifier {
     }
 
     return "Something went wrong";
+  }
+
+  void updateTask({    
+    required int id,
+    String name = "", 
+    Difficulty difficulty = Difficulty.easy, 
+    double baseMinutes = 0,
+    DateTime? deadline,
+    String description = "",
+  }){
+    final task = _tasks.firstWhere((k) => k.id == id);
+    task.name = name;
+    task.difficulty = difficulty;
+    task.baseSeconds = (baseMinutes * 60).round();
+    task.deadline = deadline;
+    task.description = description;
+
+    notifyListeners();
   }
 
   // This gets called every second by the timer

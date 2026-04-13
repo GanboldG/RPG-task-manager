@@ -35,7 +35,8 @@ class _TaskScreenState extends State<TaskScreen>{
           children: [
             _buildLabel("Current Task:", 5),
             _buildChosenTask(context),
-            _buildLabel("Tasks:", 5),
+            SizedBox(height: 15),
+            _buildLabel("Tasks:", 0),
             _buildTaskList(context),
           ],
         ),
@@ -120,11 +121,9 @@ class _TaskScreenState extends State<TaskScreen>{
                       ),
                     ),
                   ),
-                  Icon(
-                    Icons.run_circle_outlined,
-                    color: AppColors.textSecondary,
-                    size: 60,
-                  ),
+                  Text(
+                  "${(currentTask.progress * 100).toStringAsFixed(1)}%",
+                )
                 ],
               ),
               SizedBox(width: 16),
@@ -338,6 +337,7 @@ class _TaskScreenState extends State<TaskScreen>{
   // Builds floating task add button
   Widget _buildAddButton(BuildContext context){
     return FloatingActionButton(
+      heroTag: "add_button_fab",
       onPressed: () async {
         final result = await Navigator.push(
           context,
@@ -392,8 +392,8 @@ class _TaskScreenState extends State<TaskScreen>{
       decoration: isFirstTask && !isThisTaskRunning ? BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.5),
-          width: 1.5,
+          color: AppColors.textSecondary.withAlpha(125),
+          width: 2,
         ),
       ) : null,
       child: TaskTile(
