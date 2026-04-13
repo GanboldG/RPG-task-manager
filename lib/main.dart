@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
+import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
@@ -38,10 +39,16 @@ void main() async {
 
 Future<void> _initializeHive() async{
   await Hive.initFlutter();
-  
+
+  //await Hive.deleteFromDisk();
+  // Add default values for new variables of old element
+  // final taskService = TaskService();
+  // await taskService.resetAllHiveData();
+
   // Register your adapters
   Hive.registerAdapter(TaskAdapter());
   Hive.registerAdapter(DifficultyAdapter());
+  Hive.registerAdapter(RewardAdapter());
 
   // Open boxes (creates files on disk)
   await Hive.openBox<Task>('active_tasks');

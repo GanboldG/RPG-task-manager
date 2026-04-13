@@ -322,6 +322,8 @@ class _TaskScreenState extends State<TaskScreen>{
               if (newIndex > oldIndex){newIndex--;}
               final item = tasks.removeAt(oldIndex);
               tasks.insert(newIndex, item);
+
+              controller.updateTaskOrderId();
               
               // IMPORTANT: After reordering, check if the active task is no longer first
               // If the active task was moved from position 0, stop its timer

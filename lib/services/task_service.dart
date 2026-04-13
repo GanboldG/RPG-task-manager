@@ -1,4 +1,3 @@
-import 'package:flutter/rendering.dart';
 import 'package:rpg_task_manager/models/task.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -11,13 +10,14 @@ class TaskService {
     // int newId = await TaskIdCounter.getNextId();
     // Add to box (key = task.id, value = task)
     await activeBox.put(task.id, task);
-    debugPrint(getAllActiveTasks().toString());
     return task.id;
   }
 
   // ----------------GET--------------------
   List<Task> getAllActiveTasks() {
-    return activeBox.values.toList();  // Returns all values
+    final tasks = activeBox.values.toList();
+    tasks.sort((a, b) => a.orderId.compareTo(b.orderId));
+    return tasks;  // Returns all values sorted
   }
 
   Task? getTaskById(int id) {
@@ -65,4 +65,39 @@ class TaskService {
   Future<void> clearCompletedTasks() async {
     await completedBox.clear();
   }
+
+  Future<void> resetAllHiveData() async {
+    // Delete all boxes
+    await Hive.deleteBoxFromDisk('active_tasks');
+    await Hive.deleteBoxFromDisk('completed_tasks');
+    
+    // Or delete everything (all boxes)
+    await Hive.deleteFromDisk();
+  }
+
+  // ----------------MIGRATION---------------------
+  // Adds default values of new variables in old elements
+  // Future<void> migrateTasks() async {
+
+  //   // Migrate active tasks
+  //   for (var key in activeBox.keys) {
+  //     final task = activeBox.get(key);
+  //     if (task != null) {
+  //       // Check if orderId is null (old task)
+  //       if (task.orderId == null) {
+  //         task.orderId = 0;  // Set default value
+  //         await activeBox.put(key, task);
+  //       }
+  //     }
+  //   }
+    
+  //   // Migrate completed tasks
+  //   for (var key in completedBox.keys) {
+  //     final task = completedBox.get(key);
+  //     if (task != null && task.orderId == null) {
+  //       task.orderId = 0;
+  //       await completedBox.put(key, task);
+  //     }
+  //   }
+  // }
 }

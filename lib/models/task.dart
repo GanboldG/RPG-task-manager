@@ -43,7 +43,11 @@ class Task {
   @HiveField(10)
   Reward reward;
 
+  @HiveField(11)
+  int orderId;
+
   Task({required this.id, 
+        required this.orderId,
         required this.name,
         this.description = "",
         this.isCompleted = false,

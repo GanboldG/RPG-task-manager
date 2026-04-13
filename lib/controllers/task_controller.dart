@@ -17,7 +17,7 @@ class TaskController extends ChangeNotifier {
 
   TaskController() {
     // Gets all task info from hive box (storage)
-    debugPrint(_tasks.map((o) => o.name).toString());
+    _tasks = taskService.getAllActiveTasks();
 
     // Connects TimerService to TaskController
     // This callback is called every second by the timer
@@ -36,6 +36,7 @@ class TaskController extends ChangeNotifier {
   }) async {
     final newTask = Task(
       id: await TaskIdCounter.getNextId(),
+      orderId: 0,  // Adding a task always puts at index 1
       name: name,
       difficulty: difficulty,
       baseDurationSec: HelperFunctions.minToSec(baseMinutes),
@@ -46,7 +47,7 @@ class TaskController extends ChangeNotifier {
       reward: Reward(xp: 0, gold: 0, crystal: 0),
     );
 
-    _tasks.add(newTask);
+    _tasks.insert(0, newTask);
     taskService.addTask(newTask);
 
     notifyListeners();
@@ -79,7 +80,7 @@ class TaskController extends ChangeNotifier {
     double baseMinutes = 0,
     DateTime? deadline,
     String description = "",
-  }){
+  }) async {
     final task = _tasks.firstWhere((k) => k.id == id);
     task.name = name;
     task.difficulty = difficulty;
@@ -87,18 +88,18 @@ class TaskController extends ChangeNotifier {
     task.deadline = deadline;
     task.description = description;
 
-    taskService.updateTask(task);
+    await taskService.updateTask(task);
     notifyListeners();
   }
 
   // Called whenever "Pause" button's pressed, causing updated duration to be saved in Hive
   void updateHiveTaskDoneDuration({
     required int taskId,
-  }){
+  }) async {
     final task = _findTaskByID(taskId);
 
     if (task != null){
-      taskService.updateTask(task);
+      await taskService.updateTask(task);
     }
   }
 
@@ -125,5 +126,13 @@ class TaskController extends ChangeNotifier {
     final item = _tasks.removeAt(oldIndex);
     _tasks.insert(newIndex, item);
     notifyListeners();
+  }
+
+  // Needed for storing the task order in files
+  void updateTaskOrderId() async {
+    for (int i = 0; i < tasks.length; i++){
+      tasks[i].orderId = i;
+      await taskService.updateTask(tasks[i]);
+    }
   }
 }
