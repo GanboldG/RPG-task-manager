@@ -39,7 +39,6 @@ class _TaskTileState extends State<TaskTile>{
   @override 
   Widget build(BuildContext context){
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 3),
       decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.centerLeft,
