@@ -120,11 +120,9 @@ class _TaskScreenState extends State<TaskScreen>{
                       ),
                     ),
                   ),
-                  Icon(
-                    Icons.run_circle_outlined,
-                    color: AppColors.textSecondary,
-                    size: 60,
-                  ),
+                  Text(
+                  "${(currentTask.progress * 100).toStringAsFixed(1)}%",
+                )
                 ],
               ),
               SizedBox(width: 16),

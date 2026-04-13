@@ -81,19 +81,47 @@ class _TaskTileState extends State<TaskTile>{
 
 
   // Circular bar to show progress of the task
-  Widget _buildCircularProgress(){
-    return Column(
-      children: [
-        Icon(
-          Icons.run_circle_outlined,
-          color: AppColors.textSecondary,
-          size: 80,
+Widget _buildCircularProgress() {
+  return Column(
+    children: [
+      Padding(
+        padding: EdgeInsets.all(5),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 60,
+              height: 60,
+              child: CircularProgressIndicator(
+                value: widget.task.progress,
+                strokeWidth: 6,
+                backgroundColor: AppColors.textSecondary.withOpacity(0.3),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.textSecondary,
+                ),
+              ),
+            ),
+            Text(
+              "${(widget.task.progress * 100).toStringAsFixed(1)}%",
+            ),
+          ],
         ),
-        Text("${widget.task.getDoneMinutes()}m/${widget.task.getBaseMinutes()}m")
-      ]
+      ),
+      // Auto-size text to fit on one line
+      Container(
+        width: 60, // Match circular progress width
+        margin: EdgeInsets.only(top: 4),
+        child: FittedBox(
+            fit: BoxFit.scaleDown, // Shrinks font to fit, but doesn't stretch
+            child: Text(
+              "${(widget.task.getBaseMinutes() - widget.task.getDoneMinutes()).toStringAsFixed(1)} min left",
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
     );
   }
-
 
   // Builds the main task info
   Widget _buildTaskInfo(){
@@ -113,8 +141,9 @@ class _TaskTileState extends State<TaskTile>{
             child: Text(
               HelperFunctions.formatDateTimeToString(widget.task.deadline),
               style: TextStyle(
-                color: Colors.red,
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.bold,
+                fontSize: 12,
               )
             )
           )
