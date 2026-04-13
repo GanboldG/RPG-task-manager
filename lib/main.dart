@@ -2,22 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:rpg_task_manager/models/difficulty.dart';
+import 'package:rpg_task_manager/models/reward.dart';
+import 'package:rpg_task_manager/models/task.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 // In main.dart, make sure the callback is set AFTER controller is created
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
   );
 
-  // Just create the controller - callback is now set in the constructor
+  // Initialize Hive for data storage
+  await _initializeHive();
+
   final taskController = TaskController();
 
   runApp(
@@ -28,6 +34,26 @@ void main() {
       child: const MyApp(),
     )
   );
+}
+
+
+Future<void> _initializeHive() async{
+  await Hive.initFlutter();
+
+  //await Hive.deleteFromDisk();
+  // Add default values for new variables of old element
+  // final taskService = TaskService();
+  // await taskService.resetAllHiveData();
+
+  // Register your adapters
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(DifficultyAdapter());
+  Hive.registerAdapter(RewardAdapter());
+
+  // Open boxes (creates files on disk)
+  await Hive.openBox<Task>('active_tasks');
+  await Hive.openBox<Task>('completed_tasks');
+  await Hive.openBox('settings');  // Non-typed box for simple values
 }
 
 
@@ -144,4 +170,5 @@ class _HomePageState extends State<HomePage> {
         ),
     );
   }
+
 }

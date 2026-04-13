@@ -217,10 +217,16 @@ class _TaskScreenState extends State<TaskScreen>{
               ),
             ),
             onPressed: () {
+              // DEBUG to check if idCounter is working
+              HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString());
+
               setState(() {
                 if (isThisTaskRunning) {
                   timerService.stopTimer();
                   HelperFunctions.showMessage(context, "Timer paused for \"${currentTask.name}\"");
+
+                  // Update doneDuration for storage data
+                  controller.updateHiveTaskDoneDuration(taskId: currentTask.id);
                 } else {
                   // If another task is running, stop it first
                   if (timerService.isRunning && timerService.activeTask?.id != currentTask.id) {
@@ -316,6 +322,8 @@ class _TaskScreenState extends State<TaskScreen>{
               if (newIndex > oldIndex){newIndex--;}
               final item = tasks.removeAt(oldIndex);
               tasks.insert(newIndex, item);
+
+              controller.updateTaskOrderId();
               
               // IMPORTANT: After reordering, check if the active task is no longer first
               // If the active task was moved from position 0, stop its timer

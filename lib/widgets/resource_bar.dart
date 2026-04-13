@@ -14,7 +14,7 @@ class _ResourceBarState extends State<ResourceBar>{
   @override
   Widget build(BuildContext context){
     return Container(
-      color: AppColors.primary,
+      color: AppColors.rewardBar,
       height: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

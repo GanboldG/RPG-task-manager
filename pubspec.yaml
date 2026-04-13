@@ -11,14 +11,12 @@ dependencies:
     sdk: flutter
   fl_chart: ^0.68.0
   cupertino_icons: ^1.0.8
-
-  # Аудио файл ашиглах, тоглуулах сан
-
-  # Зураг сонгох сан
   image_picker: ^1.0.7
-  
   just_audio: ^0.9.36 # To play audio
   provider: ^6.0.0 # To use inheritedWidget in simpler way
+  shared_preferences: ^2.2.2
+  hive_flutter: ^1.1.0
+  hive: ^2.2.3
 
 dev_dependencies:
   flutter_test:
@@ -27,6 +25,8 @@ dev_dependencies:
   flutter_launcher_icons: ^0.13.1 # To change the app icon
   path_provider: ^2.0.0
   path: ^1.8.0
+  hive_generator: ^2.0.0
+  build_runner: ^2.4.0
 
 flutter_icons:
   android: true
