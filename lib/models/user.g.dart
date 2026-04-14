@@ -25,8 +25,9 @@ class UserAdapter extends TypeAdapter<User> {
       avatarUrl: fields[5] as String?,
       bio: fields[6] as String?,
       experiencePoints: fields[7] as int,
+      experienceThreshold: fields[20] as int,
       golds: fields[8] as int,
-      gems: fields[9] as int,
+      crystals: fields[9] as int,
       level: fields[10] as int,
       ownedItems: (fields[16] as List).cast<Item>(),
       equippedItems: (fields[17] as List).cast<Item>(),
@@ -43,7 +44,7 @@ class UserAdapter extends TypeAdapter<User> {
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(20)
+      ..writeByte(21)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -63,7 +64,7 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(8)
       ..write(obj.golds)
       ..writeByte(9)
-      ..write(obj.gems)
+      ..write(obj.crystals)
       ..writeByte(10)
       ..write(obj.level)
       ..writeByte(11)
@@ -83,7 +84,9 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(18)
       ..write(obj.unlockedAchievements)
       ..writeByte(19)
-      ..write(obj.badges);
+      ..write(obj.badges)
+      ..writeByte(20)
+      ..write(obj.experienceThreshold);
   }
 
   @override

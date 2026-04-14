@@ -34,7 +34,7 @@ class User {
   int golds;
   
   @HiveField(9)
-  int gems;
+  int crystals;
   
   @HiveField(10)
   int level;
@@ -68,6 +68,9 @@ class User {
   @HiveField(19)
   List<int> badges; // Badge IDs
 
+  @HiveField(20)
+  int experienceThreshold;
+
   // Needed models:
   // Badge
   // Achievement
@@ -83,8 +86,9 @@ class User {
     this.avatarUrl,
     this.bio,
     this.experiencePoints = 0,
+    this.experienceThreshold = 0,
     this.golds = 0,
-    this.gems = 0,
+    this.crystals = 0,
     this.level = 1,
     this.ownedItems = const [],
     this.equippedItems = const [],
@@ -97,105 +101,6 @@ class User {
     required this.lastActive,
   });
 
-  // ==================== HELPER METHODS ====================
-  
-  // Update user level based on XP
-  void updateLevel() {
-    // Simple formula: level = 1 + floor(XP / 100)
-    int newLevel = 1 + (experiencePoints ~/ 100);
-    if (newLevel != level) {
-      level = newLevel;
-    }
-  }
-  
-  // Add experience points
-  void addExperience(int xp) {
-    experiencePoints += xp;
-    updateLevel();
-  }
-  
-  // Add coins
-  void addCoins(int amount) {
-    golds += amount;
-  }
-  
-  // Spend coins
-  bool spendCoins(int amount) {
-    if (golds >= amount) {
-      golds -= amount;
-      return true;
-    }
-    return false;
-  }
-  
-  // Add gems (premium currency)
-  void addGems(int amount) {
-    gems += amount;
-  }
-  
-  // Spend gems
-  bool spendGems(int amount) {
-    if (gems >= amount) {
-      gems -= amount;
-      return true;
-    }
-    return false;
-  }
-  
-  // Add item to inventory
-  void addItem(Item item) {
-    ownedItems.add(item);
-  }
-  
-  // Remove item from inventory
-  void removeItem(Item item) {
-    ownedItems.remove(item);
-    equippedItems.remove(item);
-  }
-  
-  // Equip an item
-  void equipItem(int slotIndex, Item item) {
-    if (ownedItems.contains(item)) {
-      equippedItems[slotIndex] = item;
-    }
-  }
-  
-  // Add work time
-  void addWorkTime(Duration duration) {
-    totalWorkTime += duration;
-  }
-  
-  // Unlock achievement
-  void unlockAchievement(int achievementId) {
-    if (!unlockedAchievements.contains(achievementId)) {
-      unlockedAchievements.add(achievementId);
-    }
-  }
-  
-  // Add badge
-  void addBadge(int badgeId) {
-    if (!badges.contains(badgeId)) {
-      badges.add(badgeId);
-    }
-  }
-  
-  // Add friend
-  void addFriend(String userId) {
-    if (!friends.contains(userId)) {
-      friends.add(id);
-    }
-  }
-  
-  // Remove friend
-  void removeFriend(String userId) {
-    friends.remove(userId);
-  }
-  
-  // Update last active timestamp
-  void updateLastActive() {
-    lastActive = DateTime.now();
-  }
-  
   // Copy with method for partial updates
   User copyWith({
     String? fullName,
@@ -217,8 +122,9 @@ class User {
       avatarUrl: avatarUrl ?? this.avatarUrl,
       bio: bio ?? this.bio,
       experiencePoints: this.experiencePoints,
+      experienceThreshold: this.experienceThreshold,
       golds: this.golds,
-      gems: this.gems,
+      crystals: this.crystals,
       level: this.level,
       ownedItems: this.ownedItems,
       equippedItems: this.equippedItems,

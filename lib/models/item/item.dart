@@ -178,11 +178,45 @@ class ItemFactory {
       rarity: rarity,
     );
   }
+
+   static Item createGoldBoostItem({
+    required int id,
+    required String name,
+    required double goldBoostPercent, // 20% boost
+    required int durationMinutes,
+    required int priceGold,
+    required int priceCrystal,
+    required String imageUrl,
+    required bool isPermanent,
+    required int thresholdLevel,
+    required ItemRarity rarity,
+  }) {
+    return Item(
+      id: id,
+      name: name,
+      description: 'Increases gold gain by ${(goldBoostPercent * 100).toInt()}% for $durationMinutes minutes',
+      imageUrl: imageUrl,
+      isPermanent: isPermanent,
+      durationMinutes: durationMinutes,
+      priceGold: priceGold,
+      priceCrystal: priceCrystal,
+      thresholdLevel: thresholdLevel,
+      effects: [
+        ItemEffect(
+          type: EffectType.increaseXpGain,
+          value: goldBoostPercent,
+          isStackable: true,
+          maxStack: 2, // Max 200% boost
+        ),
+      ],
+      rarity: rarity,
+    );
+  }
   
   // Lucky Crystal (increases crystal drop chance)
   static Item createCrystalChanceItem({
     required int id,
-    required double dropChance, // 15% increase
+    required double crystalDropChance, // 15% increase
     required int durationMinutes,
     required int priceGold,
     required int priceCrystal ,
@@ -195,7 +229,7 @@ class ItemFactory {
     return Item(
       id: id,
       name: name,
-      description: 'Increases Crystal drop chance by ${(dropChance * 100).toInt()}%',
+      description: 'Increases Crystal drop chance by ${(crystalDropChance * 100).toInt()}%',
       imageUrl: imageUrl,
       isPermanent: isPermanent,
       durationMinutes: durationMinutes,
@@ -205,7 +239,7 @@ class ItemFactory {
       effects: [
         ItemEffect(
           type: EffectType.increaseCrystalDropChance,
-          value: dropChance,
+          value: crystalDropChance,
           isStackable: false, // Can't stack luck
         ),
       ],

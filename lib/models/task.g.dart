@@ -18,7 +18,7 @@ class TaskAdapter extends TypeAdapter<Task> {
     };
     return Task(
       id: fields[0] as int,
-      orderId: fields[11] as int,
+      orderId: fields[11] as int? ?? 0,
       name: fields[1] as String,
       description: fields[2] as String,
       isCompleted: fields[3] as bool,

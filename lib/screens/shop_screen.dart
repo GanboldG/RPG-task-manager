@@ -5,6 +5,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color(0xFFF9F9F9); // Light background for the screen
@@ -194,26 +196,30 @@ class _TokenShopTab extends StatelessWidget {
   const _TokenShopTab({required this.onAddToCart});
 
   @override
-  Widget build(BuildContext context) => ListView.separated(
-    padding: const EdgeInsets.all(14),
-    itemCount: _tokenItems.length,
-    separatorBuilder: (_, __) => const SizedBox(height: 8),
-    itemBuilder: (_, i) {
-      final t = _tokenItems[i];
-      return _ShopCard(
-        leading: Container(
-          width: 42, height: 42,
-          decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(8)),
-          child: Icon(t.icon, color: kPurpleMid, size: 22),
-        ),
-        name: t.name, subtitle: t.desc, price: t.price, tags: const [],
-        onAdd: () => onAddToCart(CartEntry(
-          id: 'token_$i', name: t.name, subtitle: t.desc,
-          price: t.price, isToken: true, tokenIcon: t.icon,
-        )),
-      );
-    },
-  );
+  Widget build(BuildContext context){
+    ItemShopController controller = context.watch<ItemShopController>();
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(14),
+      itemCount: _tokenItems.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (_, i) {
+        final t = _tokenItems[i];
+        return _ShopCard(
+          leading: Container(
+            width: 42, height: 42,
+            decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(8)),
+            child: Icon(t.icon, color: kPurpleMid, size: 22),
+          ),
+          name: t.name, subtitle: t.desc, price: t.price, tags: const [],
+          onAdd: () => onAddToCart(CartEntry(
+            id: 'token_$i', name: t.name, subtitle: t.desc,
+            price: t.price, isToken: true, tokenIcon: t.icon,
+          )),
+        );
+      },
+    );
+  }
 }
 
 // ─── CUSTOM SHOP TAB ──────────────────────────────────────────────────────────

@@ -1,6 +1,9 @@
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
+import "package:rpg_task_manager/controllers/user_controller.dart";
 import "package:rpg_task_manager/helpers/app_colors.dart";
 import "package:rpg_task_manager/helpers/helper_functions.dart";
+import "package:rpg_task_manager/services/user_service.dart";
 
 class ResourceBar extends StatefulWidget{
   ResourceBar({super.key});
@@ -13,6 +16,8 @@ class ResourceBar extends StatefulWidget{
 class _ResourceBarState extends State<ResourceBar>{
   @override
   Widget build(BuildContext context){
+    final UserController controller = context.watch<UserController>();
+
     return Container(
       color: AppColors.rewardBar,
       height: 50,
@@ -29,7 +34,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("12"),
+              Text(UserService().currentUser.level.toString()),
             ],
           ),
 
@@ -43,7 +48,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("32/100"),
+              Text("${UserService().currentUser.experiencePoints}/${UserService().currentUser.experienceThreshold}"),
             ]
           ),
 
@@ -57,7 +62,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("342,0\$"),
+              Text("${UserService().currentUser.golds}"),
             ]
           ),
 
@@ -71,7 +76,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("23/60"),
+              Text("${UserService().currentUser.crystals}"),
             ]
           )
         ]
