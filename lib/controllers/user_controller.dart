@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
@@ -14,6 +14,12 @@ class UserController extends ChangeNotifier{
     user = UserService().currentUser;
   }
   
+  void addReward(Reward reward){
+    addExperience(reward.xp);
+    addCrystals(reward.crystal);
+    addGolds(reward.gold);
+  }
+
   // Update user level based on XP
   void levelUp() {
     // Simple formula: level = 1 + floor(XP / 100)
@@ -26,20 +32,21 @@ class UserController extends ChangeNotifier{
   void addExperience(int xp) {
     user.experiencePoints += xp;
 
-    if (user.experiencePoints >= user.experienceThreshold){  
+    while (user.experiencePoints >= user.experienceThreshold){  
+      user.experiencePoints = user.experiencePoints - user.experienceThreshold;
       levelUp();
     }
     notifyListeners();
   }
   
   // Add coins
-  void addCoins(int amount) {
+  void addGolds(int amount) {
     user.golds += amount;
     notifyListeners();
   }
   
   // Spend coins
-  bool spendCoins(int amount) {
+  bool spendGolds(int amount) {
     if (user.golds >= amount) {
       user.golds -= amount;
       notifyListeners();
@@ -127,18 +134,6 @@ class UserController extends ChangeNotifier{
 // --------------------------XP Calculator Helpers-----------------------------
 
 class XPSystem {
-  // Calculate XP from task
-  static int calculateXP(Difficulty difficulty, int durationMinutes) {
-    // Base XP: 1 XP per minute, minimum 5 XP
-    int baseXP = durationMinutes.clamp(5, 120);
-    
-    // Apply difficulty multiplier
-    double multipliedXP = baseXP * difficulty.xpMultiplier;
-    
-    // Return as integer (no decimals)
-    return multipliedXP.round();
-  }
-  
   // Get XP needed for next level (exponential growth)
   static int xpForNextLevel(int currentLevel) {
     // Formula: 100 * (1.5 ^ level)

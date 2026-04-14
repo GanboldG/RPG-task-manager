@@ -6,7 +6,7 @@ import "package:rpg_task_manager/helpers/helper_functions.dart";
 import "package:rpg_task_manager/services/user_service.dart";
 
 class ResourceBar extends StatefulWidget{
-  ResourceBar({super.key});
+  const ResourceBar({super.key});
 
   @override
   State<ResourceBar> createState() => _ResourceBarState();
@@ -16,7 +16,7 @@ class ResourceBar extends StatefulWidget{
 class _ResourceBarState extends State<ResourceBar>{
   @override
   Widget build(BuildContext context){
-    final UserController controller = context.watch<UserController>();
+    final controller = context.watch<UserController>();
 
     return Container(
       color: AppColors.rewardBar,
@@ -34,7 +34,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text(UserService().currentUser.level.toString()),
+              Text(controller.user.level.toString()),
             ],
           ),
 
@@ -48,7 +48,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("${UserService().currentUser.experiencePoints}/${UserService().currentUser.experienceThreshold}"),
+              Text("${controller.user.experiencePoints}/${controller.user.experienceThreshold}"),
             ]
           ),
 
@@ -62,7 +62,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("${UserService().currentUser.golds}"),
+              Text("${controller.user.golds}"),
             ]
           ),
 
@@ -76,7 +76,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("${UserService().currentUser.crystals}"),
+              Text("${controller.user.crystals}"),
             ]
           )
         ]

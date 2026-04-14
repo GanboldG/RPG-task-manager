@@ -28,9 +28,9 @@ void main() async {
   await _initializeHive();
   await UserService().initializeUser();
 
-  final taskController = TaskController();
-  final shopController = ItemShopController();
   final userController = UserController();
+  final taskController = TaskController(userController);
+  final shopController = ItemShopController();
 
   runApp(
     MultiProvider(

@@ -46,12 +46,21 @@ enum Difficulty {
     }
   }
 
-   double get xpMultiplier {
+  double get xpMultiplier {
+    switch (this) {
+      case Difficulty.easy: return 1.0;
+      case Difficulty.medium: return 1.5;
+      case Difficulty.hard: return 2;
+      case Difficulty.expert: return 3;
+    }
+  }
+
+   double get goldMultiplier {
     switch (this) {
       case Difficulty.easy: return 1.0;
       case Difficulty.medium: return 1.25;
-      case Difficulty.hard: return 2;
-      case Difficulty.expert: return 2.5;
+      case Difficulty.hard: return 1.5;
+      case Difficulty.expert: return 2;
     }
   }
 }

@@ -420,8 +420,8 @@ class _TaskScreenState extends State<TaskScreen>{
           if (isThisTaskRunning) {
             timerService.stopTimer();
           }
-          String deletedTaskName = controller.deleteTask(task.id);
-          HelperFunctions.showMessage(context, "Finished Task \"$deletedTaskName\" - You earned 100 XP!");
+          controller.finishTask(task.id);
+          // HelperFunctions.showMessage(context, "Finished Task \"$deletedTaskName\" - You earned 100 XP!");
         },
         onEdited: (){
           Navigator.push(

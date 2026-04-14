@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/reward.dart';
 
 part 'user.g.dart';
 

@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
-import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/services/reward_service.dart';
 import 'package:rpg_task_manager/services/task_id_counter.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/timer_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class TaskController extends ChangeNotifier {
   final TimerService _timerService = TimerService();
   TimerService get timerService => _timerService;
   final TaskService _taskSerivce = TaskService();
   TaskService get taskService => _taskSerivce;
+  late UserController _userController;
   late List<Task> _tasks;
   List<Task> get tasks => _tasks;
 
-  TaskController() {
+  TaskController(UserController userController) {
+    _userController = userController;
+    
     // Gets all task info from hive box (storage)
     _tasks = taskService.getAllActiveTasks();
 
@@ -44,13 +49,37 @@ class TaskController extends ChangeNotifier {
       deadline: deadline,
       description: description,
       createdAt: DateTime.now(),
-      reward: Reward(xp: 0, gold: 0, crystal: 0),
+      reward: RewardService.calculateTaskReward(difficulty, baseMinutes.round()),
     );
 
     _tasks.insert(0, newTask);
     taskService.addTask(newTask);
 
     notifyListeners();
+  }
+
+  // --------------------FINISH----------------------
+  String finishTask(int id) {
+    Task? matchedTask = _findTaskByID(id);
+
+    if (matchedTask != null) {
+      if (_timerService.activeTask?.id == id) {
+        _timerService.stopTimer();
+      }
+      
+      _userController.addReward(matchedTask.reward);
+      _tasks.remove(matchedTask);
+      // Add a method in service, that archives the task in finished_task box
+      // Add a method in service, that archives the task in finished_task box
+      // Instead of this::::::::
+      taskService.deleteTask(matchedTask.id);
+      // Add a method in service, that archives the task in finished_task box
+
+      notifyListeners();
+      return matchedTask.name;
+    }
+
+    return "Something went wrong";
   }
 
   // --------------------DELETE----------------------
