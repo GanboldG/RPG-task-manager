@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 class TaskService {
   final Box<Task> activeBox = Hive.box<Task>('active_tasks');
   final Box<Task> completedBox = Hive.box<Task>('completed_tasks');
+  final Box<Task> abandonedBox = Hive.box<Task>('abandoned_tasks');
   
   // ----------------ADD--------------------
   Future<int> addTask(Task task) async {
@@ -52,6 +53,17 @@ class TaskService {
   // ----------------DELETE---------------------
   Future<void> deleteTask(int taskId, {bool permanent = false}) async {
     if (permanent) {
+      Task? task = activeBox.get(taskId);
+      if (task != null){
+        await abandonedBox.put(taskId, task);
+      }
+      else{
+        task = completedBox.get(taskId);
+        if (task != null){
+          await abandonedBox.put(taskId, task);
+        }
+      }
+
       // Delete from wherever it is
       await activeBox.delete(taskId);
       await completedBox.delete(taskId);
@@ -70,6 +82,7 @@ class TaskService {
     // Delete all boxes
     await Hive.deleteBoxFromDisk('active_tasks');
     await Hive.deleteBoxFromDisk('completed_tasks');
+    await Hive.deleteBoxFromDisk('abandoned_tasks');
     
     // Or delete everything (all boxes)
     await Hive.deleteFromDisk();

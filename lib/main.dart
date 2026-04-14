@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
+import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/reward.dart';
@@ -9,6 +11,7 @@ import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -23,13 +26,18 @@ void main() async {
 
   // Initialize Hive for data storage
   await _initializeHive();
+  await UserService().initializeUser();
 
-  final taskController = TaskController();
+  final userController = UserController();
+  final taskController = TaskController(userController);
+  final shopController = ItemShopController();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: taskController),
+        ChangeNotifierProvider.value(value: shopController),
+        ChangeNotifierProvider.value(value: userController),
       ],
       child: const MyApp(),
     )
@@ -53,6 +61,7 @@ Future<void> _initializeHive() async{
   // Open boxes (creates files on disk)
   await Hive.openBox<Task>('active_tasks');
   await Hive.openBox<Task>('completed_tasks');
+  await Hive.openBox<Task>('abandoned_tasks');
   await Hive.openBox('settings');  // Non-typed box for simple values
 }
 

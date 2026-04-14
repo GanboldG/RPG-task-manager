@@ -141,13 +141,27 @@ Widget _buildCircularProgress() {
           // Deadline datetime text
           Align(
             alignment: Alignment.bottomRight,
-            child: Text(
-              HelperFunctions.formatDateTimeToString(widget.task.deadline),
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              )
+            child: Column(
+              children: [
+                Text(
+                  HelperFunctions.formatDateTimeToString(widget.task.deadline),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  )
+                ),
+                
+                if (widget.task.getRewardString() != "")
+                  Text(
+                    widget.task.getRewardString(),
+                    style: TextStyle(
+                      color: const Color.fromARGB(255, 255, 147, 6),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    )
+                  ),
+              ]
             )
           )
         ]
