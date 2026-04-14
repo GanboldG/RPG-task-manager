@@ -28,4 +28,12 @@ class AppColors {
   static const taskMedium = Color.fromARGB(255, 255, 237, 163);
   static const taskHard = Color.fromARGB(255, 255, 134, 134);
   static const taskExpert = Color.fromARGB(255, 255, 76, 76);
+
+  // Rarity colors
+  static const rarityCommon = Color.fromARGB(255, 179, 178, 178);
+  static const rarityUncommon = Color.fromARGB(255, 184, 214, 136);
+  static const rarityRare = Color.fromARGB(255, 80, 255, 214);
+  static const rarityEpic = Color.fromARGB(255, 133, 25, 227);
+  static const rarityLegendary = Color.fromARGB(255, 255, 166, 2);
+  static const rarityMythic = Color.fromARGB(255, 143, 0, 0);
 }

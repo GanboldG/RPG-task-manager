@@ -53,6 +53,7 @@ Future<void> _initializeHive() async{
   // Open boxes (creates files on disk)
   await Hive.openBox<Task>('active_tasks');
   await Hive.openBox<Task>('completed_tasks');
+  await Hive.openBox<Task>('abandoned_tasks');
   await Hive.openBox('settings');  // Non-typed box for simple values
 }
 
