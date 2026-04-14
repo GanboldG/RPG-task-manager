@@ -33,3 +33,10 @@ Tasks:
 Async:
 - Notification control (Stop, Start)
 - Background run, show up on notification panel
+
+
+
+Balance:
+- XP: 
+    - Easy ~ 3
+    - Medium ~ 

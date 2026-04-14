@@ -45,4 +45,13 @@ enum Difficulty {
       case Difficulty.expert: return AppColors.taskExpert;
     }
   }
+
+   double get xpMultiplier {
+    switch (this) {
+      case Difficulty.easy: return 1.0;
+      case Difficulty.medium: return 1.25;
+      case Difficulty.hard: return 2;
+      case Difficulty.expert: return 2.5;
+    }
+  }
 }

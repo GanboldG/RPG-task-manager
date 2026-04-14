@@ -1,4 +1,5 @@
 // services/user_service.dart
+import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/user_id_counter.dart';
 
@@ -25,6 +26,8 @@ class UserService {
       email: 'admin@example.com',
       createdAt: DateTime.now(),
       lastActive: DateTime.now(),
+      level: 1,
+      experienceThreshold: XPSystem.xpForNextLevel(1),
     );
   }
   
