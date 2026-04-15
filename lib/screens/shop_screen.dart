@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color(0xFFF9F9F9); // Light background for the screen
@@ -22,37 +24,6 @@ const kRed       = Color(0xFFB91C1C);
 const kBlue      = Color(0xFF1D4ED8);
 const kTxt       = Color(0xFF000000); // Black text
 const kTxtSub    = Color(0xFF4B5563); // Dark Grey subtext
-
-// ─── Cart model ──────────────────────────────────────────────────────────────
-class CartEntry {
-  final String   id;
-  final String   name;
-  final String   subtitle;
-  final int      price;
-  final bool     isToken;
-  final IconData? tokenIcon;
-  final String?  imagePath;
-  int qty;
-
-  CartEntry({
-    required this.id, required this.name, required this.subtitle,
-    required this.price, required this.isToken,
-    this.tokenIcon, this.imagePath, this.qty = 1,
-  });
-}
-
-// ─── Static token items ───────────────────────────────────────────────────────
-class _TDef {
-  final String name, desc; final int price; final IconData icon;
-  const _TDef(this.name, this.desc, this.price, this.icon);
-}
-
-const _tokenItems = [
-  _TDef('Exp Booster Small',  'Improve your EXP collecting 1 day',   10, Icons.star_outline),
-  _TDef('Exp Booster Big',    'Improve your EXP collecting 7 days',  40, Icons.star),
-  _TDef('Token Booster Small','Improve your token collect 1 day',    10, Icons.toll_outlined),
-  _TDef('Token Booster Big',  'Improve your token collect 7 days',   40, Icons.toll),
-];
 
 // ─── Custom item model ────────────────────────────────────────────────────────
 class CustomItem {
@@ -88,48 +59,34 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
-  final List<CartEntry> _cart = [];
 
-  @override void initState() { super.initState(); _tab = TabController(length: 2, vsync: this); }
-  @override void dispose()   { _tab.dispose(); super.dispose(); }
-
-  void _addToCart(CartEntry e) => setState(() {
-    final ex = _cart.where((c) => c.id == e.id);
-    if (ex.isEmpty) _cart.add(e); else ex.first.qty++;
-  });
-
-  int get _cartCount => _cart.fold(0, (s, e) => s + e.qty);
-  int get _cartTotal => _cart.fold(0, (s, e) => s + e.price * e.qty);
-
-  void _onBuyAll() {
-    setState(() {
-      for (final e in _cart) {
-        if (!e.isToken) {
-          final m = gCustomItems.where((c) => c.id == e.id);
-          if (m.isNotEmpty) m.first.purchaseCount += e.qty;
-        }
-      }
-      gPlayerTokens -= _cartTotal;
-      _cart.clear();
-    });
-    Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Purchase successful! 🎉'),
-        backgroundColor: kGreen, duration: Duration(seconds: 2)));
+  @override void initState() { 
+    super.initState(); 
+    _tab = TabController(length: 2, vsync: this); 
+  }
+  
+  @override void dispose() { 
+    _tab.dispose(); 
+    super.dispose(); 
   }
 
-  void _openCart() {
-    showModalBottomSheet(
-      context: context, backgroundColor: kBg, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => StatefulBuilder(
-        builder: (_, setBS) => _CartSheet(
-          cart: _cart, playerTokens: gPlayerTokens,
-          onQtyChange: () { setBS(() {}); setState(() {}); },
-          onBuy: _onBuyAll,
-        ),
-      ),
-    );
+  void _buyItem(int price, String itemName) {
+    if (gPlayerTokens >= price) {
+      setState(() {
+        gPlayerTokens -= price;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Purchased $itemName!', style: TextStyle(color: AppColors.primaryLight)),
+        backgroundColor: AppColors.textSecondary,
+        duration: const Duration(seconds: 2),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Not enough tokens! 💰'),
+        backgroundColor: kRed,
+        duration: Duration(seconds: 2),
+      ));
+    }
   }
 
   @override
@@ -152,14 +109,14 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
           child: TabBarView(
             controller: _tab,
             children: [
-              _TokenShopTab(onAddToCart: _addToCart),
+              _TokenShopTab(onBuy: _buyItem),
               _CustomShopTab(
-                onAddToCart: _addToCart,
+                onBuy: _buyItem,
                 onRefresh: () => setState(() {}),
                 onViewDetail: (item) => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ItemDetailScreen(
                       item: item, playerTokens: gPlayerTokens,
-                      onAddToCart: _addToCart,
+                      onBuy: _buyItem,
                     ))),
                 onNavigateAdd: () async {
                   await Navigator.push(context, MaterialPageRoute(
@@ -172,50 +129,35 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
           ),
         ),
       ]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openCart, backgroundColor: kPurple,
-        child: Stack(alignment: Alignment.topRight, children: [
-          const Padding(padding: EdgeInsets.all(12),
-              child: Icon(Icons.shopping_cart, color: Colors.white, size: 26)),
-          if (_cartCount > 0)
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: kRed, shape: BoxShape.circle),
-              child: Text('$_cartCount', style: const TextStyle(
-                  color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-            ),
-        ]),
-      ),
     );
   }
 }
 
 // ─── TOKEN SHOP TAB ───────────────────────────────────────────────────────────
 class _TokenShopTab extends StatelessWidget {
-  final void Function(CartEntry) onAddToCart;
-  const _TokenShopTab({required this.onAddToCart});
+  final void Function(int price, String itemName) onBuy;
+  const _TokenShopTab({required this.onBuy});
 
   @override
   Widget build(BuildContext context){
     ItemShopController controller = context.watch<ItemShopController>();
+    final items = controller.items;
 
     return ListView.separated(
       padding: const EdgeInsets.all(14),
-      itemCount: _tokenItems.length,
+      itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) {
-        final t = _tokenItems[i];
+        final item = items[i];
         return _ShopCard(
           leading: Container(
             width: 42, height: 42,
             decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(8)),
-            child: Icon(t.icon, color: kPurpleMid, size: 22),
+            child: Image.asset(item.imageUrl),
           ),
-          name: t.name, subtitle: t.desc, price: t.price, tags: const [],
-          onAdd: () => onAddToCart(CartEntry(
-            id: 'token_$i', name: t.name, subtitle: t.desc,
-            price: t.price, isToken: true, tokenIcon: t.icon,
-          )),
+          name: item.name, subtitle: item.description, price: item.priceGold,
+          tags: const [],
+          onBuy: () => onBuy(item.priceGold, item.name),
         );
       },
     );
@@ -224,11 +166,11 @@ class _TokenShopTab extends StatelessWidget {
 
 // ─── CUSTOM SHOP TAB ──────────────────────────────────────────────────────────
 class _CustomShopTab extends StatefulWidget {
-  final void Function(CartEntry) onAddToCart;
+  final void Function(int price, String itemName) onBuy;
   final void Function(CustomItem) onViewDetail;
   final Future<void> Function() onNavigateAdd;
   final VoidCallback onRefresh;
-  const _CustomShopTab({required this.onAddToCart, required this.onViewDetail,
+  const _CustomShopTab({required this.onBuy, required this.onViewDetail,
       required this.onNavigateAdd, required this.onRefresh});
   @override State<_CustomShopTab> createState() => _CustomShopTabState();
 }
@@ -256,10 +198,7 @@ class _CustomShopTabState extends State<_CustomShopTab> {
           if (!isBest && item.isNew) const _TagSpec('New', Colors.blue),
         ],
         onDetail: () => widget.onViewDetail(item),
-        onAdd: () => widget.onAddToCart(CartEntry(
-          id: item.id, name: item.name, subtitle: item.ability,
-          price: item.price, isToken: false, imagePath: item.imagePath,
-        )),
+        onBuy: () => widget.onBuy(item.price, item.name),
       ),
     );
   }
@@ -427,8 +366,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
 class ItemDetailScreen extends StatelessWidget {
   final CustomItem item;
   final int playerTokens;
-  final void Function(CartEntry) onAddToCart;
-  const ItemDetailScreen({super.key, required this.item, required this.playerTokens, required this.onAddToCart});
+  final void Function(int price, String itemName) onBuy;
+  const ItemDetailScreen({super.key, required this.item, required this.playerTokens, required this.onBuy});
 
   @override
   Widget build(BuildContext context) {
@@ -477,8 +416,8 @@ class ItemDetailScreen extends StatelessWidget {
           Row(children: [
             Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(label: '+ADD Cart', onTap: () {
-              onAddToCart(CartEntry(id: item.id, name: item.name, subtitle: item.ability, price: item.price, isToken: false, imagePath: item.imagePath));
+            Expanded(child: _SolidBtn(label: 'BUY NOW', onTap: () {
+              onBuy(item.price, item.name);
               Navigator.pop(context);
             })),
           ]),
@@ -489,89 +428,12 @@ class ItemDetailScreen extends StatelessWidget {
   }
 }
 
-// ─── CART BOTTOM SHEET ────────────────────────────────────────────────────────
-class _CartSheet extends StatelessWidget {
-  final List<CartEntry> cart;
-  final int playerTokens;
-  final VoidCallback onQtyChange;
-  final VoidCallback onBuy;
-  const _CartSheet({required this.cart, required this.playerTokens, required this.onQtyChange, required this.onBuy});
-
-  int get _total => cart.fold(0, (s, e) => s + e.price * e.qty);
-  bool get _canBuy => playerTokens >= _total;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: kCard, // Yellow background for cart
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.68),
-      padding: const EdgeInsets.only(top: 8, bottom: 20),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(color: kBorder, borderRadius: BorderRadius.circular(2))),
-        const Padding(padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Align(alignment: Alignment.centerLeft,
-            child: Text('Cart Items', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 16)))),
-        cart.isEmpty
-          ? const Padding(padding: EdgeInsets.all(32),
-              child: Text('Your cart is empty', style: TextStyle(color: kTxtSub)))
-          : Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: cart.length,
-                itemBuilder: (_, i) {
-                  final e = cart[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(children: [
-                      _Avatar(imagePath: e.imagePath, tokenIcon: e.tokenIcon, size: 40),
-                      const SizedBox(width: 10),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(e.name, style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)),
-                        Text(e.subtitle, style: const TextStyle(color: kPurpleMid, fontSize: 11)),
-                      ])),
-                      Row(children: [
-                        Text('${e.price}', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 12)),
-                        const SizedBox(width: 8),
-                        _QtyBtn('-', () { if (e.qty > 1) e.qty--; else cart.removeAt(i); onQtyChange(); }),
-                        Padding(padding: const EdgeInsets.symmetric(horizontal: 8), child: Text('${e.qty}', style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold))),
-                        _QtyBtn('+', () { e.qty++; onQtyChange(); }),
-                      ]),
-                    ]),
-                  );
-                },
-              ),
-            ),
-        const Divider(color: kBorder, height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(children: [
-            _SimpleRow('Total Cost', '$_total', kGold),
-            const SizedBox(height: 4),
-            _SimpleRow('Your Token', '$playerTokens', kGold, suffix: _canBuy ? ' Buyable' : ' Not Buyable', suffixColor: _canBuy ? kGreen : kRed),
-          ]),
-        ),
-        const SizedBox(height: 14),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(children: [
-            Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
-            const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(label: 'Buy Item', onTap: (cart.isEmpty || !_canBuy) ? null : onBuy)),
-          ]),
-        ),
-      ]),
-    );
-  }
-}
-
 // ─── SHARED WIDGETS ───────────────────────────────────────────────────────────
 
 class _ShopCard extends StatelessWidget {
   final Widget leading; final String name, subtitle; final int price; final List<_TagSpec> tags;
-  final VoidCallback? onDetail; final VoidCallback onAdd;
-  const _ShopCard({required this.leading, required this.name, required this.subtitle, required this.price, required this.tags, required this.onAdd, this.onDetail});
+  final VoidCallback? onDetail; final VoidCallback onBuy;
+  const _ShopCard({required this.leading, required this.name, required this.subtitle, required this.price, required this.tags, required this.onBuy, this.onDetail});
 
   @override
   Widget build(BuildContext context) {
@@ -596,7 +458,7 @@ class _ShopCard extends StatelessWidget {
           const SizedBox(width: 3),
           const Icon(Icons.monetization_on, color: kGold, size: 14),
           const SizedBox(width: 6),
-          _PlusBtn(onTap: onAdd),
+          _BuyBtn(onTap: onBuy),
         ]),
       ]),
     );
@@ -638,22 +500,16 @@ class _DetailBtn extends StatelessWidget {
   );
 }
 
-class _PlusBtn extends StatelessWidget {
+class _BuyBtn extends StatelessWidget {
   final VoidCallback onTap;
-  const _PlusBtn({required this.onTap});
+  const _BuyBtn({required this.onTap});
   @override Widget build(BuildContext context) => GestureDetector(
     onTap: onTap,
-    child: Container(width: 26, height: 26, decoration: BoxDecoration(color: kPurple, borderRadius: BorderRadius.circular(6)), child: const Icon(Icons.add, color: Colors.white, size: 18)),
-  );
-}
-
-class _QtyBtn extends StatelessWidget {
-  final String label; final VoidCallback onTap;
-  const _QtyBtn(this.label, this.onTap);
-  @override Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(width: 24, height: 24, decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(6), border: Border.all(color: kBorder)),
-      child: Center(child: Text(label, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 14)))),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(6)),
+      child: const Text('BUY', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11)),
+    ),
   );
 }
 

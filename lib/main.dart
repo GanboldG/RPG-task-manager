@@ -7,6 +7,7 @@ import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
@@ -132,6 +133,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _screens = [
     TaskScreen(),
     ShopScreen(),
+    InventoryScreen(),
     ProfileScreen(),
     SettingsScreen(), 
   ];
@@ -166,6 +168,10 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.local_grocery_store),
               label: "Shop",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.inventory),
+              label: "Inventory",
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.man),
