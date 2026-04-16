@@ -1,11 +1,8 @@
-// ============================================================
-// RPG Task Manager – Shop Screen (Updated with Vouchers)
-// ============================================================
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
@@ -39,19 +36,17 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
   late final UserController _userController;
+  late final InventoryController _inventoryController;
 
   @override 
   void initState() { 
     super.initState(); 
     _tab = TabController(length: 2, vsync: this); 
+    
+    _userController = context.read<UserController>();
+    _inventoryController = context.read<InventoryController>();
   }
   
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _userController = context.read<UserController>();
-  }
-
   @override 
   void dispose() { 
     _tab.dispose(); 
@@ -61,8 +56,9 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   // Buy REAL items (XP/Gold boosts)
   void _buyShopItem(Item item) {
     if (_userController.spendGolds(item.priceGold)) {
-      // _applyBoost(item);
-      _userController.addItem(item);
+      // Remove item from shop
+      final shopController = context.read<ItemShopController>();
+      shopController.buyItem(item);
       
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Purchased ${item.name}!', style: TextStyle(color: AppColors.primaryLight)),
@@ -81,7 +77,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   // Buy VOUCHERS (user-created rewards)
   void _buyVoucher(Voucher voucher) {
     if (_userController.spendGolds(voucher.priceGold)) {
-      _userController.addVoucher(voucher);
+      _inventoryController.addVoucher(voucher);
       
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Voucher purchased: ${voucher.name}! Redeem it from your profile.'),
@@ -97,19 +93,22 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     }
   }
 
-  // void _applyBoost(Item item) {
-  //   // Apply XP or Gold boost logic here
-  //   if (item.name.contains('EXP')) {
-  //     _userController.addExpBoost(item.boostValue ?? 0);
-  //   } else if (item.name.contains('Token')) {
-  //     _userController.addGoldBoost(item.boostValue ?? 0);
-  //   }
-  // }
+  void _refreshShop(){
+    final shopController = context.read<ItemShopController>();
+    shopController.refreshShop();
+  }
 
+  // -------------------SHOP SCREEN STATE-----------------------
   @override
   Widget build(BuildContext context) {
+    final itemShopController = context.watch<ItemShopController>();
+
     return Scaffold(
       backgroundColor: kBg,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _refreshShop, // for debugging
+        child: Icon(Icons.refresh, color: kPurple),
+      ),
       body: Column(children: [
         Container(
           color: kCard,
@@ -156,11 +155,13 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   }
 }
 
-// ─── ITEM SHOP TAB (Boosts) ───────────────────────────────────────────────────
+// ─── ITEM SHOP TAB ───────────────────────────────────────────────────
 class _TokenShopTab extends StatelessWidget {
   final void Function(Item item) onBuy;
   const _TokenShopTab({required this.onBuy});
 
+
+  // ----------------------ITEM SHOP TAB--------------------------
   @override
   Widget build(BuildContext context){
     ItemShopController controller = context.watch<ItemShopController>();
@@ -236,6 +237,7 @@ class _VoucherShopTabState extends State<_VoucherShopTab> {
     );
   }
 
+  // ---------------------VOUCHER SHOP TAB-----------------------
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(

@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 part 'item.g.dart';
@@ -66,8 +67,48 @@ class Item {
     required this.level,
     required this.acquiredDate,
     this.remainingSeconds = 300,
-    required this.isActivated
+    required this.isActivated,
   });
+
+  Item copyWith({
+    int? id,
+    String? name,
+    String? description,
+    int? level,
+    int? baseDurationSeconds,
+    int? remainingSeconds,
+    bool? isActivated,
+    DateTime? acquiredDate,
+    String? imageUrl,
+    int? priceGold,
+    bool? isPermanent,
+    ItemRarity? rarity,
+    int? priceCrystal
+  }) {
+    return Item(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      level: level ?? this.level,
+      durationSeconds: baseDurationSeconds ?? this.durationSeconds,
+      remainingSeconds: remainingSeconds ?? this.remainingSeconds,
+      isActivated: isActivated ?? this.isActivated,
+      acquiredDate: acquiredDate ?? this.acquiredDate,
+      imageUrl: imageUrl ?? this.imageUrl,
+      priceGold: priceGold ?? this.priceGold,
+      isPermanent: isPermanent ?? this.isPermanent,
+      rarity: rarity ?? this.rarity,
+      priceCrystal: priceCrystal ?? this.priceCrystal
+    );
+  }
+
+  String getFormattedBaseDuration() {
+    return HelperFunctions.formatDuration(durationSeconds);
+  }
+
+  String getFormattedRemainingDuration() {
+    return HelperFunctions.formatDuration(remainingSeconds);
+  }
 }
 
 // ==================== EFFECT TYPES ====================

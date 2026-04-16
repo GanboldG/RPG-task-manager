@@ -6,7 +6,7 @@ import 'package:rpg_task_manager/models/task.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
 import 'package:rpg_task_manager/services/task_id_counter.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
-import 'package:rpg_task_manager/services/timer_service.dart';
+import 'package:rpg_task_manager/services/timer/task_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class TaskController extends ChangeNotifier {

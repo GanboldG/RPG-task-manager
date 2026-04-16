@@ -71,47 +71,17 @@ class UserController extends ChangeNotifier{
     return false;
   }
   
-  // Add item to inventory
-  void addItem(Item item) {
-    user.ownedItems.add(item);
-  }
-  
-  // Remove item from inventory
-  void removeItem(Item item) {
-    user.ownedItems.remove(item);
-    user.equippedItems.remove(item);
-  }
-  
-  // Equip an item
-  void equipItem(int slotIndex, Item item) {
-    if (user.ownedItems.contains(item)) {
-      user.equippedItems[slotIndex] = item;
-    }
-  }
-
-  void addVoucher(Voucher voucher) {
-    user.vouchers.add(voucher);
-    notifyListeners();
-  }
-    
-  void redeemVoucher(String voucherId) {
-    final index = user.vouchers.indexWhere((v) => v.id == voucherId);
-    if (index != -1 && !user.vouchers[index].isRedeemed) {
-      user.vouchers[index].isRedeemed = true;
-      notifyListeners();
-    }
-  }
-
-  
   // Add work time
   void addWorkTime(Duration duration) {
     user.totalWorkTime += duration;
+    notifyListeners();
   }
   
   // Unlock achievement
   void unlockAchievement(int achievementId) {
     if (user.unlockedAchievements.contains(achievementId)) {
       user.unlockedAchievements.add(achievementId);
+      notifyListeners();
     }
   }
   
@@ -119,6 +89,7 @@ class UserController extends ChangeNotifier{
   void addBadge(int badgeId) {
     if (user.badges.contains(badgeId)) {
       user.badges.add(badgeId);
+      notifyListeners();
     }
   }
   
@@ -126,17 +97,20 @@ class UserController extends ChangeNotifier{
   void addFriend(int userId) {
     if (user.friends.contains(userId)) {
       user.friends.add(userId);
+      notifyListeners();
     }
   }
   
   // Remove friend
   void removeFriend(String userId) {
     user.friends.remove(userId);
+    notifyListeners();
   }
   
   // Update last active timestamp
   void updateLastActive() {
     user.lastActive = DateTime.now();
+    notifyListeners();
   }
 
   // If at lvl 1, calculates lvl 2's required xp

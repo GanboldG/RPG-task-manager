@@ -29,15 +29,16 @@ class UserAdapter extends TypeAdapter<User> {
       golds: fields[8] as int,
       crystals: fields[9] as int,
       level: fields[10] as int,
-      ownedItems: (fields[16] as List).cast<Item>(),
-      equippedItems: (fields[17] as List).cast<Item>(),
-      unlockedAchievements: (fields[18] as List).cast<int>(),
-      badges: (fields[19] as List).cast<int>(),
+      ownedItems: (fields[16] as List?)?.cast<Item>(),
+      equippedItems: (fields[17] as List?)?.cast<Item>(),
+      unlockedAchievements: (fields[18] as List?)?.cast<int>(),
+      badges: (fields[19] as List?)?.cast<int>(),
+      friends: (fields[11] as List?)?.cast<int>(),
       tasksCompleted: fields[14] as int,
       totalWorkTime: fields[15] as Duration,
-      friends: (fields[11] as List).cast<int>(),
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
+      maxEquippedItemAmount: fields[22] as int,
     )..vouchers = (fields[21] as List).cast<Voucher>();
   }
 

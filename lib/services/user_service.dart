@@ -28,6 +28,9 @@ class UserService {
       lastActive: DateTime.now(),
       level: 1,
       experienceThreshold: XPSystem.xpForNextLevel(1),
+      golds: 999,
+      crystals: 999,
+      maxEquippedItemAmount: 3
     );
   }
   

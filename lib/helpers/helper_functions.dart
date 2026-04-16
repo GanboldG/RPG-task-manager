@@ -19,6 +19,30 @@ class HelperFunctions{
     return 'Deadline: ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
+  
+
+  // Helper method to format duration
+  static String formatDuration(int totalSeconds) {
+    if (totalSeconds <= 0) return '0s';
+    
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+    
+    final List<String> parts = [];
+    
+    if (hours > 0) {
+      parts.add('${hours}h');
+    }
+    if (minutes > 0) {
+      parts.add('${minutes}m');
+    }
+    if (seconds > 0 || parts.isEmpty) {
+      parts.add('${seconds}s');
+    }
+    
+    return parts.join(' ');
+  }
 
   static int minToSec(double minutes){
     return (minutes * 60).round();

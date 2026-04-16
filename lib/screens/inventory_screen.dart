@@ -1,12 +1,10 @@
-// ============================================================
-// RPG Task Manager – Inventory Screen (UI Only)
-// ============================================================
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 
 // ─── Color Palette (matching your shop screen) ───────────────────────────────
 const kBg        = Color(0xFFF9F9F9);
@@ -21,50 +19,6 @@ const kRed       = Color(0xFFB91C1C);
 const kTxt       = Color(0xFF000000);
 const kTxtSub    = Color(0xFF4B5563);
 
-// ─── Mock Inventory Item Model ───────────────────────────────────────────────
-class InventoryItem {
-  final String id;
-  final String name;
-  final String imagePath;
-  final int level;
-  final DateTime acquiredDate;
-  final DateTime? expiryDate; // null = permanent
-  final bool isActivated;
-  final DateTime? activatedAt;
-  final int durationHours; // 0 = permanent
-
-  InventoryItem({
-    required this.id,
-    required this.name,
-    required this.imagePath,
-    required this.level,
-    required this.acquiredDate,
-    this.expiryDate,
-    this.isActivated = false,
-    this.activatedAt,
-    this.durationHours = 0,
-  });
-
-  // Helper to check if item is currently active
-  bool get isActive {
-    if (!isActivated) return false;
-    if (durationHours == 0) return true; // permanent
-    if (activatedAt == null) return false;
-    return DateTime.now().difference(activatedAt!).inHours < durationHours;
-  }
-
-  // Get remaining time text
-  String get remainingTime {
-    if (!isActivated) return 'Not activated';
-    if (durationHours == 0) return 'Permanent';
-    if (activatedAt == null) return 'Unknown';
-    final elapsed = DateTime.now().difference(activatedAt!).inHours;
-    final remaining = durationHours - elapsed;
-    if (remaining <= 0) return 'Expired';
-    if (remaining < 24) return '$remaining hours left';
-    return '${(remaining / 24).floor()} days left';
-  }
-}
 
 // ─── Sort Options ────────────────────────────────────────────────────────────
 enum SortOption {
@@ -91,6 +45,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   SortOption _currentSort = SortOption.levelDesc;
   String _searchQuery = '';
+
+  late final _inventoryController;
+
+  @override 
+  void initState() { 
+    super.initState(); 
+    _inventoryController = context.read<InventoryController>();
+  }
 
   List<Item> getFilteredAndSortedItems(List<Item> items) {
     // Filter by search query
@@ -123,9 +85,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     return items;
   }
-
-  // List<InventoryItem> get _activatedItems =>
-  //     _allItems.where((item) => item.isActivated && item.isActive).toList();
 
   void _showItemOptions(Item item) {
     showModalBottomSheet(
@@ -172,7 +131,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 title: const Text('Use / Activate', style: TextStyle(color: kTxt)),
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Implement activate function
+                  _inventoryController.equipItem(item);
                 },
               ),
             const SizedBox(height: 8),
@@ -190,9 +149,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = context.watch<InventoryController>();
-    final activatedItems = controller.activatedItems;
-    final inventoryItems = controller.inventoryItems;
+    final itemTimerService = context.watch<ItemTimerService>(); 
+    final inventoryController = context.watch<InventoryController>();
+    final activatedItems = inventoryController.activatedItems;
+    final inventoryItems = inventoryController.inventoryItems;
+    
+    final userController = context.watch<UserController>();
+    final user = userController.user;
 
     return Scaffold(
       backgroundColor: kBg,
@@ -244,7 +207,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${activatedItems.length} active',
+                          '${activatedItems.length}/${user.maxEquippedItemAmount} active',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -301,19 +264,37 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               child: Row(
                                 children: [
                                   // Item icon placeholder
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: kCardAlt,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.inventory_2,
-                                      color: kPurpleMid,
-                                      size: 24,
-                                    ),
+                                  Column(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: kCardAlt,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Image.asset(item.imageUrl)
+                                      ),
+
+                                      SizedBox(height: 5),
+
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        child: Text(
+                                          'Lv.${item.level}',
+                                          style: const TextStyle(
+                                            color: AppColors.textSecondary,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ]
                                   ),
+
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
@@ -328,34 +309,33 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                             fontSize: 14,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
+
                                         Text(
-                                          "${(item.durationSeconds / 60).toStringAsFixed(1)} min",
-                                          style: TextStyle(
-                                            color: item.isActivated
-                                                ? kGreen
-                                                : kRed,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
+                                          item.description,
+                                          style: const TextStyle(
+                                            color: kPurple,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
+
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: kPurple,
+                                      color: AppColors.textSecondaryLight,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Text(
-                                      'Lv.${item.level}',
-                                      style: const TextStyle(
+                                      item.getFormattedRemainingDuration(),
+                                      style: TextStyle(
                                         color: Colors.white,
-                                        fontSize: 11,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -501,8 +481,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           padding: const EdgeInsets.all(12),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 5,
-                            childAspectRatio: 0.9,
+                            crossAxisCount: 4,
+                            childAspectRatio: 0.65,
                             crossAxisSpacing: 8,
                             mainAxisSpacing: 8,
                           ),
@@ -538,17 +518,24 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                     child: ClipOval(
                                       child: Container(
                                         color: kCard,
-                                        child: const Icon(
-                                          Icons.inventory_2,
-                                          color: kPurpleMid,
-                                          size: 32,
-                                        ),
+                                        child: Image.asset(item.imageUrl)
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     item.name,
+                                    style: const TextStyle(
+                                      color: kTxt,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    "${item.description} (${item.getFormattedBaseDuration()})",
                                     style: const TextStyle(
                                       color: kTxt,
                                       fontSize: 10,

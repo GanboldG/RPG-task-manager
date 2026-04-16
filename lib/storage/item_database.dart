@@ -172,20 +172,20 @@ class ItemDatabase {
     for (var effect in effects) {
       switch (effect.type) {
         case EffectType.increaseXpGain:
-          desc += "+${(effect.value * 100).toInt()}% XP\n";
+          desc += "+${(effect.value * 100).toInt()}% XP";
           break;
         case EffectType.increaseGoldGain:
-          desc += "+${(effect.value * 100).toInt()}% Gold\n";
+          desc += "+${(effect.value * 100).toInt()}% Gold";
           break;
         default:
           break;
       }
     }
-    if (durationMinutes > 0) {
-      desc += "Duration: $durationMinutes min";
-    } else {
-      desc += "Permanent";
-    }
+    // if (durationMinutes > 0) {
+    //   desc += "Duration: $durationMinutes min";
+    // } else {
+    //   desc += "Permanent";
+    // }
     return desc;
   }
 }

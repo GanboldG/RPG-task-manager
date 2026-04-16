@@ -13,6 +13,7 @@ import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
@@ -30,10 +31,11 @@ void main() async {
   await _initializeHive();
   await UserService().initializeUser();
 
+  final itemTimerService = ItemTimerService();
   final userController = UserController();
   final taskController = TaskController(userController);
-  final shopController = ItemShopController();
-  final inventoryController = InventoryController();
+  final inventoryController = InventoryController(itemTimerService);
+  final shopController = ItemShopController(inventoryController);
 
   runApp(
     MultiProvider(
@@ -42,6 +44,7 @@ void main() async {
         ChangeNotifierProvider.value(value: shopController),
         ChangeNotifierProvider.value(value: userController),
         ChangeNotifierProvider.value(value: inventoryController),
+        ChangeNotifierProvider.value(value: itemTimerService),
       ],
       child: const MyApp(),
     )
