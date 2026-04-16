@@ -17,7 +17,8 @@ class TaskService {
   // ----------------GET--------------------
   List<Task> getAllActiveTasks() {
     final tasks = activeBox.values.toList();
-    tasks.sort((a, b) => a.orderId.compareTo(b.orderId));
+
+    tasks.sort((a, b) => (a.orderId ?? 0).compareTo(b.orderId ?? 0));
     return tasks;  // Returns all values sorted
   }
 

@@ -22,19 +22,23 @@ class ItemAdapter extends TypeAdapter<Item> {
       description: fields[2] as String,
       imageUrl: fields[3] as String,
       isPermanent: fields[4] as bool,
-      durationMinutes: fields[5] as int,
+      durationSeconds: fields[5] as int,
       priceGold: fields[6] as int,
       priceCrystal: fields[7] as int,
       thresholdLevel: fields[8] as int,
       effects: (fields[9] as List).cast<ItemEffect>(),
       rarity: fields[10] as ItemRarity,
+      level: fields[11] as int,
+      acquiredDate: fields[12] as DateTime,
+      remainingSeconds: fields[13] as int,
+      isActivated: fields[14] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Item obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -46,7 +50,7 @@ class ItemAdapter extends TypeAdapter<Item> {
       ..writeByte(4)
       ..write(obj.isPermanent)
       ..writeByte(5)
-      ..write(obj.durationMinutes)
+      ..write(obj.durationSeconds)
       ..writeByte(6)
       ..write(obj.priceGold)
       ..writeByte(7)
@@ -56,7 +60,15 @@ class ItemAdapter extends TypeAdapter<Item> {
       ..writeByte(9)
       ..write(obj.effects)
       ..writeByte(10)
-      ..write(obj.rarity);
+      ..write(obj.rarity)
+      ..writeByte(11)
+      ..write(obj.level)
+      ..writeByte(12)
+      ..write(obj.acquiredDate)
+      ..writeByte(13)
+      ..write(obj.remainingSeconds)
+      ..writeByte(14)
+      ..write(obj.isActivated);
   }
 
   @override

@@ -29,22 +29,23 @@ class UserAdapter extends TypeAdapter<User> {
       golds: fields[8] as int,
       crystals: fields[9] as int,
       level: fields[10] as int,
-      ownedItems: (fields[16] as List).cast<Item>(),
-      equippedItems: (fields[17] as List).cast<Item>(),
-      unlockedAchievements: (fields[18] as List).cast<int>(),
-      badges: (fields[19] as List).cast<int>(),
+      ownedItems: (fields[16] as List?)?.cast<Item>(),
+      equippedItems: (fields[17] as List?)?.cast<Item>(),
+      unlockedAchievements: (fields[18] as List?)?.cast<int>(),
+      badges: (fields[19] as List?)?.cast<int>(),
+      friends: (fields[11] as List?)?.cast<int>(),
       tasksCompleted: fields[14] as int,
       totalWorkTime: fields[15] as Duration,
-      friends: (fields[11] as List).cast<int>(),
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
-    );
+      maxEquippedItemAmount: fields[22] as int,
+    )..vouchers = (fields[21] as List).cast<Voucher>();
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -86,7 +87,9 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(19)
       ..write(obj.badges)
       ..writeByte(20)
-      ..write(obj.experienceThreshold);
+      ..write(obj.experienceThreshold)
+      ..writeByte(21)
+      ..write(obj.vouchers);
   }
 
   @override

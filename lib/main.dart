@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
@@ -7,10 +8,12 @@ import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
@@ -28,9 +31,11 @@ void main() async {
   await _initializeHive();
   await UserService().initializeUser();
 
+  final itemTimerService = ItemTimerService();
   final userController = UserController();
   final taskController = TaskController(userController);
-  final shopController = ItemShopController();
+  final inventoryController = InventoryController(itemTimerService);
+  final shopController = ItemShopController(inventoryController);
 
   runApp(
     MultiProvider(
@@ -38,6 +43,8 @@ void main() async {
         ChangeNotifierProvider.value(value: taskController),
         ChangeNotifierProvider.value(value: shopController),
         ChangeNotifierProvider.value(value: userController),
+        ChangeNotifierProvider.value(value: inventoryController),
+        ChangeNotifierProvider.value(value: itemTimerService),
       ],
       child: const MyApp(),
     )
@@ -132,6 +139,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _screens = [
     TaskScreen(),
     ShopScreen(),
+    InventoryScreen(),
     ProfileScreen(),
     SettingsScreen(), 
   ];
@@ -166,6 +174,10 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.local_grocery_store),
               label: "Shop",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.inventory),
+              label: "Inventory",
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.man),

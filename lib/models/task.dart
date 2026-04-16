@@ -44,7 +44,7 @@ class Task {
   Reward reward;
 
   @HiveField(11)
-  int orderId;
+  int? orderId;
 
   Task({required this.id, 
         required this.orderId,

@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 
 part 'user.g.dart';
@@ -72,10 +73,11 @@ class User {
   @HiveField(20)
   int experienceThreshold;
 
-  // Needed models:
-  // Badge
-  // Achievement
-  // Item (bool isToken)
+  @HiveField(21)
+  List<Voucher> vouchers = [];
+
+  @HiveField(22)
+  int maxEquippedItemAmount;
 
   // Constructor
   User({
@@ -91,16 +93,21 @@ class User {
     this.golds = 0,
     this.crystals = 0,
     this.level = 1,
-    this.ownedItems = const [],
-    this.equippedItems = const [],
-    this.unlockedAchievements = const [],
-    this.badges = const [],
+    List<Item>? ownedItems,
+    List<Item>? equippedItems,
+    List<int>? unlockedAchievements,
+    List<int>? badges,
+    List<int>? friends,
     this.tasksCompleted = 0,
     this.totalWorkTime = Duration.zero,
-    this.friends = const [],
     required this.createdAt,
     required this.lastActive,
-  });
+    required this.maxEquippedItemAmount
+  }) : ownedItems = ownedItems ?? [],
+       equippedItems = equippedItems ?? [],
+       unlockedAchievements = unlockedAchievements ?? [],
+       badges = badges ?? [],
+       friends = friends ?? [];
 
   // Copy with method for partial updates
   User copyWith({
@@ -136,6 +143,7 @@ class User {
       friends: this.friends,
       createdAt: this.createdAt,
       lastActive: this.lastActive,
+      maxEquippedItemAmount: this.maxEquippedItemAmount
     );
   }
 }

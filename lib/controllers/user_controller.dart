@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
@@ -22,7 +23,6 @@ class UserController extends ChangeNotifier{
 
   // Update user level based on XP
   void levelUp() {
-    // Simple formula: level = 1 + floor(XP / 100)
     user.level++;
     user.experienceThreshold = calculateNextLevelThreshold();
     notifyListeners();
@@ -71,33 +71,17 @@ class UserController extends ChangeNotifier{
     return false;
   }
   
-  // Add item to inventory
-  void addItem(Item item) {
-    user.ownedItems.add(item);
-  }
-  
-  // Remove item from inventory
-  void removeItem(Item item) {
-    user.ownedItems.remove(item);
-    user.equippedItems.remove(item);
-  }
-  
-  // Equip an item
-  void equipItem(int slotIndex, Item item) {
-    if (user.ownedItems.contains(item)) {
-      user.equippedItems[slotIndex] = item;
-    }
-  }
-  
   // Add work time
   void addWorkTime(Duration duration) {
     user.totalWorkTime += duration;
+    notifyListeners();
   }
   
   // Unlock achievement
   void unlockAchievement(int achievementId) {
     if (user.unlockedAchievements.contains(achievementId)) {
       user.unlockedAchievements.add(achievementId);
+      notifyListeners();
     }
   }
   
@@ -105,6 +89,7 @@ class UserController extends ChangeNotifier{
   void addBadge(int badgeId) {
     if (user.badges.contains(badgeId)) {
       user.badges.add(badgeId);
+      notifyListeners();
     }
   }
   
@@ -112,17 +97,20 @@ class UserController extends ChangeNotifier{
   void addFriend(int userId) {
     if (user.friends.contains(userId)) {
       user.friends.add(userId);
+      notifyListeners();
     }
   }
   
   // Remove friend
   void removeFriend(String userId) {
     user.friends.remove(userId);
+    notifyListeners();
   }
   
   // Update last active timestamp
   void updateLastActive() {
     user.lastActive = DateTime.now();
+    notifyListeners();
   }
 
   // If at lvl 1, calculates lvl 2's required xp

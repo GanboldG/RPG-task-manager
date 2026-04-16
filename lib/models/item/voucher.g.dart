@@ -1,41 +1,37 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'task.dart';
+part of 'voucher.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class TaskAdapter extends TypeAdapter<Task> {
+class VoucherAdapter extends TypeAdapter<Voucher> {
   @override
-  final int typeId = 0;
+  final int typeId = 2;
 
   @override
-  Task read(BinaryReader reader) {
+  Voucher read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Task(
-      id: fields[0] as int,
-      orderId: fields[11] as int?,
+    return Voucher(
+      id: fields[0] as String,
       name: fields[1] as String,
       description: fields[2] as String,
-      isCompleted: fields[3] as bool,
-      difficulty: fields[4] as Difficulty,
-      baseDurationSec: fields[5] as int,
-      doneDurationSec: fields[6] as int,
-      deadline: fields[7] as DateTime?,
-      createdAt: fields[8] as DateTime,
-      completedAt: fields[9] as DateTime?,
-      reward: fields[10] as Reward,
+      priceGold: fields[3] as int,
+      createdAt: fields[4] as DateTime,
+      imagePath: fields[5] as String?,
+      purchaseCount: fields[6] as int,
+      isRedeemed: fields[7] as bool,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Task obj) {
+  void write(BinaryWriter writer, Voucher obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -43,23 +39,15 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.isCompleted)
+      ..write(obj.priceGold)
       ..writeByte(4)
-      ..write(obj.difficulty)
-      ..writeByte(5)
-      ..write(obj.baseDurationSec)
-      ..writeByte(6)
-      ..write(obj.doneDurationSec)
-      ..writeByte(7)
-      ..write(obj.deadline)
-      ..writeByte(8)
       ..write(obj.createdAt)
-      ..writeByte(9)
-      ..write(obj.completedAt)
-      ..writeByte(10)
-      ..write(obj.reward)
-      ..writeByte(11)
-      ..write(obj.orderId);
+      ..writeByte(5)
+      ..write(obj.imagePath)
+      ..writeByte(6)
+      ..write(obj.purchaseCount)
+      ..writeByte(7)
+      ..write(obj.isRedeemed);
   }
 
   @override
@@ -68,7 +56,7 @@ class TaskAdapter extends TypeAdapter<Task> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TaskAdapter &&
+      other is VoucherAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
