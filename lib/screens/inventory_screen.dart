@@ -4,7 +4,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
+import 'package:rpg_task_manager/models/item/item.dart';
 
 // ─── Color Palette (matching your shop screen) ───────────────────────────────
 const kBg        = Color(0xFFF9F9F9);
@@ -90,67 +92,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   SortOption _currentSort = SortOption.levelDesc;
   String _searchQuery = '';
 
-  // Mock data for UI preview
-  List<InventoryItem> _getMockItems() {
-    final now = DateTime.now();
-    return [
-      InventoryItem(
-        id: '1',
-        name: 'Exp Booster',
-        imagePath: 'assets/icons/exp_booster.png',
-        level: 5,
-        acquiredDate: now.subtract(const Duration(days: 2)),
-        isActivated: true,
-        activatedAt: now.subtract(const Duration(hours: 3)),
-        durationHours: 24,
-      ),
-      InventoryItem(
-        id: '2',
-        name: 'Token Booster',
-        imagePath: 'assets/icons/token_booster.png',
-        level: 3,
-        acquiredDate: now.subtract(const Duration(days: 5)),
-        isActivated: true,
-        activatedAt: now.subtract(const Duration(hours: 48)),
-        durationHours: 72,
-      ),
-      InventoryItem(
-        id: '3',
-        name: 'Health Potion',
-        imagePath: 'assets/icons/potion.png',
-        level: 1,
-        acquiredDate: now.subtract(const Duration(days: 1)),
-        isActivated: false,
-      ),
-      InventoryItem(
-        id: '4',
-        name: 'Mana Elixir',
-        imagePath: 'assets/icons/mana.png',
-        level: 2,
-        acquiredDate: now.subtract(const Duration(days: 10)),
-        isActivated: true,
-        activatedAt: now.subtract(const Duration(days: 30)),
-        durationHours: 0, // permanent
-      ),
-      InventoryItem(
-        id: '5',
-        name: 'Legendary Sword',
-        imagePath: 'assets/icons/sword.png',
-        level: 10,
-        acquiredDate: now.subtract(const Duration(days: 30)),
-        isActivated: true,
-        activatedAt: now.subtract(const Duration(hours: 100)),
-        durationHours: 168, // 7 days
-      ),
-    ];
-  }
-
-  // This would come from UserController in real implementation
-  List<InventoryItem> get _allItems => _getMockItems();
-
-  List<InventoryItem> get _filteredAndSortedItems {
-    var items = _allItems;
-
+  List<Item> getFilteredAndSortedItems(List<Item> items) {
     // Filter by search query
     if (_searchQuery.isNotEmpty) {
       items = items.where((item) =>
@@ -182,10 +124,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return items;
   }
 
-  List<InventoryItem> get _activatedItems =>
-      _allItems.where((item) => item.isActivated && item.isActive).toList();
+  // List<InventoryItem> get _activatedItems =>
+  //     _allItems.where((item) => item.isActivated && item.isActive).toList();
 
-  void _showItemOptions(InventoryItem item) {
+  void _showItemOptions(Item item) {
     showModalBottomSheet(
       context: context,
       backgroundColor: kCard,
@@ -248,12 +190,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // In real implementation, you would get items from UserController:
-    // final userController = context.watch<UserController>();
-    // final items = userController.inventoryItems;
-
-    final activatedItems = _activatedItems;
-    final inventoryItems = _filteredAndSortedItems;
+    final controller = context.watch<InventoryController>();
+    final activatedItems = controller.activatedItems;
+    final inventoryItems = controller.inventoryItems;
 
     return Scaffold(
       backgroundColor: kBg,
@@ -391,9 +330,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          item.remainingTime,
+                                          "${(item.durationSeconds / 60).toStringAsFixed(1)} min",
                                           style: TextStyle(
-                                            color: item.isActive
+                                            color: item.isActivated
                                                 ? kGreen
                                                 : kRed,
                                             fontSize: 11,
@@ -582,13 +521,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                       shape: BoxShape.circle,
                                       color: kCardAlt,
                                       border: Border.all(
-                                        color: item.isActivated && item.isActive
+                                        color: item.isActivated && item.isActivated
                                             ? kGreen
                                             : kBorder,
                                         width: 2,
                                       ),
                                       boxShadow: [
-                                        if (item.isActivated && item.isActive)
+                                        if (item.isActivated && item.isActivated)
                                           BoxShadow(
                                             color: kGreen.withOpacity(0.3),
                                             blurRadius: 8,
@@ -627,7 +566,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  if (item.isActivated && item.isActive)
+                                  if (item.isActivated && item.isActivated)
                                     Container(
                                       margin: const EdgeInsets.only(top: 2),
                                       padding: const EdgeInsets.symmetric(

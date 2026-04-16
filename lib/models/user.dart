@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 
 part 'user.g.dart';
@@ -72,10 +73,8 @@ class User {
   @HiveField(20)
   int experienceThreshold;
 
-  // Needed models:
-  // Badge
-  // Achievement
-  // Item (bool isToken)
+  @HiveField(21)
+  List<Voucher> vouchers = [];
 
   // Constructor
   User({

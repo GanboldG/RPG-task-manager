@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
@@ -32,6 +33,7 @@ void main() async {
   final userController = UserController();
   final taskController = TaskController(userController);
   final shopController = ItemShopController();
+  final inventoryController = InventoryController();
 
   runApp(
     MultiProvider(
@@ -39,6 +41,7 @@ void main() async {
         ChangeNotifierProvider.value(value: taskController),
         ChangeNotifierProvider.value(value: shopController),
         ChangeNotifierProvider.value(value: userController),
+        ChangeNotifierProvider.value(value: inventoryController),
       ],
       child: const MyApp(),
     )

@@ -38,13 +38,13 @@ class UserAdapter extends TypeAdapter<User> {
       friends: (fields[11] as List).cast<int>(),
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
-    );
+    )..vouchers = (fields[21] as List).cast<Voucher>();
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -86,7 +86,9 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(19)
       ..write(obj.badges)
       ..writeByte(20)
-      ..write(obj.experienceThreshold);
+      ..write(obj.experienceThreshold)
+      ..writeByte(21)
+      ..write(obj.vouchers);
   }
 
   @override

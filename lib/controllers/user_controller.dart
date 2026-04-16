@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
@@ -22,7 +23,6 @@ class UserController extends ChangeNotifier{
 
   // Update user level based on XP
   void levelUp() {
-    // Simple formula: level = 1 + floor(XP / 100)
     user.level++;
     user.experienceThreshold = calculateNextLevelThreshold();
     notifyListeners();
@@ -88,6 +88,20 @@ class UserController extends ChangeNotifier{
       user.equippedItems[slotIndex] = item;
     }
   }
+
+  void addVoucher(Voucher voucher) {
+    user.vouchers.add(voucher);
+    notifyListeners();
+  }
+    
+  void redeemVoucher(String voucherId) {
+    final index = user.vouchers.indexWhere((v) => v.id == voucherId);
+    if (index != -1 && !user.vouchers[index].isRedeemed) {
+      user.vouchers[index].isRedeemed = true;
+      notifyListeners();
+    }
+  }
+
   
   // Add work time
   void addWorkTime(Duration duration) {

@@ -13,66 +13,48 @@ class ItemDatabase {
       id: 1001,
       name: 'Minor XP Potion',
       xpBoostPercent: 0.10, // Base value (will be randomized)
-      durationMinutes: 15,
+      durationSeconds: 15,
       priceGold: 50,
       priceCrystal: 0,
       imageUrl: 'assets/images/items/minor_xp_potion.png',
       isPermanent: false,
       thresholdLevel: 0,
       rarity: ItemRarity.common,
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
     ),
     
     ItemFactory.createGoldBoostItem(
       id: 1002,
       name: 'Gold Charm',
       goldBoostPercent: 0.08,
-      durationMinutes: 20,
+      durationSeconds: 20,
       priceGold: 40,
       priceCrystal: 0,
       imageUrl: 'assets/images/items/gold_charm.png',
       isPermanent: false,
       thresholdLevel: 0,
       rarity: ItemRarity.common,
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
     ),
-    
-    // // Uncommon Items
-    // ItemFactory.createXpBoostItem(
-    //   id: 2001,
-    //   name: 'Elixir of Wisdom',
-    //   xpBoostPercent: 0.20,
-    //   durationMinutes: 30,
-    //   priceGold: 150,
-    //   priceCrystal: 0,
-    //   imageUrl: 'assets/images/items/uncommon/xp_elixir.png',
-    //   isPermanent: false,
-    //   thresholdLevel: 5,
-    //   rarity: ItemRarity.uncommon,
-    // ),
-    
-    // ItemFactory.createGoldBoostItem(
-    //   id: 2002,
-    //   name: 'Golden Ring',
-    //   goldBoostPercent: 0.18,
-    //   durationMinutes: 45,
-    //   priceGold: 200,
-    //   priceCrystal: 0,
-    //   imageUrl: 'assets/images/items/uncommon/gold_ring.png',
-    //   isPermanent: true,
-    //   thresholdLevel: 5,
-    //   rarity: ItemRarity.uncommon,
-    // ),
     
     ItemFactory.createCrystalChanceItem(
       id: 2003,
       name: 'Crystal Shard',
       crystalDropChance: 0.08,
-      durationMinutes: 60,
+      durationSeconds: 60,
       priceGold: 180,
       priceCrystal: 10,
       imageUrl: 'assets/images/items/crystal_shard.png',
       isPermanent: false,
       thresholdLevel: 5,
-      rarity: ItemRarity.uncommon,
+      rarity: ItemRarity.uncommon,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
     ),
     
     // Rare Items
@@ -142,11 +124,13 @@ class ItemDatabase {
     }).toList();
     
     // Randomize duration (±30%)
-    int newDuration = original.durationMinutes;
-    if (original.durationMinutes > 0) {
+    int originalDurationMinutes = (original.durationSeconds / 60).round();
+
+    late int newDurationMin;
+    if (original.durationSeconds > 0) {
       double durationVariance = 0.7 + _random.nextDouble() * 0.6;
-      newDuration = (original.durationMinutes * durationVariance).round();
-      newDuration = newDuration.clamp(5, 240); // Min 5 min, Max 4 hours
+      newDurationMin = (originalDurationMinutes * durationVariance).round();
+      newDurationMin = newDurationMin.clamp(5, 240); // Min 5 min, Max 4 hours
     }
     
     // Randomize price based on item strength
@@ -168,15 +152,18 @@ class ItemDatabase {
     return Item(
       id: newId,
       name: original.name,
-      description: _generateDescription(randomizedEffects, newDuration),
+      description: _generateDescription(randomizedEffects, newDurationMin),
       imageUrl: original.imageUrl,
-      isPermanent: newDuration == 0,
-      durationMinutes: newDuration,
+      isPermanent: newDurationMin == 0,
+      durationSeconds: newDurationMin * 60,
       priceGold: newPriceGold,
       priceCrystal: newPriceCrystal,
       thresholdLevel: original.thresholdLevel,
       effects: randomizedEffects,
       rarity: original.rarity,
+      level: original.level,
+      isActivated: original.isActivated,
+      acquiredDate: original.acquiredDate
     );
   }
   

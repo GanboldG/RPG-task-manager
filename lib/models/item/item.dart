@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
-import 'package:rpg_task_manager/services/task_id_counter.dart';
-import 'package:rpg_task_manager/services/user_id_counter.dart';
 
 part 'item.g.dart';
 
@@ -25,7 +22,7 @@ class Item {
   bool isPermanent;
 
   @HiveField(5)
-  int durationMinutes;
+  int durationSeconds;
   
   @HiveField(6)
   int priceGold;
@@ -42,18 +39,34 @@ class Item {
   @HiveField(10)
   ItemRarity rarity;
 
+  @HiveField(11)
+  int level;
+
+  @HiveField(12)
+  DateTime acquiredDate;
+
+  @HiveField(13)
+  int remainingSeconds;
+
+  @HiveField(14)
+  bool isActivated;
+
   Item({
     required this.id,
     required this.name,
     required this.description,
     required this.imageUrl,
     required this.isPermanent,
-    this.durationMinutes = 5,
+    this.durationSeconds = 300,
     required this.priceGold,
     required this.priceCrystal,
     this.thresholdLevel = 0,
     this.effects = const [],
     required this.rarity,
+    required this.level,
+    required this.acquiredDate,
+    this.remainingSeconds = 300,
+    required this.isActivated
   });
 }
 
@@ -149,21 +162,24 @@ class ItemFactory {
     required int id,
     required String name,
     required double xpBoostPercent, // 20% boost
-    required int durationMinutes,
+    required int durationSeconds,
     required int priceGold,
     required int priceCrystal,
     required String imageUrl,
     required bool isPermanent,
     required int thresholdLevel,
     required ItemRarity rarity,
+    required int level,
+    required DateTime acquiredDate,
+    required bool isActivated,
   }) {
     return Item(
       id: id,
       name: name,
-      description: 'Increases XP gain by ${(xpBoostPercent * 100).toInt()}% for $durationMinutes minutes',
+      description: 'Increases XP gain by ${(xpBoostPercent * 100).toInt()}% for ${(durationSeconds / 60).toStringAsFixed(1)} minutes',
       imageUrl: imageUrl,
       isPermanent: isPermanent,
-      durationMinutes: durationMinutes,
+      durationSeconds: durationSeconds,
       priceGold: priceGold,
       priceCrystal: priceCrystal,
       thresholdLevel: thresholdLevel,
@@ -176,6 +192,10 @@ class ItemFactory {
         ),
       ],
       rarity: rarity,
+      level: level,
+      acquiredDate: acquiredDate,
+      remainingSeconds: durationSeconds,
+      isActivated : isActivated,
     );
   }
 
@@ -183,21 +203,24 @@ class ItemFactory {
     required int id,
     required String name,
     required double goldBoostPercent, // 20% boost
-    required int durationMinutes,
+    required int durationSeconds,
     required int priceGold,
     required int priceCrystal,
     required String imageUrl,
     required bool isPermanent,
     required int thresholdLevel,
     required ItemRarity rarity,
+    required int level,
+    required DateTime acquiredDate,
+    required bool isActivated,
   }) {
     return Item(
       id: id,
       name: name,
-      description: 'Increases gold gain by ${(goldBoostPercent * 100).toInt()}% for $durationMinutes minutes',
+      description: 'Increases gold gain by ${(goldBoostPercent * 100).toInt()}% for ${(durationSeconds / 60).toStringAsFixed(1)} minutes',
       imageUrl: imageUrl,
       isPermanent: isPermanent,
-      durationMinutes: durationMinutes,
+      durationSeconds: durationSeconds,
       priceGold: priceGold,
       priceCrystal: priceCrystal,
       thresholdLevel: thresholdLevel,
@@ -210,6 +233,10 @@ class ItemFactory {
         ),
       ],
       rarity: rarity,
+      level: level,
+      acquiredDate: acquiredDate,
+      remainingSeconds: durationSeconds,
+      isActivated : isActivated,
     );
   }
   
@@ -217,7 +244,7 @@ class ItemFactory {
   static Item createCrystalChanceItem({
     required int id,
     required double crystalDropChance, // 15% increase
-    required int durationMinutes,
+    required int durationSeconds,
     required int priceGold,
     required int priceCrystal ,
     required String imageUrl,
@@ -225,6 +252,9 @@ class ItemFactory {
     required bool isPermanent,
     required int thresholdLevel,
     required ItemRarity rarity,
+    required int level,
+    required DateTime acquiredDate,
+    required bool isActivated,
   }) {
     return Item(
       id: id,
@@ -232,7 +262,7 @@ class ItemFactory {
       description: 'Increases Crystal drop chance by ${(crystalDropChance * 100).toInt()}%',
       imageUrl: imageUrl,
       isPermanent: isPermanent,
-      durationMinutes: durationMinutes,
+      durationSeconds: durationSeconds,
       priceGold: priceGold,
       priceCrystal: priceCrystal,
       thresholdLevel: thresholdLevel,
@@ -244,65 +274,10 @@ class ItemFactory {
         ),
       ],
       rarity: rarity,
+      level: level,
+      acquiredDate: acquiredDate,
+      remainingSeconds: durationSeconds,
+      isActivated : isActivated,
     );
   }
-  
-  // // Trade-off Amulet (more XP, less gold)
-  // static Item createTradeOffAmulet({
-  //   required int id,
-  //   double xpIncrease = 0.5, // 50% more XP
-  //   double goldDecrease = 0.25, // 25% less gold
-  //   int priceGold = 500,
-  // }) {
-  //   return Item(
-  //     id: id,
-  //     name: 'Amulet of Greed',
-  //     description: '+${(xpIncrease * 100).toInt()}% XP, -${(goldDecrease * 100).toInt()}% Gold',
-  //     icon: Icon(Icons.auto_mode_outlined),
-  //     isPermanent: true,
-  //     priceGold: priceGold,
-  //     priceCrystal: 0,
-  //     thresholdLevel: 20,
-  //     effects: [
-  //       ItemEffect(
-  //         type: EffectType.increaseGoldGain,
-  //         value: xpIncrease,
-  //         secondaryValue: goldDecrease.toString(),
-  //         isStackable: false,
-  //       ),
-  //     ],
-  //     rarity: ItemRarity.common,
-  //   );
-  // }
-  
-  // // Permanent Membership Card (reduces shop prices)
-  // static Item createMembershipCard({
-  //   required int id,
-  //   double discount = 0.1, // 10% discount
-  //   int priceCrystal = 200,
-  // }) {
-  //   return Item(
-  //     id: id,
-  //     name: 'Premium Membership',
-  //     description: 'Permanently reduces all shop prices by ${(discount * 100).toInt()}%',
-  //     icon: Icon(Icons.card_giftcard),
-  //     isPermanent: true,
-  //     priceGold: 0,
-  //     priceCrystal: priceCrystal,
-  //     thresholdLevel: 15,
-  //     effects: [
-  //       ItemEffect(
-  //         type: EffectType.reduceBaseShopCost,
-  //         value: discount,
-  //         isStackable: false, // Membership doesn't stack
-  //       ),
-  //       ItemEffect(
-  //         type: EffectType.reduceCustomShopCost,
-  //         value: discount,
-  //         isStackable: false,
-  //       ),
-  //     ],
-  //     rarity: ItemRarity.common,
-  //   );
-  // }
 }
