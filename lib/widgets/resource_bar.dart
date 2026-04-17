@@ -3,7 +3,6 @@ import "package:provider/provider.dart";
 import "package:rpg_task_manager/controllers/user_controller.dart";
 import "package:rpg_task_manager/helpers/app_colors.dart";
 import "package:rpg_task_manager/helpers/helper_functions.dart";
-import "package:rpg_task_manager/services/user_service.dart";
 
 class ResourceBar extends StatefulWidget{
   const ResourceBar({super.key});
@@ -34,7 +33,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text(controller.user.level.toString()),
+              Text("LVL ${controller.user.level.toString()}"),
             ],
           ),
 
@@ -48,7 +47,7 @@ class _ResourceBarState extends State<ResourceBar>{
                 outlineWidth: 2,
               ),
 
-              Text("${controller.user.experiencePoints}/${controller.user.experienceThreshold}"),
+              Text(controller.getExperienceString()),
             ]
           ),
 

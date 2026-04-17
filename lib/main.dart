@@ -13,6 +13,7 @@ import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/config_service.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
@@ -29,6 +30,7 @@ void main() async {
 
   // Initialize Hive for data storage
   await _initializeHive();
+  await ConfigService.loadConfigs();
   await UserService().initializeUser();
 
   final itemTimerService = ItemTimerService();

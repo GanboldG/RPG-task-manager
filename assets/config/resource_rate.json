@@ -1,0 +1,33 @@
+{
+    "base_xp": 100,
+    "easy_task_xp_multiplier": 1,
+    "medium_task_xp_multiplier": 1.5,
+    "hard_task_xp_multiplier": 2,
+    "expert_task_xp_multiplier": 3,
+
+    "xp_per_task_5minutes": 0.08, 
+    "base_xp_per_level": 0.05, 
+    "xp_max_variance": 1.2, 
+
+    "base_xp_to_level": 150,
+    "xp_growth_factor": 1.17,
+
+    "base_gold": 5,
+    "easy_task_gold_multiplier": 1,
+    "medium_task_gold_multiplier": 1.5,
+    "hard_task_gold_multiplier": 2,
+    "expert_task_gold_multiplier": 3,
+
+    "gold_per_task_5minutes": 0.08,
+    "base_gold_per_level": 0.05,
+    "gold_max_variance": 1.1,
+
+    "base_crystal_drop_chance": 0.005,
+    "easy_task_crystal_multiplier": 1,
+    "medium_task_crystal_multiplier": 1.5,
+    "hard_task_crystal_multiplier": 2,
+    "expert_task_crystal_multiplier": 3,
+
+    "item_duration_per_level": 1.1,
+    "item_duration_max_variance": 2
+}
