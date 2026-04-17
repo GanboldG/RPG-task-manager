@@ -101,4 +101,20 @@ class HelperFunctions{
       ],
     );
   }
+
+  // Formats int into 1.2k , 13M etc
+  static String formatNumberSuffix(int number) {
+    if (number < 1000) return number.toString();
+    
+    const suffixes = ['', 'K', 'M', 'B', 'T'];
+    int suffixIndex = 0;
+    double num = number.toDouble();
+    
+    while (num >= 1000 && suffixIndex < suffixes.length - 1) {
+      num /= 1000;
+      suffixIndex++;
+    }
+    
+    return '${num.toStringAsFixed(1)}${suffixes[suffixIndex]}';
+  }
 }

@@ -1,6 +1,6 @@
 // services/user_service.dart
-import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/reward_service.dart';
 import 'package:rpg_task_manager/services/user_id_counter.dart';
 
 // Add user file read / write operations in here, in the future!
@@ -22,12 +22,12 @@ class UserService {
   Future<void> initializeUser() async {
     _currentUser = User(
       id: await UserIdCounter.getNextId(),
-      fullName: 'CaMaP',
+      fullName: 'GanaaPlayzXD',
       email: 'admin@example.com',
       createdAt: DateTime.now(),
       lastActive: DateTime.now(),
       level: 1,
-      experienceThreshold: XPSystem.xpForNextLevel(1),
+      experienceThreshold: RewardService.xpForNextLevel(1),
       golds: 999,
       crystals: 999,
       maxEquippedItemAmount: 3

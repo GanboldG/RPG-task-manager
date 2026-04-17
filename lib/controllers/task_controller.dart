@@ -49,7 +49,7 @@ class TaskController extends ChangeNotifier {
       deadline: deadline,
       description: description,
       createdAt: DateTime.now(),
-      reward: RewardService.calculateTaskReward(difficulty, baseMinutes.round()),
+      reward: RewardService.calculateTaskReward(difficulty, HelperFunctions.minToSec(baseMinutes), UserService().currentUser.level),
     );
 
     _tasks.insert(0, newTask);
@@ -116,6 +116,7 @@ class TaskController extends ChangeNotifier {
     task.baseDurationSec = (baseMinutes * 60).round();
     task.deadline = deadline;
     task.description = description;
+    task.reward = RewardService.calculateTaskReward(difficulty, task.getRemainingSeconds(), UserService().currentUser.level);
 
     await taskService.updateTask(task);
     notifyListeners();
