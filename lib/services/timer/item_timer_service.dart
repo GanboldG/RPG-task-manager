@@ -19,7 +19,6 @@ class ItemTimerService extends ChangeNotifier {
       if (onTick != null) {
         onTick!();
       }
-      debugPrint("Tick tock from time service!!!!!!!");
 
       notifyListeners();
     });

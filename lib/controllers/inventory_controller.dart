@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
@@ -9,9 +9,14 @@ class InventoryController extends ChangeNotifier{
 
   final ItemTimerService _timerService;
   late User _user;
-  
+
+  // "Normal" items
   late List<Item> _inventoryItems;
   List<Item> get inventoryItems => _inventoryItems;
+
+  // Custom items
+  List<CustomItem> _inventoryCustomItems = [];
+  List<CustomItem> get inventoryCustomItems => List.unmodifiable(_inventoryCustomItems);
 
   late List<Item> _activatedItems;
   List<Item> get activatedItems => _activatedItems;
@@ -84,7 +89,6 @@ class InventoryController extends ChangeNotifier{
     }
     
     if (hasChanges) {
-      debugPrint("Tick tock");
       notifyListeners();
     }
     
@@ -101,18 +105,17 @@ class InventoryController extends ChangeNotifier{
     }
   }
 
-
   // ------------VOUCHER STUFF------------
-  void addVoucher(Voucher voucher) {
-    _user.vouchers.add(voucher);
+  void addVoucher(CustomItem voucher) {
+    _user.ownedCustomItems.add(voucher);
     notifyListeners();
   }
     
   void redeemVoucher(String voucherId) {
-    final index = _user.vouchers.indexWhere((v) => v.id == voucherId);
-    if (index != -1 && !_user.vouchers[index].isRedeemed) {
-      _user.vouchers[index].isRedeemed = true;
-      notifyListeners();
-    }
+    // final index = _user.ownedCustomItems.indexWhere((v) => v.id == voucherId);
+    // if (index != -1 && !_user.ownedCustomItems[index].isRedeemed) {
+    //   _user.ownedCustomItems[index].isRedeemed = true;
+    //   notifyListeners();
+    // }
   }
 }

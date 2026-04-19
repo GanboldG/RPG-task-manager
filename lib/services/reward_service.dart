@@ -76,7 +76,6 @@ class RewardService {
     int durationSeconds,
     int playerLevel
   ) {
-    double durationMinutes = durationSeconds / 60;
     
     // Apply difficulty multiplier
     double difficultyMultiplier = _getCrystalMultiplier(difficulty);

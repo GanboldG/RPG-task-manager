@@ -32,13 +32,14 @@ class ItemAdapter extends TypeAdapter<Item> {
       acquiredDate: fields[12] as DateTime,
       remainingSeconds: fields[13] as int,
       isActivated: fields[14] as bool,
+      isCustomItem: fields[15] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, Item obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -68,7 +69,9 @@ class ItemAdapter extends TypeAdapter<Item> {
       ..writeByte(13)
       ..write(obj.remainingSeconds)
       ..writeByte(14)
-      ..write(obj.isActivated);
+      ..write(obj.isActivated)
+      ..writeByte(15)
+      ..write(obj.isCustomItem);
   }
 
   @override

@@ -19,7 +19,7 @@ import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+  
 // In main.dart, make sure the callback is set AFTER controller is created
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -52,6 +52,11 @@ class Item {
   @HiveField(14)
   bool isActivated;
 
+  // Instead of inheriting and making hive break, just gonna use a flag
+  // isCustomItem = true means it is a voucher/customItem created by user
+  @HiveField(15)
+  bool isCustomItem; 
+
   Item({
     required this.id,
     required this.name,
@@ -68,6 +73,7 @@ class Item {
     required this.acquiredDate,
     this.remainingSeconds = 300,
     required this.isActivated,
+    required this.isCustomItem
   });
 
   Item copyWith({
@@ -83,7 +89,8 @@ class Item {
     int? priceGold,
     bool? isPermanent,
     ItemRarity? rarity,
-    int? priceCrystal
+    int? priceCrystal,
+    bool? isCustomItem
   }) {
     return Item(
       id: id ?? this.id,
@@ -98,7 +105,8 @@ class Item {
       priceGold: priceGold ?? this.priceGold,
       isPermanent: isPermanent ?? this.isPermanent,
       rarity: rarity ?? this.rarity,
-      priceCrystal: priceCrystal ?? this.priceCrystal
+      priceCrystal: priceCrystal ?? this.priceCrystal,
+      isCustomItem: isCustomItem ?? this.isCustomItem,
     );
   }
 
@@ -237,6 +245,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
+      isCustomItem: false
     );
   }
 
@@ -278,6 +287,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
+      isCustomItem: false
     );
   }
   
@@ -319,6 +329,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
+      isCustomItem: false
     );
   }
 }
