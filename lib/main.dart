@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
@@ -37,6 +38,7 @@ void main() async {
   final userController = UserController();
   final taskController = TaskController(userController);
   final inventoryController = InventoryController(itemTimerService);
+  final customInventoryController = CustomItemInventoryController();
   final shopController = ItemShopController(inventoryController);
 
   runApp(
@@ -47,6 +49,7 @@ void main() async {
         ChangeNotifierProvider.value(value: userController),
         ChangeNotifierProvider.value(value: inventoryController),
         ChangeNotifierProvider.value(value: itemTimerService),
+        ChangeNotifierProvider.value(value: customInventoryController),
       ],
       child: const MyApp(),
     )

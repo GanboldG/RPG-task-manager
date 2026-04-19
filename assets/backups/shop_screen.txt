@@ -6,8 +6,8 @@ import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/models/item/voucher.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color(0xFFF9F9F9);
@@ -24,9 +24,6 @@ const kBlue      = Color(0xFF1D4ED8);
 const kTxt       = Color(0xFF000000);
 const kTxtSub    = Color(0xFF4B5563);
 
-// Global vouchers list (will be stored in Hive later)
-List<Voucher> gVouchers = [];
-
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -37,6 +34,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   late final TabController _tab;
   late final UserController _userController;
   late final InventoryController _inventoryController;
+  late final ItemShopController _shopController;
 
   @override 
   void initState() { 
@@ -45,6 +43,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     
     _userController = context.read<UserController>();
     _inventoryController = context.read<InventoryController>();
+    _shopController = context.read<ItemShopController>();
   }
   
   @override 
@@ -56,7 +55,6 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   // Buy REAL items (XP/Gold boosts)
   void _buyShopItem(Item item) {
     if (_userController.spendGolds(item.priceGold)) {
-      // Remove item from shop
       final shopController = context.read<ItemShopController>();
       shopController.buyItem(item);
       
@@ -74,15 +72,16 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     }
   }
 
-  // Buy VOUCHERS (user-created rewards)
-  void _buyVoucher(Voucher voucher) {
-    if (_userController.spendGolds(voucher.priceGold)) {
-      _inventoryController.addVoucher(voucher);
+  // Buy CUSTOM ITEMS (user-created rewards)
+  void _buyCustomItem(CustomItem item) {
+    if (_userController.spendGolds(item.priceGold)) {
+      _inventoryController.addVoucher(item); // Note: Update InventoryController to accept CustomItem
+      _shopController.purchaseCustomItem(item.id);
       
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-          "Voucher purchased: ${voucher.name}! (Doesnt work for now lol)",
-           style: TextStyle(color: Colors.white)
+          "Custom item purchased: ${item.name}! (Doesn't work for now lol)",
+          style: TextStyle(color: Colors.white)
         ),
         backgroundColor: AppColors.textSecondary,
         duration: const Duration(seconds: 3),
@@ -99,17 +98,15 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   void _refreshShop(){
     final shopController = context.read<ItemShopController>();
     shopController.refreshShop();
+    _shopController.refreshCustomItems();
   }
 
-  // -------------------SHOP SCREEN STATE-----------------------
   @override
   Widget build(BuildContext context) {
-    final itemShopController = context.watch<ItemShopController>();
-
     return Scaffold(
       backgroundColor: kBg,
       floatingActionButton: FloatingActionButton(
-        onPressed: _refreshShop, // for debugging
+        onPressed: _refreshShop,
         child: Icon(Icons.refresh, color: kPurple),
       ),
       body: Column(children: [
@@ -125,7 +122,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             tabs: const [
               Tab(text: '🛒 Item Shop'), 
-              Tab(text: '🎫 Voucher Shop')
+              Tab(text: '🎫 Custom Items'),
             ],
           ),
         ),
@@ -134,20 +131,17 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
             controller: _tab,
             children: [
               _TokenShopTab(onBuy: _buyShopItem),
-              _VoucherShopTab(
-                onBuyVoucher: _buyVoucher,
-                onRefresh: () => setState(() {}),
-                onViewDetail: (voucher) => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => VoucherDetailScreen(
-                      voucher: voucher,
+              _CustomItemShopTab(
+                onBuyCustomItem: _buyCustomItem,
+                onViewDetail: (item) => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => CustomItemDetailScreen(
+                      customItem: item,
                       playerGold: _userController.user.golds,
-                      onBuy: _buyVoucher,
+                      onBuy: _buyCustomItem,
                     ))),
                 onNavigateAdd: () async {
                   await Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => AddVoucherScreen(
-                        onVoucherAdded: (voucher) => setState(() => gVouchers.add(voucher)),
-                      )));
+                      builder: (_) => AddCustomItemScreen()));
                 },
               ),
             ],
@@ -158,13 +152,11 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   }
 }
 
-// ─── ITEM SHOP TAB ───────────────────────────────────────────────────
+// ─── ITEM SHOP TAB (Unchanged) ───────────────────────────────────────────────────
 class _TokenShopTab extends StatelessWidget {
   final void Function(Item item) onBuy;
   const _TokenShopTab({required this.onBuy});
 
-
-  // ----------------------ITEM SHOP TAB--------------------------
   @override
   Widget build(BuildContext context){
     ItemShopController controller = context.watch<ItemShopController>();
@@ -192,106 +184,91 @@ class _TokenShopTab extends StatelessWidget {
   }
 }
 
-// ─── VOUCHER SHOP TAB ─────────────────────────────────────────────────────────
-class _VoucherShopTab extends StatefulWidget {
-  final void Function(Voucher) onBuyVoucher;
-  final void Function(Voucher) onViewDetail;
+// ─── CUSTOM ITEM SHOP TAB (Refactored) ─────────────────────────────────────────
+class _CustomItemShopTab extends StatelessWidget {
+  final void Function(CustomItem) onBuyCustomItem;
+  final void Function(CustomItem) onViewDetail;
   final Future<void> Function() onNavigateAdd;
-  final VoidCallback onRefresh;
   
-  const _VoucherShopTab({
-    required this.onBuyVoucher,
+  const _CustomItemShopTab({
+    required this.onBuyCustomItem,
     required this.onViewDetail,
     required this.onNavigateAdd,
-    required this.onRefresh,
   });
-  
-  @override
-  State<_VoucherShopTab> createState() => _VoucherShopTabState();
-}
 
-class _VoucherShopTabState extends State<_VoucherShopTab> {
-  List<Voucher> get _best {
-    final s = [...gVouchers]..sort((a, b) => b.purchaseCount.compareTo(a.purchaseCount));
-    return s.where((e) => e.purchaseCount > 0).take(2).toList();
-  }
-
-  Set<String> get _bestIds => _best.map((e) => e.id).toSet();
-
-  List<Voucher> get _rest => gVouchers.where((e) => !_bestIds.contains(e.id)).toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-  Widget _card(Voucher voucher) {
-    final isBest = _bestIds.contains(voucher.id);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: _VoucherCard(
-        leading: _Avatar(imagePath: voucher.imagePath, size: 50),
-        name: voucher.name,
-        subtitle: voucher.description,
-        price: voucher.priceGold,
-        tags: [
-          if (isBest) const _TagSpec('Popular', Colors.red),
-          if (!isBest && voucher.isNew) const _TagSpec('New', Colors.blue),
-        ],
-        onDetail: () => widget.onViewDetail(voucher),
-        onBuy: () => widget.onBuyVoucher(voucher),
-      ),
-    );
-  }
-
-  // ---------------------VOUCHER SHOP TAB-----------------------
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<ItemShopController>();
+    final bestSellers = controller.bestSellers;
+    final otherItems = controller.otherCustomItems;
+    final allItems = controller.customItems;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 90),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (_best.isNotEmpty) ...[
-          const _SecTitle('🔥 Most Popular Vouchers:'),
+        if (bestSellers.isNotEmpty) ...[
+          const _SecTitle('🔥 Most Popular:'),
           const SizedBox(height: 8),
-          ..._best.map(_card),
+          ...bestSellers.map((item) => _buildCard(item, controller, context)),
           const SizedBox(height: 16),
         ],
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const _SecTitle('📜 All Vouchers:'),
-          _AddVoucherBtn(onTap: () async { 
-            await widget.onNavigateAdd(); 
-            setState(() {}); 
-          }),
+          const _SecTitle('📜 All Custom Items:'),
+          _AddVoucherBtn(onTap: onNavigateAdd),
         ]),
         const SizedBox(height: 8),
-        if (gVouchers.isEmpty)
+        if (allItems.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
             child: Center(child: Column(children: [
               Icon(Icons.local_activity_outlined, color: kTxtSub, size: 42),
               SizedBox(height: 10),
-              Text('No vouchers yet.\nCreate custom rewards for completing tasks!',
+              Text('No custom items yet.\nCreate custom rewards for completing tasks!',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: kTxtSub, fontSize: 13, height: 1.5)),
             ])),
           )
         else
-          ..._rest.map(_card),
+          ...otherItems.map((item) => _buildCard(item, controller, context)),
       ]),
+    );
+  }
+
+  Widget _buildCard(CustomItem item, ItemShopController controller, BuildContext context) {
+    final isBest = controller.bestSellerIds.contains(item.id);
+    final isNewItem = controller.isNewItem(item);
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: _CustomItemCard(
+        leading: _CustomItemAvatar(imagePath: item.imagePath, size: 50),
+        name: item.name,
+        subtitle: item.description,
+        price: item.priceGold,
+        tags: [
+          if (isBest) const _TagSpec('Popular', Colors.red),
+          if (isNewItem) const _TagSpec('New', Colors.blue),
+        ],
+        onDetail: () => onViewDetail(item),
+        onBuy: () => onBuyCustomItem(item),
+      ),
     );
   }
 }
 
-// ─── ADD VOUCHER SCREEN ───────────────────────────────────────────────────────
-class AddVoucherScreen extends StatefulWidget {
-  final void Function(Voucher) onVoucherAdded;
-  const AddVoucherScreen({super.key, required this.onVoucherAdded});
+// ─── ADD CUSTOM ITEM SCREEN (Refactored) ───────────────────────────────────────
+class AddCustomItemScreen extends StatefulWidget {
+  const AddCustomItemScreen({super.key});
   
   @override
-  State<AddVoucherScreen> createState() => _AddVoucherScreenState();
+  State<AddCustomItemScreen> createState() => _AddCustomItemScreenState();
 }
 
-class _AddVoucherScreenState extends State<AddVoucherScreen> {
+class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   final _nameCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
-  File? _image;
+  File? _imageFile;
   static const double _feeRate = 0.15;
 
   int get _price => int.tryParse(_priceCtrl.text) ?? 0;
@@ -299,26 +276,35 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
   int get _fee => (_price * _feeRate).toInt();
 
   Future<void> _pickImage() async {
-    final p = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (p != null) setState(() => _image = File(p.path));
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+      });
+    }
   }
 
-  void _submit() {
+  void _submit() async {
     if (_nameCtrl.text.trim().isEmpty || _price == 0) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Fill in name and price.'), backgroundColor: kRed));
+        content: Text('Fill in name and price.'),
+        backgroundColor: kRed,
+      ));
       return;
     }
     
-    widget.onVoucherAdded(Voucher(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+    final controller = context.read<ItemShopController>();
+    
+    await controller.addCustomItem(
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       priceGold: _price,
-      createdAt: DateTime.now(),
-      imagePath: _image?.path,
-    ));
-    Navigator.pop(context);
+      imageFile: _imageFile,
+    );
+    
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override 
@@ -336,7 +322,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
       appBar: AppBar(
         backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kTxt),
-        title: const Text('Create Voucher', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
+        title: const Text('Create Custom Item', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -355,8 +341,8 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
                       border: Border.all(color: kBorder)
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _image != null
-                        ? Image.file(_image!, fit: BoxFit.cover)
+                    child: _imageFile != null
+                        ? Image.file(_imageFile!, fit: BoxFit.cover)
                         : const Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                             Icon(Icons.image_outlined, color: kTxtSub, size: 34),
                             SizedBox(height: 6),
@@ -370,7 +356,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
             Flexible(
               flex: 2,
               child: Column(children: [
-                _Field(ctrl: _nameCtrl, hint: 'Voucher Name (e.g., "1 Hour Gaming")'),
+                _Field(ctrl: _nameCtrl, hint: 'Item Name (e.g., "1 Hour Gaming")'),
                 const SizedBox(height: 8),
                 Row(children: [
                   Expanded(child: _Field(ctrl: _priceCtrl, hint: 'Price (Gold)', isNumber: true, onChanged: (_) => setState(() {}))),
@@ -397,7 +383,7 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
               expands: true,
               style: const TextStyle(color: kTxt, fontSize: 13),
               decoration: const InputDecoration(
-                hintText: 'What can the user do with this voucher?',
+                hintText: 'What can the user do with this item?',
                 hintStyle: TextStyle(color: kTxtSub, fontSize: 13),
                 border: InputBorder.none,
               ),
@@ -411,13 +397,13 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: kBorder)
             ),
-            child: _PriceInfo(label: 'Upload fee (15%):', value: _fee),
+            child: _PriceInfo(label: 'Listing fee (15%):', value: _fee),
           ),
           const Spacer(),
           Row(children: [
             Expanded(child: _OutlineBtn(label: 'Cancel', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(label: 'Create Voucher', onTap: _submit)),
+            Expanded(child: _SolidBtn(label: 'Create Item', onTap: _submit)),
           ]),
           const SizedBox(height: 16),
         ]),
@@ -426,28 +412,28 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
   }
 }
 
-// ─── VOUCHER DETAIL SCREEN ────────────────────────────────────────────────────
-class VoucherDetailScreen extends StatelessWidget {
-  final Voucher voucher;
+// ─── CUSTOM ITEM DETAIL SCREEN (Refactored) ────────────────────────────────────
+class CustomItemDetailScreen extends StatelessWidget {
+  final CustomItem customItem;
   final int playerGold;
-  final void Function(Voucher) onBuy;
+  final void Function(CustomItem) onBuy;
   
-  const VoucherDetailScreen({
+  const CustomItemDetailScreen({
     super.key,
-    required this.voucher,
+    required this.customItem,
     required this.playerGold,
     required this.onBuy,
   });
 
   @override
   Widget build(BuildContext context) {
-    final canBuy = playerGold >= voucher.priceGold;
+    final canBuy = playerGold >= customItem.priceGold;
     return Scaffold(
       backgroundColor: kBg,
       appBar: AppBar(
         backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kTxt),
-        title: const Text('Voucher Details', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
+        title: const Text('Custom Item Details', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -455,12 +441,12 @@ class VoucherDetailScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: SizedBox(width: double.infinity, height: 180,
-              child: voucher.imagePath != null
-                  ? Image.file(File(voucher.imagePath!), fit: BoxFit.cover)
+              child: customItem.imagePath != null && File(customItem.imagePath!).existsSync()
+                  ? Image.file(File(customItem.imagePath!), fit: BoxFit.cover)
                   : Container(color: kCardAlt, child: const Icon(Icons.local_activity, color: kPurpleMid, size: 64))),
           ),
           const SizedBox(height: 12),
-          Text(voucher.name, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 20)),
+          Text(customItem.name, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 20)),
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -473,7 +459,7 @@ class VoucherDetailScreen extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('What you can do:', style: TextStyle(color: kPurpleMid, fontWeight: FontWeight.bold, fontSize: 12)),
               const SizedBox(height: 6),
-              Text(voucher.description.isEmpty ? 'No description.' : voucher.description,
+              Text(customItem.description.isEmpty ? 'No description.' : customItem.description,
                   style: const TextStyle(color: kTxt, fontSize: 13, height: 1.5)),
             ]),
           ),
@@ -486,7 +472,7 @@ class VoucherDetailScreen extends StatelessWidget {
               border: Border.all(color: kBorder)
             ),
             child: Column(children: [
-              _SimpleRow('Price', '${voucher.priceGold}', kGold),
+              _SimpleRow('Price', '${customItem.priceGold}', kGold),
               const Divider(color: kBorder, height: 14),
               _SimpleRow('Your Gold', '$playerGold', kGold,
                   suffix: canBuy ? ' Available' : ' Not enough',
@@ -497,8 +483,8 @@ class VoucherDetailScreen extends StatelessWidget {
           Row(children: [
             Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(label: 'PURCHASE VOUCHER', onTap: canBuy ? () {
-              onBuy(voucher);
+            Expanded(child: _SolidBtn(label: 'PURCHASE', onTap: canBuy ? () {
+              onBuy(customItem);
               Navigator.pop(context);
             } : null)),
           ]),
@@ -509,7 +495,7 @@ class VoucherDetailScreen extends StatelessWidget {
   }
 }
 
-// ─── SHARED WIDGETS ───────────────────────────────────────────────────────────
+// ─── SHARED WIDGETS (Mostly Unchanged, renamed voucher references) ────────────
 
 class _ShopItemCard extends StatelessWidget {
   final Widget leading;
@@ -563,7 +549,7 @@ class _ShopItemCard extends StatelessWidget {
   }
 }
 
-class _VoucherCard extends StatelessWidget {
+class _CustomItemCard extends StatelessWidget {
   final Widget leading;
   final String name, subtitle;
   final int price;
@@ -571,7 +557,7 @@ class _VoucherCard extends StatelessWidget {
   final VoidCallback? onDetail;
   final VoidCallback onBuy;
   
-  const _VoucherCard({
+  const _CustomItemCard({
     required this.leading,
     required this.name,
     required this.subtitle,
@@ -632,6 +618,36 @@ class _VoucherCard extends StatelessWidget {
   }
 }
 
+class _CustomItemAvatar extends StatelessWidget {
+  final String? imagePath;
+  final double size;
+  const _CustomItemAvatar({this.imagePath, required this.size});
+  
+  @override
+  Widget build(BuildContext context) {
+    Widget imageWidget;
+    if (imagePath != null) {
+      final file = File(imagePath!);
+      if (file.existsSync()) {
+        imageWidget = Image.file(file, fit: BoxFit.cover);
+      } else {
+        imageWidget = const Icon(Icons.local_activity, color: kPurpleMid, size: 28);
+      }
+    } else {
+      imageWidget = const Icon(Icons.local_activity, color: kPurpleMid, size: 28);
+    }
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: size, 
+        height: size,
+        child: Container(color: kCardAlt, child: imageWidget),
+      ),
+    );
+  }
+}
+
 class _TagSpec { 
   final String label; 
   final Color color; 
@@ -648,21 +664,6 @@ class _TagWidget extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
     decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
     child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-  );
-}
-
-class _Avatar extends StatelessWidget {
-  final String? imagePath;
-  final double size;
-  const _Avatar({this.imagePath, required this.size});
-  
-  @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(8),
-    child: SizedBox(width: size, height: size,
-      child: imagePath != null 
-          ? Image.file(File(imagePath!), fit: BoxFit.cover) 
-          : Container(color: kCardAlt, child: const Icon(Icons.local_activity, color: kPurpleMid, size: 28))),
   );
 }
 
@@ -710,7 +711,7 @@ class _AddVoucherBtn extends StatelessWidget {
       child: const Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(Icons.add, color: Colors.white, size: 14),
         SizedBox(width: 4),
-        Text('+ADD Voucher', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text('+ ADD ITEM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
       ]),
     ),
   );
