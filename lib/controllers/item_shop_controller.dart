@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
@@ -13,6 +14,7 @@ class ItemShopController extends ChangeNotifier{
   late ShopManager shopManager;
   int shopSize = 3;
   late final InventoryController _inventoryController;
+  late final CustomItemInventoryController _customInventoryController;
 
   // Normal items
   late List<Item> _items; 
@@ -22,10 +24,11 @@ class ItemShopController extends ChangeNotifier{
   List<CustomItem> _customItems = [];
   List<CustomItem> get customItems => List.unmodifiable(_customItems);
 
-  ItemShopController(InventoryController inventoryController){
+  ItemShopController(InventoryController inventoryController, CustomItemInventoryController customController){
     shopManager = ShopManager();
     _items = shopManager.generateShopItems(UserService().currentUser.level, shopSize);
     _inventoryController = inventoryController;
+    _customInventoryController = customController;
   }
 
   // ------------BUY-----------------
@@ -141,7 +144,8 @@ class ItemShopController extends ChangeNotifier{
       _customItems[index] = _customItems[index].copyWith(
         purchaseCount: _customItems[index].purchaseCount + 1,
       );
-      _saveCustomItems();
+      _customInventoryController.addCustomItem(_customItems[index]); // Note: Update InventoryController to accept CustomItem
+      // _saveCustomItems();
       notifyListeners();
     }
   }

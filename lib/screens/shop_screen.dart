@@ -72,15 +72,16 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     }
   }
 
-  // Buy CUSTOM ITEMS (user-created rewards)
+  // Buy CUSTOM ITEMS (user-created rewards) - Does NOT remove from shop
   void _buyCustomItem(CustomItem item) {
     if (_userController.spendGolds(item.priceGold)) {
-      _inventoryController.addVoucher(item); // Note: Update InventoryController to accept CustomItem
-      _shopController.purchaseCustomItem(item.id);
-      
+      final shopController = context.read<ItemShopController>();
+      shopController.purchaseCustomItem(item.id);
+
+      // Item stays in shop - no removal
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(
-          "Custom item purchased: ${item.name}! (Doesn't work for now lol)",
+          "Purchased ${item.name}! Find it in your inventory.",
           style: TextStyle(color: Colors.white)
         ),
         backgroundColor: AppColors.textSecondary,
@@ -131,19 +132,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
             controller: _tab,
             children: [
               _TokenShopTab(onBuy: _buyShopItem),
-              _CustomItemShopTab(
-                onBuyCustomItem: _buyCustomItem,
-                onViewDetail: (item) => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => CustomItemDetailScreen(
-                      customItem: item,
-                      playerGold: _userController.user.golds,
-                      onBuy: _buyCustomItem,
-                    ))),
-                onNavigateAdd: () async {
-                  await Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => AddCustomItemScreen()));
-                },
-              ),
+              _CustomItemShopTab(onBuyCustomItem: _buyCustomItem),
             ],
           ),
         ),
@@ -184,37 +173,31 @@ class _TokenShopTab extends StatelessWidget {
   }
 }
 
-// ─── CUSTOM ITEM SHOP TAB (Refactored) ─────────────────────────────────────────
+// ─── CUSTOM ITEM SHOP TAB (Simplified - No Most Popular, No Detail Button) ───
 class _CustomItemShopTab extends StatelessWidget {
   final void Function(CustomItem) onBuyCustomItem;
-  final void Function(CustomItem) onViewDetail;
-  final Future<void> Function() onNavigateAdd;
   
   const _CustomItemShopTab({
     required this.onBuyCustomItem,
-    required this.onViewDetail,
-    required this.onNavigateAdd,
   });
 
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<ItemShopController>();
-    final bestSellers = controller.bestSellers;
-    final otherItems = controller.otherCustomItems;
     final allItems = controller.customItems;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 90),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (bestSellers.isNotEmpty) ...[
-          const _SecTitle('🔥 Most Popular:'),
-          const SizedBox(height: 8),
-          ...bestSellers.map((item) => _buildCard(item, controller, context)),
-          const SizedBox(height: 16),
-        ],
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           const _SecTitle('📜 All Custom Items:'),
-          _AddVoucherBtn(onTap: onNavigateAdd),
+          _AddVoucherBtn(onTap: () async {
+            await Navigator.push(context, MaterialPageRoute(
+              builder: (_) => AddCustomItemScreen()
+            ));
+            // Refresh after adding
+            controller.refreshCustomItems();
+          }),
         ]),
         const SizedBox(height: 8),
         if (allItems.isEmpty)
@@ -229,15 +212,12 @@ class _CustomItemShopTab extends StatelessWidget {
             ])),
           )
         else
-          ...otherItems.map((item) => _buildCard(item, controller, context)),
+          ...allItems.map((item) => _buildCard(item, onBuyCustomItem)),
       ]),
     );
   }
 
-  Widget _buildCard(CustomItem item, ItemShopController controller, BuildContext context) {
-    final isBest = controller.bestSellerIds.contains(item.id);
-    final isNewItem = controller.isNewItem(item);
-    
+  Widget _buildCard(CustomItem item, void Function(CustomItem) onBuy) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: _CustomItemCard(
@@ -245,18 +225,13 @@ class _CustomItemShopTab extends StatelessWidget {
         name: item.name,
         subtitle: item.description,
         price: item.priceGold,
-        tags: [
-          if (isBest) const _TagSpec('Popular', Colors.red),
-          if (isNewItem) const _TagSpec('New', Colors.blue),
-        ],
-        onDetail: () => onViewDetail(item),
-        onBuy: () => onBuyCustomItem(item),
+        onBuy: () => onBuy(item),
       ),
     );
   }
 }
 
-// ─── ADD CUSTOM ITEM SCREEN (Refactored) ───────────────────────────────────────
+// ─── ADD CUSTOM ITEM SCREEN (Unchanged) ───────────────────────────────────────
 class AddCustomItemScreen extends StatefulWidget {
   const AddCustomItemScreen({super.key});
   
@@ -412,90 +387,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   }
 }
 
-// ─── CUSTOM ITEM DETAIL SCREEN (Refactored) ────────────────────────────────────
-class CustomItemDetailScreen extends StatelessWidget {
-  final CustomItem customItem;
-  final int playerGold;
-  final void Function(CustomItem) onBuy;
-  
-  const CustomItemDetailScreen({
-    super.key,
-    required this.customItem,
-    required this.playerGold,
-    required this.onBuy,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final canBuy = playerGold >= customItem.priceGold;
-    return Scaffold(
-      backgroundColor: kBg,
-      appBar: AppBar(
-        backgroundColor: kCard,
-        iconTheme: const IconThemeData(color: kTxt),
-        title: const Text('Custom Item Details', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: SizedBox(width: double.infinity, height: 180,
-              child: customItem.imagePath != null && File(customItem.imagePath!).existsSync()
-                  ? Image.file(File(customItem.imagePath!), fit: BoxFit.cover)
-                  : Container(color: kCardAlt, child: const Icon(Icons.local_activity, color: kPurpleMid, size: 64))),
-          ),
-          const SizedBox(height: 12),
-          Text(customItem.name, style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 20)),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: kCard,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: kBorder)
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('What you can do:', style: TextStyle(color: kPurpleMid, fontWeight: FontWeight.bold, fontSize: 12)),
-              const SizedBox(height: 6),
-              Text(customItem.description.isEmpty ? 'No description.' : customItem.description,
-                  style: const TextStyle(color: kTxt, fontSize: 13, height: 1.5)),
-            ]),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: kCard,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: kBorder)
-            ),
-            child: Column(children: [
-              _SimpleRow('Price', '${customItem.priceGold}', kGold),
-              const Divider(color: kBorder, height: 14),
-              _SimpleRow('Your Gold', '$playerGold', kGold,
-                  suffix: canBuy ? ' Available' : ' Not enough',
-                  suffixColor: canBuy ? kGreen : kRed),
-            ]),
-          ),
-          const Spacer(),
-          Row(children: [
-            Expanded(child: _OutlineBtn(label: 'Back', color: kRed, onTap: () => Navigator.pop(context))),
-            const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(label: 'PURCHASE', onTap: canBuy ? () {
-              onBuy(customItem);
-              Navigator.pop(context);
-            } : null)),
-          ]),
-          const SizedBox(height: 16),
-        ]),
-      ),
-    );
-  }
-}
-
-// ─── SHARED WIDGETS (Mostly Unchanged, renamed voucher references) ────────────
+// ─── SHARED WIDGETS (Simplified - No Detail Button, No Tags) ────────────
 
 class _ShopItemCard extends StatelessWidget {
   final Widget leading;
@@ -553,8 +445,6 @@ class _CustomItemCard extends StatelessWidget {
   final Widget leading;
   final String name, subtitle;
   final int price;
-  final List<_TagSpec> tags;
-  final VoidCallback? onDetail;
   final VoidCallback onBuy;
   
   const _CustomItemCard({
@@ -562,9 +452,7 @@ class _CustomItemCard extends StatelessWidget {
     required this.name,
     required this.subtitle,
     required this.price,
-    required this.tags,
     required this.onBuy,
-    this.onDetail,
   });
 
   @override
@@ -581,20 +469,9 @@ class _CustomItemCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Flexible(
-                child: Text(name,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
-                ),
-              ),
-              const SizedBox(width: 4),
-              if (onDetail != null) _DetailBtn(onTap: onDetail!),
-              for (final t in tags) ...[
-                const SizedBox(width: 4),
-                _TagWidget(t.label, t.color)
-              ],
-            ]),
+            Text(name,
+              style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
+            ),
             const SizedBox(height: 3),
             Text(subtitle,
               style: const TextStyle(color: kTxtSub, fontSize: 11),
@@ -604,14 +481,12 @@ class _CustomItemCard extends StatelessWidget {
           ]),
         ),
         const SizedBox(width: 6),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Row(children: [
-            Text('$price', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
-            const SizedBox(width: 3),
-            const Icon(Icons.monetization_on, color: kGold, size: 14),
-          ]),
-          const SizedBox(height: 4),
-          _BuyBtn(onTap: onBuy, label: 'REDEEM'),
+        Row(children: [
+          Text('$price', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
+          const SizedBox(width: 3),
+          const Icon(Icons.monetization_on, color: kGold, size: 14),
+          const SizedBox(width: 6),
+          _BuyBtn(onTap: onBuy, label: 'BUY'),
         ]),
       ]),
     );
@@ -646,40 +521,6 @@ class _CustomItemAvatar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _TagSpec { 
-  final String label; 
-  final Color color; 
-  const _TagSpec(this.label, this.color); 
-}
-
-class _TagWidget extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _TagWidget(this.label, this.color);
-  
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
-    child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
-  );
-}
-
-class _DetailBtn extends StatelessWidget {
-  final VoidCallback onTap;
-  const _DetailBtn({required this.onTap});
-  
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(color: kPurple, borderRadius: BorderRadius.circular(5)),
-      child: const Text('Detail', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-    ),
-  );
 }
 
 class _BuyBtn extends StatelessWidget {
@@ -771,27 +612,6 @@ class _PriceInfo extends StatelessWidget {
         Text('$value', style: const TextStyle(color: kGold, fontWeight: FontWeight.bold, fontSize: 13)),
         const SizedBox(width: 4),
         const Icon(Icons.monetization_on, color: kGold, size: 16),
-      ]),
-    ],
-  );
-}
-
-class _SimpleRow extends StatelessWidget {
-  final String label, value;
-  final Color valColor;
-  final String? suffix;
-  final Color? suffixColor;
-  
-  const _SimpleRow(this.label, this.value, this.valColor, {this.suffix, this.suffixColor});
-  
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: const TextStyle(color: kTxtSub, fontSize: 13)),
-      Row(children: [
-        Text(value, style: TextStyle(color: valColor, fontWeight: FontWeight.bold, fontSize: 13)),
-        if (suffix != null) Text(suffix!, style: TextStyle(color: suffixColor, fontSize: 11, fontWeight: FontWeight.bold)),
       ]),
     ],
   );

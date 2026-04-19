@@ -39,7 +39,7 @@ void main() async {
   final taskController = TaskController(userController);
   final inventoryController = InventoryController(itemTimerService);
   final customInventoryController = CustomItemInventoryController();
-  final shopController = ItemShopController(inventoryController);
+  final shopController = ItemShopController(inventoryController, customInventoryController);
 
   runApp(
     MultiProvider(

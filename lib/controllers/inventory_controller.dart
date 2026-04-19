@@ -14,17 +14,22 @@ class InventoryController extends ChangeNotifier{
   late List<Item> _inventoryItems;
   List<Item> get inventoryItems => _inventoryItems;
 
-  // Custom items
-  List<CustomItem> _inventoryCustomItems = [];
-  List<CustomItem> get inventoryCustomItems => List.unmodifiable(_inventoryCustomItems);
-
   late List<Item> _activatedItems;
   List<Item> get activatedItems => _activatedItems;
+
+  // Custom items
+  late List<CustomItem> _inventoryCustomItems;
+  List<CustomItem> get inventoryCustomItems => _inventoryCustomItems;
+
+  late List<CustomItem> _activatedCustomItems;
+  List<CustomItem> get activatedCustomItems => _activatedCustomItems;
 
   InventoryController(this._timerService){
     _user = UserService().currentUser;
     _inventoryItems = _user.ownedItems;
     _activatedItems = _user.equippedItems;
+    _inventoryCustomItems = _user.ownedCustomItems;
+    _activatedCustomItems = _user.equippedCustomItems;
 
     // ------------TIMER STUFF----------
     // Connect timer service to update items
@@ -103,19 +108,5 @@ class InventoryController extends ChangeNotifier{
     if (!_timerService.isRunning) {
       _timerService.startGlobalTimer();
     }
-  }
-
-  // ------------VOUCHER STUFF------------
-  void addVoucher(CustomItem voucher) {
-    _user.ownedCustomItems.add(voucher);
-    notifyListeners();
-  }
-    
-  void redeemVoucher(String voucherId) {
-    // final index = _user.ownedCustomItems.indexWhere((v) => v.id == voucherId);
-    // if (index != -1 && !_user.ownedCustomItems[index].isRedeemed) {
-    //   _user.ownedCustomItems[index].isRedeemed = true;
-    //   notifyListeners();
-    // }
   }
 }
