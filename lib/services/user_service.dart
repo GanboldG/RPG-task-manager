@@ -1,7 +1,6 @@
 // services/user_service.dart
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
-import 'package:rpg_task_manager/services/user_id_counter.dart';
 
 // Add user file read / write operations in here, in the future!
 
@@ -19,9 +18,9 @@ class UserService {
     return _currentUser!;
   }
   
-  Future<void> initializeUser() async {
+  void initializeUser() {
     _currentUser = User(
-      id: await UserIdCounter.getNextId(),
+      id: DateTime.now().millisecondsSinceEpoch,
       fullName: 'GanaaPlayzXD',
       email: 'admin@example.com',
       createdAt: DateTime.now(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
@@ -19,7 +20,7 @@ import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+  
 // In main.dart, make sure the callback is set AFTER controller is created
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,13 +32,14 @@ void main() async {
   // Initialize Hive for data storage
   await _initializeHive();
   await ConfigService.loadConfigs();
-  await UserService().initializeUser();
+  UserService().initializeUser();
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();
   final taskController = TaskController(userController);
   final inventoryController = InventoryController(itemTimerService);
-  final shopController = ItemShopController(inventoryController);
+  final customInventoryController = CustomItemInventoryController();
+  final shopController = ItemShopController(inventoryController, customInventoryController);
 
   runApp(
     MultiProvider(
@@ -47,6 +49,7 @@ void main() async {
         ChangeNotifierProvider.value(value: userController),
         ChangeNotifierProvider.value(value: inventoryController),
         ChangeNotifierProvider.value(value: itemTimerService),
+        ChangeNotifierProvider.value(value: customInventoryController),
       ],
       child: const MyApp(),
     )
