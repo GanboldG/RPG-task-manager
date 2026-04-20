@@ -1,42 +1,23 @@
-Things to note:
+Planned things to do:
 
-- pubspec.yaml тохиргооны файлд:
-    - flutter_launcher_icons (App-н icon-ийг өөрчлөх сан)
-    - just_audio (Дуун файл тоглуулах сан)
-    - provider (InheritedWidget-ын хялбарчилсан хувилбар, ашиглахад амархан)
+Easier:
+- Make items expire from inventory after 00:00:00
+- Add Labels to task 
+- Add Task delete penalty
+- Stop item shop from having many of the same item
+- Debug Screen for:
+    - Reset hive files
+    - Get what's on each hive file
+    - And other developer stuff
+- Change the app icon into something serious
 
-- Өнгөнүүдийг зөвхөн AppColors.dart файлд тодорхойлж, ThemeData-с өнгөө хэрэглэнэ.
-
-- InheritedWidget ашиглахын оронд Provider ашиглаж, controller-үүдээ build() руу subscribe хийнэ.
-
-------------------------------------------------------------------------------------
-
-Things to do:
-
-Storage:
-- Add storage files:
-    - user_info.json - gold, xp, level, inventory items
-    - old_tasks.json - Stores all previously deleted / finished tasks, to show stats
-    - tasks_progress.json - Stores all the timestamps of tasks in a year/month/day object - to show stats
-    - custom_shop_items.json - Stores the info of custom shop items
-
-Resources:
--  Create an algorithm to calculate how much gold / xp to gain from task (More level = slightly more rewards from tasks)
-- Create an algorithm to calculate xp thresholds needed to level up
-- Level up animation
-- Daily login rewards
-
-Tasks:
-- Custom daily tasks
-- Custom weekly tasks
-
-Async:
-- Notification control (Stop, Start)
-- Background run, show up on notification panel
-
-
-
-Balance:
-- XP: 
-    - Easy ~ 3
-    - Medium ~ 
+Harder:
+- Add Daily / Weekly tasks
+- Add Daily login rewards
+- Add Achievements
+- Add more item functionality
+- Make Custom Item (Voucher) work with inventory
+- Make statistics screen work
+- Add firebase functions
+- ML classifier for task labels -> Google colab -> Firebase etc
+- Add SFX for everything

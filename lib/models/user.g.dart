@@ -31,6 +31,8 @@ class UserAdapter extends TypeAdapter<User> {
       level: fields[10] as int,
       ownedItems: (fields[16] as List?)?.cast<Item>(),
       equippedItems: (fields[17] as List?)?.cast<Item>(),
+      ownedCustomItems: (fields[21] as List?)?.cast<CustomItem>(),
+      equippedCustomItems: (fields[22] as List?)?.cast<CustomItem>(),
       unlockedAchievements: (fields[18] as List?)?.cast<int>(),
       badges: (fields[19] as List?)?.cast<int>(),
       friends: (fields[11] as List?)?.cast<int>(),
@@ -38,14 +40,14 @@ class UserAdapter extends TypeAdapter<User> {
       totalWorkTime: fields[15] as Duration,
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
-      maxEquippedItemAmount: fields[22] as int,
-    )..vouchers = (fields[21] as List).cast<Voucher>();
+      maxEquippedItemAmount: fields[23] as int,
+    );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(22)
+      ..writeByte(24)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -89,7 +91,11 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(20)
       ..write(obj.experienceThreshold)
       ..writeByte(21)
-      ..write(obj.vouchers);
+      ..write(obj.ownedCustomItems)
+      ..writeByte(22)
+      ..write(obj.equippedCustomItems)
+      ..writeByte(23)
+      ..write(obj.maxEquippedItemAmount);
   }
 
   @override

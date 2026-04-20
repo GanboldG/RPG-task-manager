@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:hive/hive.dart';
@@ -147,5 +149,9 @@ class Task {
     // if (reward.crystal != 0){
     //   rwstring += "${reward.gold}crystal";
     // }
+  }
+
+  int getRemainingSeconds(){
+    return max(0, baseDurationSec - doneDurationSec);
   }
 }

@@ -1,72 +1,140 @@
 import 'dart:math';
+import 'package:rpg_task_manager/models/configs/resource_config.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/reward.dart';
+import 'package:rpg_task_manager/services/config_service.dart';
 
 class RewardService {
   static final Random _random = Random();
+  static ResourceConfig config = ConfigService.resourceConfig;
   
-  static Reward calculateTaskReward(Difficulty difficulty, int durationMinutes){
+  static Reward calculateTaskReward(
+    Difficulty difficulty, 
+    int durationSeconds,
+    int playerLevel
+  ) {
     return Reward(
-      crystal: calculateTaskCrystal(difficulty, durationMinutes), 
-      gold: calculateTaskGold(difficulty, durationMinutes), 
-      xp: calculateTaskXP(difficulty, durationMinutes)
+      crystal: calculateTaskCrystal(difficulty, durationSeconds, playerLevel), 
+      gold: calculateTaskGold(difficulty, durationSeconds, playerLevel), 
+      xp: calculateTaskXP(difficulty, durationSeconds, playerLevel)
     );
   }
 
-  // Calculate XP from task
-  // Base: 1 XP per 5 minutes (0.2 XP per minute)
-  static int calculateTaskXP(Difficulty difficulty, int durationMinutes) {
-    // Base XP: 1 XP per 5 minutes, minimum 1 XP
-    int baseXP = (durationMinutes / 5).ceil(); // Ceil so 5 min = 1 XP, 10 min = 2 XP
+  // Calculate XP from task using config
+  static int calculateTaskXP(
+    Difficulty difficulty, 
+    int durationSeconds,
+    int playerLevel
+  ) {
+    double durationMinutes = durationSeconds / 60;
     
+    // Base XP after player level scaling
+    double xpAfterUserLevel = config.baseXp * (1 + config.baseXpPerLevel * playerLevel);
+
+    // Apply duration scaling (every 5 minutes adds xpPerTask5Minutes)
+    int timesToApply = (durationMinutes / 5).round();
+    double xpAfterDuration = xpAfterUserLevel * (1 + (timesToApply * config.xpPerTask5Minutes));
+
     // Apply difficulty multiplier
-    double multipliedXP = baseXP * difficulty.xpMultiplier;
-    
-    // Return as integer (no decimals)
-    return multipliedXP.round();
+    double difficultyMultiplier = _getXpMultiplier(difficulty);
+    double xpAfterDifficulty = xpAfterDuration * difficultyMultiplier;
+
+    // Apply variance: random between xpAfterDifficulty and xpAfterDifficulty * xpMaxVariance
+    double finalXp = _random.nextDouble() * (xpAfterDifficulty * config.xpMaxVariance - xpAfterDifficulty) + xpAfterDifficulty;
+
+    return max(1, finalXp.round());
   }
 
-  static int calculateTaskGold(Difficulty difficulty, int durationMinutes) {
-    // Base gold: 2 gold per minute, minimum 10 gold
-    int baseGold = durationMinutes.clamp(5, 120) * 2;
+  // Calculate Gold from task using config (same principle as XP)
+  static int calculateTaskGold(
+    Difficulty difficulty, 
+    int durationSeconds,
+    int playerLevel
+  ) {
+    double durationMinutes = durationSeconds / 60;
     
+    // Base gold after player level scaling
+    double goldAfterUserLevel = config.baseGold * (1 + config.baseGoldPerLevel * playerLevel);
+
+    // Apply duration scaling (every 5 minutes adds goldPerTask5Minutes)
+    int timesToApply = (durationMinutes / 5).round();
+    double goldAfterDuration = goldAfterUserLevel * (1 + (timesToApply * config.goldPerTask5Minutes));
+
     // Apply difficulty multiplier
-    double multipliedGold = baseGold * difficulty.goldMultiplier;
-    
-    // Return as integer
-    return multipliedGold.round();
+    double difficultyMultiplier = _getGoldMultiplier(difficulty);
+    double goldAfterDifficulty = goldAfterDuration * difficultyMultiplier;
+
+    // Apply variance: random between goldAfterDifficulty and goldAfterDifficulty * goldMaxVariance
+    double finalGold = _random.nextDouble() * (goldAfterDifficulty * config.goldMaxVariance - goldAfterDifficulty) + goldAfterDifficulty;
+
+    return max(1, finalGold.round());
   }
 
-  static int calculateTaskCrystal(Difficulty difficulty, int durationMinutes) {
-    // Get drop chance based on difficulty
-    double dropChance = _getCrystalDropChance(difficulty);
+  // Calculate Crystal from task using same principle
+  static int calculateTaskCrystal(
+    Difficulty difficulty, 
+    int durationSeconds,
+    int playerLevel
+  ) {
     
-    // Optional: duration bonus (longer tasks slightly better chance)
-    // 3000 min task = 2x bonus, 5 min task = 1x
-    double durationBonus = 1.0 + ((durationMinutes.clamp(5, 3000) - 5) / 2995);
-    double finalChance = (dropChance * durationBonus).clamp(0, 0.5);
+    // Apply difficulty multiplier
+    double difficultyMultiplier = _getCrystalMultiplier(difficulty);
+    double crystalChance = config.baseCrystalDropChance * difficultyMultiplier;
     
     // Roll for crystal drop
-    if (_random.nextDouble() < finalChance) {
-      return 1; // Crystal drops
+    if (_random.nextDouble() < crystalChance) {
+      return 1;
     }
     
-    return 0; // No crystal
+    return 0;
   }
   
-  // Helper method to get crystal drop chance based on difficulty
-  static double _getCrystalDropChance(Difficulty difficulty) {
+  // Helper method to get XP multiplier based on difficulty
+  static double _getXpMultiplier(Difficulty difficulty) {
     switch (difficulty) {
       case Difficulty.easy:
-        return 0.001; // 1 in 1000 (0.1%)
+        return config.easyTaskXpMultiplier;
       case Difficulty.medium:
-        return 0.01;   // 1 in 100 (1%)
+        return config.mediumTaskXpMultiplier;
       case Difficulty.hard:
-        return 0.10;   // 1 in 10 (10%)
+        return config.hardTaskXpMultiplier;
       case Difficulty.expert:
-        return 0.20;   // 1 in 5 (20%)
-      default:
-        return 0.01;   // Default to medium
+        return config.expertTaskXpMultiplier;
     }
+  }
+  
+  // Helper method to get Gold multiplier based on difficulty
+  static double _getGoldMultiplier(Difficulty difficulty) {
+    switch (difficulty) {
+      case Difficulty.easy:
+        return config.easyTaskGoldMultiplier;
+      case Difficulty.medium:
+        return config.mediumTaskGoldMultiplier;
+      case Difficulty.hard:
+        return config.hardTaskGoldMultiplier;
+      case Difficulty.expert:
+        return config.expertTaskGoldMultiplier;
+    }
+  }
+  
+  // Helper method to get Crystal multiplier based on difficulty
+  static double _getCrystalMultiplier(Difficulty difficulty) {
+    switch (difficulty) {
+      case Difficulty.easy:
+        return config.easyTaskCrystalMultiplier;
+      case Difficulty.medium:
+        return config.mediumTaskCrystalMultiplier;
+      case Difficulty.hard:
+        return config.hardTaskCrystalMultiplier;
+      case Difficulty.expert:
+        return config.expertTaskCrystalMultiplier;
+    }
+  }
+
+  // ----------------XP Threshold calculation---------------------
+
+  // Get XP needed for next level (exponential growth)
+  static int xpForNextLevel(int currentLevel) {
+    return (config.baseXptoLevel * pow(config.xpGrowthFactor, currentLevel)).round();
   }
 }

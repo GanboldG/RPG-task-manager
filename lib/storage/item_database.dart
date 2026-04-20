@@ -163,7 +163,8 @@ class ItemDatabase {
       rarity: original.rarity,
       level: original.level,
       isActivated: original.isActivated,
-      acquiredDate: original.acquiredDate
+      acquiredDate: original.acquiredDate,
+      isCustomItem: original.isCustomItem
     );
   }
   

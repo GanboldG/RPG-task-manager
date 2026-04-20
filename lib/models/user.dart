@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 
 part 'user.g.dart';
@@ -74,9 +74,12 @@ class User {
   int experienceThreshold;
 
   @HiveField(21)
-  List<Voucher> vouchers = [];
+  List<CustomItem> ownedCustomItems;
 
   @HiveField(22)
+  List<CustomItem> equippedCustomItems;
+
+  @HiveField(23)
   int maxEquippedItemAmount;
 
   // Constructor
@@ -95,6 +98,8 @@ class User {
     this.level = 1,
     List<Item>? ownedItems,
     List<Item>? equippedItems,
+    List<CustomItem>? ownedCustomItems,
+    List<CustomItem>? equippedCustomItems,
     List<int>? unlockedAchievements,
     List<int>? badges,
     List<int>? friends,
@@ -102,9 +107,11 @@ class User {
     this.totalWorkTime = Duration.zero,
     required this.createdAt,
     required this.lastActive,
-    required this.maxEquippedItemAmount
+    required this.maxEquippedItemAmount,
   }) : ownedItems = ownedItems ?? [],
        equippedItems = equippedItems ?? [],
+       ownedCustomItems = ownedCustomItems ?? [],
+       equippedCustomItems = equippedCustomItems ?? [],
        unlockedAchievements = unlockedAchievements ?? [],
        badges = badges ?? [],
        friends = friends ?? [];

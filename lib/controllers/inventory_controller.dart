@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/models/item/voucher.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
@@ -9,17 +9,27 @@ class InventoryController extends ChangeNotifier{
 
   final ItemTimerService _timerService;
   late User _user;
-  
+
+  // "Normal" items
   late List<Item> _inventoryItems;
   List<Item> get inventoryItems => _inventoryItems;
 
   late List<Item> _activatedItems;
   List<Item> get activatedItems => _activatedItems;
 
+  // Custom items
+  late List<CustomItem> _inventoryCustomItems;
+  List<CustomItem> get inventoryCustomItems => _inventoryCustomItems;
+
+  late List<CustomItem> _activatedCustomItems;
+  List<CustomItem> get activatedCustomItems => _activatedCustomItems;
+
   InventoryController(this._timerService){
     _user = UserService().currentUser;
     _inventoryItems = _user.ownedItems;
     _activatedItems = _user.equippedItems;
+    _inventoryCustomItems = _user.ownedCustomItems;
+    _activatedCustomItems = _user.equippedCustomItems;
 
     // ------------TIMER STUFF----------
     // Connect timer service to update items
@@ -84,7 +94,6 @@ class InventoryController extends ChangeNotifier{
     }
     
     if (hasChanges) {
-      debugPrint("Tick tock");
       notifyListeners();
     }
     
@@ -98,21 +107,6 @@ class InventoryController extends ChangeNotifier{
   void _checkAndStartTimer() {
     if (!_timerService.isRunning) {
       _timerService.startGlobalTimer();
-    }
-  }
-
-
-  // ------------VOUCHER STUFF------------
-  void addVoucher(Voucher voucher) {
-    _user.vouchers.add(voucher);
-    notifyListeners();
-  }
-    
-  void redeemVoucher(String voucherId) {
-    final index = _user.vouchers.indexWhere((v) => v.id == voucherId);
-    if (index != -1 && !_user.vouchers[index].isRedeemed) {
-      _user.vouchers[index].isRedeemed = true;
-      notifyListeners();
     }
   }
 }

@@ -1,10 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/models/item/voucher.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/reward_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class UserController extends ChangeNotifier{
@@ -115,38 +113,11 @@ class UserController extends ChangeNotifier{
 
   // If at lvl 1, calculates lvl 2's required xp
   int calculateNextLevelThreshold(){
-    return XPSystem.xpForNextLevel(user.level);
+    return RewardService.xpForNextLevel(user.level);
   }
-}
 
-// --------------------------XP Calculator Helpers-----------------------------
-
-class XPSystem {
-  // Get XP needed for next level (exponential growth)
-  static int xpForNextLevel(int currentLevel) {
-    // Formula: 100 * (1.5 ^ level)
-    // Level 1: 150 XP to reach level 2
-    // Level 5: 759 XP to reach level 6
-    // Level 10: 5,766 XP to reach level 11
-    return (100 * pow(1.5, currentLevel)).round();
-  }
-  
-  // Check if level up occurred
-  static bool didLevelUp(int oldLevel, int newTotalXP) {
-    int xpNeeded = xpForNextLevel(oldLevel);
-    return newTotalXP >= xpNeeded;
-  }
-  
-  // Get new level after gaining XP
-  static int getNewLevel(int currentLevel, int currentXP, int gainedXP) {
-    int newXP = currentXP + gainedXP;
-    int newLevel = currentLevel;
-    
-    while (newXP >= xpForNextLevel(newLevel)) {
-      newXP -= xpForNextLevel(newLevel);
-      newLevel++;
-    }
-    
-    return newLevel;
+  // Returns string for resource bar on top
+  String getExperienceString(){
+    return "${HelperFunctions.formatNumberSuffix(user.experiencePoints)}/${HelperFunctions.formatNumberSuffix(user.experienceThreshold)}";
   }
 }
