@@ -19,9 +19,9 @@ class UserService {
     return _currentUser!;
   }
   
-  Future<void> initializeUser() async {
+  void initializeUser() {
     _currentUser = User(
-      id: await UserIdCounter.getNextId(),
+      id: DateTime.now().millisecondsSinceEpoch,
       fullName: 'GanaaPlayzXD',
       email: 'admin@example.com',
       createdAt: DateTime.now(),

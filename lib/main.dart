@@ -32,7 +32,7 @@ void main() async {
   // Initialize Hive for data storage
   await _initializeHive();
   await ConfigService.loadConfigs();
-  await UserService().initializeUser();
+  UserService().initializeUser();
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();

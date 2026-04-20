@@ -17,13 +17,14 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CustomItem(
-      id: fields[0] as String,
+      id: fields[0] as int,
       name: fields[1] as String,
       description: fields[2] as String,
       priceGold: fields[3] as int,
       createdAt: fields[4] as DateTime,
       imagePath: fields[5] as String?,
       purchaseCount: fields[6] as int,
+      durationMinutes: fields[7] as int,
     );
   }
 

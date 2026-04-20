@@ -74,7 +74,7 @@ class ItemShopController extends ChangeNotifier{
   }
 
   // Get IDs of best sellers for quick lookup
-  Set<String> get bestSellerIds => bestSellers.map((e) => e.id).toSet();
+  Set<int> get bestSellerIds => bestSellers.map((e) => e.id).toSet();
 
   // Get remaining custom items (not in best sellers), sorted by newest first
   List<CustomItem> get otherCustomItems {
@@ -113,6 +113,7 @@ class ItemShopController extends ChangeNotifier{
   // Add a new custom item
   Future<void> addCustomItem({
     required String name,
+    required int durationMinutes,
     required String description,
     required int priceGold,
     required File? imageFile,
@@ -124,8 +125,9 @@ class ItemShopController extends ChangeNotifier{
     }
     
     final newItem = CustomItem(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: DateTime.now().millisecondsSinceEpoch,
       name: name.trim(),
+      durationMinutes: durationMinutes,
       description: description.trim(),
       priceGold: priceGold,
       createdAt: DateTime.now(),
@@ -138,7 +140,7 @@ class ItemShopController extends ChangeNotifier{
   }
 
   // Purchase a custom item (increment purchase count)
-  void purchaseCustomItem(String itemId) {
+  void purchaseCustomItem(int itemId) {
     final index = _customItems.indexWhere((item) => item.id == itemId);
     if (index != -1) {
       _customItems[index] = _customItems[index].copyWith(
@@ -237,8 +239,9 @@ class ItemShopController extends ChangeNotifier{
 // Extended CustomItem model with copyWith method
 extension CustomItemExtension on CustomItem {
   CustomItem copyWith({
-    String? id,
+    int? id,
     String? name,
+    int? durationMinutes,
     String? description,
     int? priceGold,
     DateTime? createdAt,
@@ -248,6 +251,7 @@ extension CustomItemExtension on CustomItem {
     return CustomItem(
       id: id ?? this.id,
       name: name ?? this.name,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
       description: description ?? this.description,
       priceGold: priceGold ?? this.priceGold,
       createdAt: createdAt ?? this.createdAt,

@@ -5,7 +5,7 @@ part 'custom_item.g.dart';
 @HiveType(typeId: 3)
 class CustomItem {
   @HiveField(0)
-  final String id;
+  final int id;
   
   @HiveField(1)
   final String name;
@@ -25,9 +25,13 @@ class CustomItem {
   @HiveField(6)
   final int purchaseCount;
 
+  @HiveField(7)
+  final int durationMinutes;
+
   CustomItem({
     required this.id,
     required this.name,
+    required this.durationMinutes,
     required this.description,
     required this.priceGold,
     required this.createdAt,

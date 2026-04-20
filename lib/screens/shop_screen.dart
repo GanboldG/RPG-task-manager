@@ -6,6 +6,7 @@ import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 
@@ -223,6 +224,7 @@ class _CustomItemShopTab extends StatelessWidget {
       child: _CustomItemCard(
         leading: _CustomItemAvatar(imagePath: item.imagePath, size: 50),
         name: item.name,
+        duration: HelperFunctions.formatDuration(item.durationMinutes * 60),
         subtitle: item.description,
         price: item.priceGold,
         onBuy: () => onBuy(item),
@@ -242,12 +244,13 @@ class AddCustomItemScreen extends StatefulWidget {
 class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   final _nameCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
+  final _durationCtrl = TextEditingController(); // NEW: duration controller
   final _descCtrl = TextEditingController();
   File? _imageFile;
   static const double _feeRate = 0.15;
 
   int get _price => int.tryParse(_priceCtrl.text) ?? 0;
-  int get _receive => (_price * (1 - _feeRate)).toInt();
+  int get _duration => int.tryParse(_durationCtrl.text) ?? 0; // NEW: duration getter
   int get _fee => (_price * _feeRate).toInt();
 
   Future<void> _pickImage() async {
@@ -260,9 +263,9 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   }
 
   void _submit() async {
-    if (_nameCtrl.text.trim().isEmpty || _price == 0) {
+    if (_nameCtrl.text.trim().isEmpty || _price == 0 || _duration == 0) { // MODIFIED: added duration check
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Fill in name and price.'),
+        content: Text('Fill in name, price, and duration.'),
         backgroundColor: kRed,
       ));
       return;
@@ -274,6 +277,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       priceGold: _price,
+      durationMinutes: _duration, // NEW: pass duration
       imageFile: _imageFile,
     );
     
@@ -286,6 +290,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   void dispose() { 
     _nameCtrl.dispose(); 
     _priceCtrl.dispose(); 
+    _durationCtrl.dispose(); // NEW: dispose duration controller
     _descCtrl.dispose(); 
     super.dispose(); 
   }
@@ -338,8 +343,12 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
                   const SizedBox(width: 6),
                   const Icon(Icons.monetization_on, color: kGold, size: 20),
                 ]),
-                const SizedBox(height: 8),
-                _PriceInfo(label: 'You receive:', value: _receive),
+                const SizedBox(height: 8), // NEW: spacing
+                Row(children: [ // NEW: duration field row
+                  Expanded(child: _Field(ctrl: _durationCtrl, hint: 'Duration (minutes)', isNumber: true, onChanged: (_) => setState(() {}))),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.timer, color: kPurpleMid, size: 20),
+                ]),
               ]),
             ),
           ]),
@@ -443,12 +452,13 @@ class _ShopItemCard extends StatelessWidget {
 
 class _CustomItemCard extends StatelessWidget {
   final Widget leading;
-  final String name, subtitle;
+  final String name, duration, subtitle;
   final int price;
   final VoidCallback onBuy;
   
   const _CustomItemCard({
     required this.leading,
+    required this.duration,
     required this.name,
     required this.subtitle,
     required this.price,
@@ -469,7 +479,7 @@ class _CustomItemCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name,
+            Text("$name ($duration)",
               style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
             ),
             const SizedBox(height: 3),

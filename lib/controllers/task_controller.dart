@@ -4,7 +4,6 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/task.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
-import 'package:rpg_task_manager/services/task_id_counter.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/timer/task_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
@@ -32,16 +31,16 @@ class TaskController extends ChangeNotifier {
   }
 
   // --------------------ADD----------------------
-  Future<void> addTask({  // Returns future, so the caller is aware it's async
+  void addTask({  // Returns future, so the caller is aware it's async
     String name = "", 
     Difficulty difficulty = Difficulty.easy, 
     double baseMinutes = 0,
     DateTime? deadline,
     String description = "",
-  }) async {
+  }) {
     final newTask = Task(
-      id: await TaskIdCounter.getNextId(),
-      orderId: 0,  // Adding a task always puts at index 1
+      id: DateTime.now().millisecondsSinceEpoch,
+      orderId: 0,  // Adding a task always puts at index 1 (on top)
       name: name,
       difficulty: difficulty,
       baseDurationSec: HelperFunctions.minToSec(baseMinutes),
