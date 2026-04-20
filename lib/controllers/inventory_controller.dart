@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
@@ -17,19 +16,10 @@ class InventoryController extends ChangeNotifier{
   late List<Item> _activatedItems;
   List<Item> get activatedItems => _activatedItems;
 
-  // Custom items
-  late List<CustomItem> _inventoryCustomItems;
-  List<CustomItem> get inventoryCustomItems => _inventoryCustomItems;
-
-  late List<CustomItem> _activatedCustomItems;
-  List<CustomItem> get activatedCustomItems => _activatedCustomItems;
-
   InventoryController(this._timerService){
     _user = UserService().currentUser;
     _inventoryItems = _user.ownedItems;
     _activatedItems = _user.equippedItems;
-    _inventoryCustomItems = _user.ownedCustomItems;
-    _activatedCustomItems = _user.equippedCustomItems;
 
     // ------------TIMER STUFF----------
     // Connect timer service to update items

@@ -496,7 +496,7 @@ class _CustomItemCard extends StatelessWidget {
           const SizedBox(width: 3),
           const Icon(Icons.monetization_on, color: kGold, size: 14),
           const SizedBox(width: 6),
-          _BuyBtn(onTap: onBuy, label: 'BUY'),
+          _BuyBtn(onTap: onBuy, label: 'ACTIVATE'),
         ]),
       ]),
     );

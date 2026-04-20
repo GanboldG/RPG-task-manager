@@ -885,7 +885,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                     },
                     style: const TextStyle(color: kTxt, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Search custom rewards...',
+                      hintText: 'Search custom items...',
                       hintStyle: const TextStyle(color: kTxtSub, fontSize: 13),
                       prefixIcon: const Icon(Icons.search, color: kTxtSub, size: 20),
                       border: InputBorder.none,

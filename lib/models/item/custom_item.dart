@@ -38,7 +38,6 @@ class CustomItem {
     this.imagePath,
     this.purchaseCount = 0,
   });
-
   // Helper to check if item is new (created within last 7 days)
   bool get isNew {
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));

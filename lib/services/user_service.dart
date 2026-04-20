@@ -1,7 +1,6 @@
 // services/user_service.dart
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
-import 'package:rpg_task_manager/services/user_id_counter.dart';
 
 // Add user file read / write operations in here, in the future!
 

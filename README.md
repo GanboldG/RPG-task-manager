@@ -16,7 +16,6 @@ Harder:
 - Add Daily login rewards
 - Add Achievements
 - Add more item functionality
-- Make Custom Item (Voucher) work with inventory
 - Make statistics screen work
 - Add firebase functions
 - ML classifier for task labels -> Google colab -> Firebase etc

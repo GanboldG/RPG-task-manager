@@ -31,8 +31,8 @@ class UserAdapter extends TypeAdapter<User> {
       level: fields[10] as int,
       ownedItems: (fields[16] as List?)?.cast<Item>(),
       equippedItems: (fields[17] as List?)?.cast<Item>(),
-      ownedCustomItems: (fields[21] as List?)?.cast<CustomItem>(),
-      equippedCustomItems: (fields[22] as List?)?.cast<CustomItem>(),
+      ownedCustomItems: (fields[21] as List?)?.cast<OwnedCustomItem>(),
+      activatedCustomItems: (fields[22] as List?)?.cast<OwnedCustomItem>(),
       unlockedAchievements: (fields[18] as List?)?.cast<int>(),
       badges: (fields[19] as List?)?.cast<int>(),
       friends: (fields[11] as List?)?.cast<int>(),
@@ -93,7 +93,7 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(21)
       ..write(obj.ownedCustomItems)
       ..writeByte(22)
-      ..write(obj.equippedCustomItems)
+      ..write(obj.activatedCustomItems)
       ..writeByte(23)
       ..write(obj.maxEquippedItemAmount);
   }

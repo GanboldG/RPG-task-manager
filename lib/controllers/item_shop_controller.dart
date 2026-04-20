@@ -146,7 +146,7 @@ class ItemShopController extends ChangeNotifier{
       _customItems[index] = _customItems[index].copyWith(
         purchaseCount: _customItems[index].purchaseCount + 1,
       );
-      _customInventoryController.addCustomItem(_customItems[index]); // Note: Update InventoryController to accept CustomItem
+      _customInventoryController.addCustomItem(_customItems[index]); 
       // _saveCustomItems();
       notifyListeners();
     }
