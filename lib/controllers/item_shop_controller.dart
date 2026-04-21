@@ -74,7 +74,7 @@ class ItemShopController extends ChangeNotifier{
   }
 
   // Get IDs of best sellers for quick lookup
-  Set<int> get bestSellerIds => bestSellers.map((e) => e.id).toSet();
+  Set<String> get bestSellerIds => bestSellers.map((e) => e.id).toSet();
 
   // Get remaining custom items (not in best sellers), sorted by newest first
   List<CustomItem> get otherCustomItems {
@@ -125,7 +125,7 @@ class ItemShopController extends ChangeNotifier{
     }
     
     final newItem = CustomItem(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name.trim(),
       durationMinutes: durationMinutes,
       description: description.trim(),
@@ -140,7 +140,7 @@ class ItemShopController extends ChangeNotifier{
   }
 
   // Purchase a custom item (increment purchase count)
-  void purchaseCustomItem(int itemId) {
+  void purchaseCustomItem(String itemId) {
     final index = _customItems.indexWhere((item) => item.id == itemId);
     if (index != -1) {
       _customItems[index] = _customItems[index].copyWith(
@@ -239,7 +239,7 @@ class ItemShopController extends ChangeNotifier{
 // Extended CustomItem model with copyWith method
 extension CustomItemExtension on CustomItem {
   CustomItem copyWith({
-    int? id,
+    String? id,
     String? name,
     int? durationMinutes,
     String? description,

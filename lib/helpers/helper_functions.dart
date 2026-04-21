@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class HelperFunctions{
   static void showMessage(BuildContext context, String message){
@@ -116,5 +119,15 @@ class HelperFunctions{
     }
     
     return '${num.toStringAsFixed(1)}${suffixes[suffixIndex]}';
+  }
+
+  static int randomInt(int min, int max) {
+    final random = Random();
+    return min + random.nextInt(max - min + 1);
+  }
+
+  static double randomDouble(double min, double max) {
+    final random = Random();
+    return min + random.nextDouble() * (max - min);
   }
 }

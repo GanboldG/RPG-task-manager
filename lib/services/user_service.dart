@@ -20,7 +20,7 @@ class UserService {
   
   void initializeUser() {
     _currentUser = User(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       fullName: 'GanaaPlayzXD',
       email: 'admin@example.com',
       createdAt: DateTime.now(),

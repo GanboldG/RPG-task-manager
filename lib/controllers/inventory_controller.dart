@@ -52,7 +52,7 @@ class InventoryController extends ChangeNotifier{
 
   // ---------------DELETE-----------------
   void deleteItem(Item item){
-    _inventoryItems.remove(item);
+    debugPrint(_inventoryItems.remove(item).toString());
     _activatedItems.remove(item);
 
     notifyListeners();
@@ -67,18 +67,18 @@ class InventoryController extends ChangeNotifier{
    void _decrementAllActiveItems() {
     bool hasChanges = false;
     
+    List<Item> removingItems = [];
+
     for (int i = 0; i < _activatedItems.length; i++) {
       final item = _activatedItems[i];
       if (item.remainingSeconds > 0) {
         // Decrement remaining time
-        _activatedItems[i] = _activatedItems[i].copyWith(
-          remainingSeconds: _activatedItems[i].remainingSeconds - 1
-        );
+        _activatedItems[i].remainingSeconds--;
         hasChanges = true;
         
         // If item expired, deactivate it
         if (_activatedItems[i].remainingSeconds <= 0) {
-          deleteItem(item);
+          removingItems.add(item);
         }
       }
     }
@@ -87,6 +87,11 @@ class InventoryController extends ChangeNotifier{
       notifyListeners();
     }
     
+    // Remove expired items
+    for (Item item in removingItems){
+      deleteItem(item);
+    }
+
     // Stop timer if no active items left
     if (_activatedItems.isEmpty) {
       _timerService.stopGlobalTimer();

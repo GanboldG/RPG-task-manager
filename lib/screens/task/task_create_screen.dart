@@ -4,8 +4,9 @@ import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/helpers/app_fonts.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
+import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:provider/provider.dart';
-import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/models/task/task.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? taskToEdit; // If provided, we're editing
@@ -23,6 +24,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   late final TextEditingController _nameController = TextEditingController();
   late final TextEditingController _minutesController = TextEditingController();
   late Difficulty _selectedDifficulty;
+  late TaskType _selectedTaskType;
   late double _baseMinutes;
   DateTime? _selectedDeadline;
   String _description = "";
@@ -44,11 +46,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     if (widget.isEditing) {
       _nameController.text = widget.taskToEdit!.name;
       _selectedDifficulty = widget.taskToEdit!.difficulty;
+      _selectedTaskType = widget.taskToEdit!.type!;
       _baseMinutes = widget.taskToEdit!.getBaseMinutes();
       _selectedDeadline = widget.taskToEdit!.deadline;
       _description = widget.taskToEdit!.description;
     } else {
       _selectedDifficulty = Difficulty.easy;
+      _selectedTaskType = TaskType.learning;
       _baseMinutes = 30;
     }
     
@@ -128,6 +132,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           children: [
             _buildNameField(),
             const SizedBox(height: 20),
+            _buildTaskTypeSelector(),
+            const SizedBox(height: 20),
             _buildDifficultySelector(),
             const SizedBox(height: 20),
             _buildTimeField(),
@@ -162,6 +168,66 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
   }
 
+  Widget _buildTaskTypeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Task Type",
+          style: TextStyle(
+            fontSize: AppFonts.sizeMedium,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: TaskType.values.map((type) {
+            final isSelected = _selectedTaskType == type;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedTaskType = type;
+                  });
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        _getTaskTypeIcon(type),
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getTaskTypeName(type),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDifficultySelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,27 +241,48 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        SegmentedButton<Difficulty>(
-          segments: const [
-            ButtonSegment(value: Difficulty.easy, label: Text("Easy")),
-            ButtonSegment(value: Difficulty.medium, label: Text("Medium")),
-            ButtonSegment(value: Difficulty.hard, label: Text("Hard")),
-            ButtonSegment(value: Difficulty.expert, label: Text("Expert")),
-          ],
-          selected: {_selectedDifficulty},
-          onSelectionChanged: (Set<Difficulty> selection) {
-            setState(() {
-              _selectedDifficulty = selection.first;
-            });
-          },
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return AppColors.textSecondary;
-              }
-              return AppColors.primary;
-            }),
-          ),
+        Row(
+          children: Difficulty.values.map((difficulty) {
+            final isSelected = _selectedDifficulty == difficulty;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedDifficulty = difficulty;
+                  });
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4),
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        _getDifficultyIcon(difficulty),
+                        style: TextStyle(fontSize: 24),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _getDifficultyName(difficulty),
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : AppColors.textSecondary,
+                          fontSize: 11,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -380,41 +467,43 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   Widget _buildSubmitButton() {
-  final controller = context.read<TaskController>();
-  
-  return ElevatedButton(
-    onPressed: () {
-      // Force validation of time field before saving
-      _validateAndUpdateMinutes();
-      
-      // Also unfocus to commit any pending changes
-      if (_timeFocusNode.hasFocus) {
-        _timeFocusNode.unfocus();
-      }
-      
-      if (_formKey.currentState!.validate()) {
-        if (widget.isEditing) {
-          // Update existing task
-          controller.updateTask(
-            id: widget.taskToEdit!.id,
-            name: _nameController.text,
-            difficulty: _selectedDifficulty,
-            baseMinutes: _baseMinutes,
-            deadline: _selectedDeadline,
-            description: _description,
-          );
-        } else {
-          // Add new task
-          controller.addTask(
-            name: _nameController.text,
-            difficulty: _selectedDifficulty,
-            baseMinutes: _baseMinutes,
-            deadline: _selectedDeadline,
-            description: _description,
-          );
+    final controller = context.read<TaskController>();
+    
+    return ElevatedButton(
+      onPressed: () {
+        // Force validation of time field before saving
+        _validateAndUpdateMinutes();
+        
+        // Also unfocus to commit any pending changes
+        if (_timeFocusNode.hasFocus) {
+          _timeFocusNode.unfocus();
         }
-        Navigator.pop(context, true);
-      }
+        
+        if (_formKey.currentState!.validate()) {
+          if (widget.isEditing) {
+            // Update existing task
+            controller.updateTask(
+              id: widget.taskToEdit!.id,
+              name: _nameController.text,
+              difficulty: _selectedDifficulty,
+              type: _selectedTaskType,
+              baseMinutes: _baseMinutes,
+              deadline: _selectedDeadline,
+              description: _description,
+            );
+          } else {
+            // Add new task
+            controller.addTask(
+              name: _nameController.text,
+              difficulty: _selectedDifficulty,
+              type: _selectedTaskType,
+              baseMinutes: _baseMinutes,
+              deadline: _selectedDeadline,
+              description: _description,
+            );
+          }
+          Navigator.pop(context, true);
+        }
       },
       style: ElevatedButton.styleFrom(
         foregroundColor: AppColors.background,
@@ -432,5 +521,63 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         ),
       ),
     );
+  }
+
+  // Helper methods for Task Type
+  String _getTaskTypeIcon(TaskType type) {
+    switch (type) {
+      case TaskType.learning:
+        return '📚';
+      case TaskType.health:
+        return '💪';
+      case TaskType.chore:
+        return '🧹';
+      case TaskType.social:
+        return '💬';
+      case TaskType.career:
+        return '💼';
+    }
+  }
+
+  String _getTaskTypeName(TaskType type) {
+    switch (type) {
+      case TaskType.learning:
+        return 'Learn';
+      case TaskType.health:
+        return 'Health';
+      case TaskType.chore:
+        return 'Chore';
+      case TaskType.social:
+        return 'Social';
+      case TaskType.career:
+        return 'Career';
+    }
+  }
+
+  // Helper methods for Difficulty
+  String _getDifficultyIcon(Difficulty difficulty) {
+    switch (difficulty) {
+      case Difficulty.easy:
+        return '🌱';
+      case Difficulty.medium:
+        return '⚡';
+      case Difficulty.hard:
+        return '🔥';
+      case Difficulty.expert:
+        return '💀';
+    }
+  }
+
+  String _getDifficultyName(Difficulty difficulty) {
+    switch (difficulty) {
+      case Difficulty.easy:
+        return 'Easy';
+      case Difficulty.medium:
+        return 'Medium';
+      case Difficulty.hard:
+        return 'Hard';
+      case Difficulty.expert:
+        return 'Expert';
+    }
   }
 }

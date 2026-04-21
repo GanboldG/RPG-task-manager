@@ -17,7 +17,7 @@ class ItemAdapter extends TypeAdapter<Item> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Item(
-      id: fields[0] as int,
+      id: fields[0] as String,
       name: fields[1] as String,
       description: fields[2] as String,
       imageUrl: fields[3] as String,
@@ -32,7 +32,7 @@ class ItemAdapter extends TypeAdapter<Item> {
       acquiredDate: fields[12] as DateTime,
       remainingSeconds: fields[13] as int,
       isActivated: fields[14] as bool,
-      isCustomItem: fields[15] as bool,
+      itemConfig: fields[15] as ItemConfig,
     );
   }
 
@@ -71,7 +71,7 @@ class ItemAdapter extends TypeAdapter<Item> {
       ..writeByte(14)
       ..write(obj.isActivated)
       ..writeByte(15)
-      ..write(obj.isCustomItem);
+      ..write(obj.itemConfig);
   }
 
   @override

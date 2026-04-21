@@ -1,8 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
-import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/models/reward.dart';
 
 part 'user.g.dart';
 
@@ -10,7 +8,7 @@ part 'user.g.dart';
 class User {
   // ==================== PERSONAL INFO ====================
   @HiveField(0)
-  int id;
+  String id;
   
   @HiveField(1)
   String fullName;

@@ -17,21 +17,21 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return CustomItem(
-      id: fields[0] as int,
+      id: fields[0] as String,
       name: fields[1] as String,
+      durationMinutes: fields[7] as int,
       description: fields[2] as String,
       priceGold: fields[3] as int,
       createdAt: fields[4] as DateTime,
       imagePath: fields[5] as String?,
       purchaseCount: fields[6] as int,
-      durationMinutes: fields[7] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, CustomItem obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -45,7 +45,9 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
       ..writeByte(5)
       ..write(obj.imagePath)
       ..writeByte(6)
-      ..write(obj.purchaseCount);
+      ..write(obj.purchaseCount)
+      ..writeByte(7)
+      ..write(obj.durationMinutes);
   }
 
   @override
