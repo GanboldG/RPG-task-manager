@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
+import 'package:rpg_task_manager/models/configs/item_config.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 part 'item.g.dart';
@@ -52,10 +53,8 @@ class Item {
   @HiveField(14)
   bool isActivated;
 
-  // Instead of inheriting and making hive break, just gonna use a flag
-  // isCustomItem = true means it is a voucher/customItem created by user
   @HiveField(15)
-  bool isCustomItem; 
+  ItemConfig itemConfig;
 
   Item({
     required this.id,
@@ -73,7 +72,7 @@ class Item {
     required this.acquiredDate,
     this.remainingSeconds = 300,
     required this.isActivated,
-    required this.isCustomItem
+    required this.itemConfig,
   });
 
   Item copyWith({
@@ -90,7 +89,7 @@ class Item {
     bool? isPermanent,
     ItemRarity? rarity,
     int? priceCrystal,
-    bool? isCustomItem
+    ItemConfig? itemConfig
   }) {
     return Item(
       id: id ?? this.id,
@@ -106,7 +105,7 @@ class Item {
       isPermanent: isPermanent ?? this.isPermanent,
       rarity: rarity ?? this.rarity,
       priceCrystal: priceCrystal ?? this.priceCrystal,
-      isCustomItem: isCustomItem ?? this.isCustomItem,
+      itemConfig: itemConfig ?? this.itemConfig,
     );
   }
 
@@ -221,6 +220,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
+    required ItemConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -245,7 +245,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      isCustomItem: false
+      itemConfig: itemConfig
     );
   }
 
@@ -263,6 +263,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
+    required ItemConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -287,7 +288,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      isCustomItem: false
+      itemConfig: itemConfig,
     );
   }
   
@@ -306,6 +307,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
+    required ItemConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -329,7 +331,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      isCustomItem: false
+      itemConfig: itemConfig,
     );
   }
 }

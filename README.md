@@ -2,13 +2,9 @@ Planned things to do:
 
 Easier:
 - Add Task delete penalty
-- Stop item shop from having many of the same item
 - Rework item rarity (Any item can be any rarity, rarity range is defined in config file)
-- Move item infos into config file
 - Add more item variety
 - Debug Screen for:
-    - Reset hive files
-    - See what's on each hive files
     - See what's on the config files
 - Change the app icon into something serious
 - Improved / cleaner / smoother GUI
@@ -32,3 +28,16 @@ Harder:
 Things to keep in mind:
 - Minimal to None popups
 - Keep everything simple yet customizable
+
+
+
+Brainstorming (Item randomization):
+For each specific items:
+- Rarity chance is fixed
+- Base duration / effect of items are specificied in the item
+- For each additional level, variance increases, base increases
+
+rarity multiplies the base duration / effect / variance
+
+baseDuration
+baseEffect

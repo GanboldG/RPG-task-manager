@@ -1,10 +1,47 @@
 import 'dart:math';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
+import 'package:rpg_task_manager/models/configs/item_config.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 // ==================== 1. ITEM DATABASE (Hardcoded Items) ====================
 class ItemDatabase {
   static final Random _random = Random();
+  static final ItemConfig _itemConfig = ItemConfig(
+    durationMultipliers: {  // Applied last
+      ItemRarity.common: 0,
+      ItemRarity.uncommon: 0.2,
+      ItemRarity.rare: 0.6,
+      ItemRarity.epic: 1.4,
+      ItemRarity.legendary: 2,
+      ItemRarity.mythic: 5
+    },
+    durationMultPerLevel: { // Applied per user level
+      ItemRarity.common: 0,
+      ItemRarity.uncommon: 0.2,
+      ItemRarity.rare: 0.6,
+      ItemRarity.epic: 1.4,
+      ItemRarity.legendary: 2,
+      ItemRarity.mythic: 3
+    },
+    effectMultipliers: {
+      ItemRarity.common: 0,
+      ItemRarity.uncommon: 0.3,
+      ItemRarity.rare: 0.8,
+      ItemRarity.epic: 1,
+      ItemRarity.legendary: 2,
+      ItemRarity.mythic: 3
+    },
+    effectMultPerLevel: {
+      ItemRarity.common: 0.05,
+      ItemRarity.uncommon: 0.2,
+      ItemRarity.rare: 0.5,
+      ItemRarity.epic: 0.9,
+      ItemRarity.legendary: 1.5,
+      ItemRarity.mythic: 2
+    },
+    costMultPerLevel: 0.25
+  );
 
   // Pre-defined items - like a catalog
   static final List<Item> allItems = [
@@ -13,8 +50,8 @@ class ItemDatabase {
       id: "1",
       name: 'Minor XP Potion',
       xpBoostPercent: 0.10, // Base value (will be randomized)
-      durationSeconds: 15,
-      priceGold: 50,
+      durationSeconds: 360,
+      priceGold: 30,
       priceCrystal: 0,
       imageUrl: 'assets/images/items/minor_xp_potion.png',
       isPermanent: false,
@@ -23,13 +60,14 @@ class ItemDatabase {
       level: 1,
       isActivated: false,
       acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
     ),
     
     ItemFactory.createGoldBoostItem(
       id: "2",
       name: 'Gold Charm',
       goldBoostPercent: 0.08,
-      durationSeconds: 20,
+      durationSeconds: 360,
       priceGold: 40,
       priceCrystal: 0,
       imageUrl: 'assets/images/items/gold_charm.png',
@@ -39,51 +77,25 @@ class ItemDatabase {
       level: 1,
       isActivated: false,
       acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
     ),
     
     ItemFactory.createCrystalChanceItem(
       id: "3",
       name: 'Crystal Shard',
       crystalDropChance: 0.08,
-      durationSeconds: 60,
-      priceGold: 180,
+      durationSeconds: 360,
+      priceGold: 20,
       priceCrystal: 10,
       imageUrl: 'assets/images/items/crystal_shard.png',
       isPermanent: false,
       thresholdLevel: 5,
-      rarity: ItemRarity.uncommon,    
+      rarity: ItemRarity.common,    
       level: 1,
       isActivated: false,
       acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
     ),
-    
-    // Rare Items
-    // ItemFactory.createXpBoostItem(
-    //   id: 3001,
-    //   name: 'Tome of Knowledge',
-    //   xpBoostPercent: 0.35,
-    //   durationMinutes: 60,
-    //   priceGold: 500,
-    //   priceCrystal: 25,
-    //   imageUrl: 'assets/images/items/rare/xp_tome.png',
-    //   isPermanent: false,
-    //   thresholdLevel: 10,
-    //   rarity: ItemRarity.rare,
-    // ),
-    
-    // // Epic Items
-    // ItemFactory.createXpBoostItem(
-    //   id: 4001,
-    //   name: "Dragon's Essence",
-    //   xpBoostPercent: 0.75,
-    //   durationMinutes: 120,
-    //   priceGold: 2000,
-    //   priceCrystal: 100,
-    //   imageUrl: 'assets/images/items/epic/dragon_essence.png',
-    //   isPermanent: false,
-    //   thresholdLevel: 20,
-    //   rarity: ItemRarity.epic,
-    // ),
   ];
   
   // Group items by rarity for easy access
@@ -98,73 +110,63 @@ class ItemDatabase {
   // ==================== CLONE & RANDOMIZE METHODS ====================
   
   // Clone an item with randomized values
-  static Item randomizeItem(Item original, int userLevel) {
-    // Generate new unique ID
+  static Item randomizeItem(Item original, int userLevel, ItemRarity rarity) {
+    // 1. Generate new unique ID
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
-    
-    // Randomize effect values (±30% variance)
-    final randomizedEffects = original.effects.map((effect) {
-      double variance = 0.7 + _random.nextDouble() * 0.6; // 70% to 130%
-      double newValue = (effect.value * variance).clamp(0.01, 3.0);
-      
-      String? newSecondaryValue;
-      if (effect.secondaryValue != null) {
-        double secondary = double.parse(effect.secondaryValue!);
-        double newSecondary = (secondary * variance).clamp(0.01, 1.0);
-        newSecondaryValue = newSecondary.toString();
-      }
-      
-      return ItemEffect(
-        type: effect.type,
-        value: newValue,
-        secondaryValue: newSecondaryValue,
-        isStackable: effect.isStackable,
-        maxStack: effect.maxStack,
-      );
-    }).toList();
-    
-    // Randomize duration (±30%)
-    int originalDurationMinutes = (original.durationSeconds / 60).round();
 
-    late int newDurationMin;
-    if (original.durationSeconds > 0) {
-      double durationVariance = 0.7 + _random.nextDouble() * 0.6;
-      newDurationMin = (originalDurationMinutes * durationVariance).round();
-      newDurationMin = newDurationMin.clamp(5, 240); // Min 5 min, Max 4 hours
+    // 2. Assign Rarity
+    final ItemRarity itemRarity = rarity;
+
+    // 3. Calculate new duration
+    final double durationMult = original.itemConfig.durationMultipliers[rarity] ?? 0;
+    final double durMultLvl = original.itemConfig.durationMultPerLevel[rarity] ?? 0;
+
+    final int minDuration = (original.durationSeconds + userLevel * durMultLvl).round();
+    final int maxDuration = (minDuration * (1 + durationMult)).round();
+    final int newDurationSec = HelperFunctions.randomInt(minDuration, maxDuration);
+    final int newDurationMin = (newDurationSec / 60).round();
+
+    // 4. Calculate new effect value
+    final double effectMult = original.itemConfig.effectMultipliers[rarity] ?? 0;
+    final double effectMultLvl = original.itemConfig.effectMultPerLevel[rarity] ?? 0;
+
+    List<ItemEffect> newEffects = [];
+
+    for (ItemEffect effect in original.effects) {
+      double minValue = effect.value + userLevel * effectMultLvl;
+      double maxValue = minValue * (1 + effectMult);
+      double randomValue = HelperFunctions.randomDouble(minValue, maxValue);
+      
+      // Create a new effect instance with the random value
+      newEffects.add(ItemEffect(
+        type: effect.type,
+        value: randomValue,
+      ));
     }
-    
-    // Randomize price based on item strength
-    double totalEffectValue = randomizedEffects.fold(0.0, (sum, e) => sum + e.value);
-    int basePrice = (original.priceGold * (1 + totalEffectValue)).round();
-    
-    // Add level scaling and variance
-    double priceVariance = 0.8 + _random.nextDouble() * 0.4;
-    int newPriceGold = (basePrice * priceVariance).round();
-    newPriceGold += (userLevel * 5); // Scale with level
-    
-    int newPriceCrystal = original.priceCrystal;
-    if (newPriceCrystal > 0) {
-      newPriceCrystal = (newPriceCrystal * priceVariance).round();
-      newPriceCrystal += (userLevel ~/ 10);
-    }
-    
+
+    // 5. Calculate new cost
+    final costMultPerlevel = original.itemConfig.costMultPerLevel;
+    final int minCost = original.priceGold;
+    final int maxCost = (minCost * (1 + costMultPerlevel * userLevel)).round();
+    final int newCost = HelperFunctions.randomInt(minCost, maxCost);
+
     // Create new item with randomized values
     return Item(
       id: newId,
       name: original.name,
-      description: _generateDescription(randomizedEffects, newDurationMin),
+      description: _generateDescription(original.effects, newDurationMin),
       imageUrl: original.imageUrl,
       isPermanent: newDurationMin == 0,
-      durationSeconds: newDurationMin * 60,
-      priceGold: newPriceGold,
-      priceCrystal: newPriceCrystal,
+      durationSeconds: newDurationSec,
+      priceGold: newCost,
+      priceCrystal: original.priceCrystal,
       thresholdLevel: original.thresholdLevel,
-      effects: randomizedEffects,
+      effects: newEffects,
       rarity: original.rarity,
       level: original.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
-      isCustomItem: original.isCustomItem
+      itemConfig: original.itemConfig
     );
   }
   
@@ -178,15 +180,13 @@ class ItemDatabase {
         case EffectType.increaseGoldGain:
           desc += "+${(effect.value * 100).toInt()}% Gold";
           break;
+        case EffectType.increaseCrystalDropChance:
+          desc += "+${(effect.value * 100).toInt()}% Crystal";
+          break;
         default:
           break;
       }
     }
-    // if (durationMinutes > 0) {
-    //   desc += "Duration: $durationMinutes min";
-    // } else {
-    //   desc += "Permanent";
-    // }
     return desc;
   }
 }
@@ -200,73 +200,43 @@ class ShopManager {
     List<Item> shopItems = [];
     
     for (int i = 0; i < shopSize; i++) {
-      // 1. Pick random rarity based on level
-      final rarity = _selectRarityByLevel(userLevel);
+      // 1. Get a random item
+      final originalItem = ItemDatabase.allItems[_random.nextInt(ItemDatabase.allItems.length)];
       
-      // 2. Get random item of that rarity from master list
-      final availableItems = ItemDatabase.itemsByRarity[rarity]!
-          .where((item) => item.thresholdLevel <= userLevel)
-          .toList();
-      
-      if (availableItems.isEmpty) continue;
-      
-      final originalItem = availableItems[_random.nextInt(availableItems.length)];
-      
-      // 3. Clone and randomize values
-      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, userLevel);
+      // 2. Clone and randomize values
+      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, userLevel, _getItemRarity());
 
-      // To test
-      randomizedItem.durationSeconds = 5;
-      randomizedItem.remainingSeconds = 5;
+      // 3. Generate shop item
       shopItems.add(randomizedItem);
     }
     
     return shopItems;
   }
   
-  ItemRarity _selectRarityByLevel(int userLevel) {
-    // Same weighting logic as before
-    if (userLevel < 5) {
-      final rarities = [ItemRarity.common, ItemRarity.common, ItemRarity.common, ItemRarity.uncommon];
-      return rarities[_random.nextInt(rarities.length)];
-    } else if (userLevel < 10) {
-      final rarities = [
-        ItemRarity.common, ItemRarity.common, ItemRarity.uncommon, 
-        ItemRarity.uncommon, ItemRarity.rare
-      ];
-      return rarities[_random.nextInt(rarities.length)];
-    } else if (userLevel < 20) {
-      final rarities = [
-        ItemRarity.common, ItemRarity.uncommon, ItemRarity.uncommon, 
-        ItemRarity.rare, ItemRarity.rare, ItemRarity.epic
-      ];
-      return rarities[_random.nextInt(rarities.length)];
-    } else {
-      final rarities = [
-        ItemRarity.uncommon, ItemRarity.rare, ItemRarity.rare, 
-        ItemRarity.epic, ItemRarity.epic, ItemRarity.legendary
-      ];
-      return rarities[_random.nextInt(rarities.length)];
+
+  ItemRarity _getItemRarity(){
+    Map<ItemRarity, double> rarities = 
+      {ItemRarity.common: 0.7,
+      ItemRarity.uncommon: 0.11,
+      ItemRarity.rare: 0.09,
+      ItemRarity.epic: 0.05,
+      ItemRarity.legendary: 0.03,
+      ItemRarity.mythic: 0.02};
+    
+
+    // Calculate cumulative probabilities
+    double total = rarities.values.reduce((a, b) => a + b);
+    double random = Random().nextDouble() * total;
+    
+    double cumulative = 0.0;
+    for (var entry in rarities.entries) {
+      cumulative += entry.value;
+      if (random <= cumulative) {
+        return entry.key;
+      }
     }
+    
+    // Fallback (should never reach here if probabilities sum to 1.0)
+    return ItemRarity.common;
   }
 }
-
-// ==================== 4. USAGE ====================
-    // final shopManager = ShopManager();
-    // final user = User(level: 15); // Example user
-    
-    // // Generate shop items (refreshes every 24h)
-    // List<Item> shopItems = shopManager.generateShopItems(user.level, 6);
-    
-    // // Each item has random values:
-    // // - XP Potion might be 15-25% instead of base 10%
-    // // - Duration might be 12-18 minutes instead of 15
-    // // - Price adjusted based on new power level
-    
-    // for (var item in shopItems) {
-    //   print('Item: ${item.name}');
-    //   print('Effect: ${item.effects.first.value * 100}%');
-    //   print('Duration: ${item.durationMinutes}min');
-    //   print('Price: ${item.priceGold} gold');
-    //   print('---');
-    // }

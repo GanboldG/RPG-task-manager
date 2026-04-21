@@ -59,24 +59,6 @@ enum ItemRarity {
     }
   }
 
-  // Additional useful properties
-  // String get iconPath {
-  //   switch (this) {
-  //     case ItemRarity.common:
-  //       return 'assets/icons/rarity/common.png';
-  //     case ItemRarity.uncommon:
-  //       return 'assets/icons/rarity/uncommon.png';
-  //     case ItemRarity.rare:
-  //       return 'assets/icons/rarity/rare.png';
-  //     case ItemRarity.epic:
-  //       return 'assets/icons/rarity/epic.png';
-  //     case ItemRarity.legendary:
-  //       return 'assets/icons/rarity/legendary.png';
-  //     case ItemRarity.mythic:
-  //       return 'assets/icons/rarity/mythic.png';
-  //   }
-  // }
-
   double get dropChance {
     switch (this) {
       case ItemRarity.common:

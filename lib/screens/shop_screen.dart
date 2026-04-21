@@ -9,6 +9,7 @@ import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color(0xFFF9F9F9);
@@ -165,6 +166,8 @@ class _TokenShopTab extends StatelessWidget {
             child: Image.asset(item.imageUrl),
           ),
           name: item.name,
+          durationSec: item.durationSeconds,
+          rarity: item.rarity,
           subtitle: item.description,
           price: item.priceGold,
           onBuy: () => onBuy(item),
@@ -402,11 +405,15 @@ class _ShopItemCard extends StatelessWidget {
   final Widget leading;
   final String name, subtitle;
   final int price;
+  final int durationSec;
+  final ItemRarity rarity;
   final VoidCallback onBuy;
   
   const _ShopItemCard({
     required this.leading,
     required this.name,
+    required this.durationSec,
+    required this.rarity,
     required this.subtitle,
     required this.price,
     required this.onBuy,
@@ -417,7 +424,7 @@ class _ShopItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
-        color: kCard,
+        color: rarity.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: kBorder)
       ),
@@ -426,11 +433,11 @@ class _ShopItemCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name,
+            Text("$name ",
               style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
             ),
             const SizedBox(height: 3),
-            Text(subtitle,
+            Text("$subtitle (${HelperFunctions.formatDuration(durationSec)})",
               style: const TextStyle(color: kPurpleMid, fontSize: 11),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
