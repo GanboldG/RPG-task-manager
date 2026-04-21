@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
+import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class OwnedCustomItem {
   final String id;
@@ -32,30 +34,47 @@ class OwnedCustomItem {
 }
 
 class CustomItemInventoryController extends ChangeNotifier {
-  List<OwnedCustomItem> _ownedCustomItems = [];
-  
+  late User _user;
+
+  late List<OwnedCustomItem> _ownedCustomItems;
   List<OwnedCustomItem> get ownedCustomItems => List.unmodifiable(_ownedCustomItems);
+
+  late List<OwnedCustomItem> _activatedCustomItems;
+  List<OwnedCustomItem> get activatedCustomItems => List.unmodifiable(_activatedCustomItems);
+
   
   // Timer update stream for real-time UI updates
   final _timerUpdateController = StreamController<void>.broadcast();
   Stream<void> get timerUpdateStream => _timerUpdateController.stream;
 
   CustomItemInventoryController() {
+    _user = UserService().currentUser;
+    _ownedCustomItems = _user.ownedCustomItems;
+    _activatedCustomItems = _user.activatedCustomItems;
+
     _startGlobalTimer();
   }
 
   void _startGlobalTimer() {
     Timer.periodic(const Duration(seconds: 1), (timer) {
       bool updated = false;
+      List<OwnedCustomItem> expiredItems = [];
+
       for (var item in _ownedCustomItems) {
         if (item.isActive && !item.isPaused && item.remainingSeconds > 0) {
           item.remainingSeconds--;
           updated = true;
+
+          if (item.remainingSeconds <= 0) {expiredItems.add(item);}
         }
       }
       if (updated) {
         _timerUpdateController.add(null);
         notifyListeners();
+      }
+
+      for (var item in expiredItems){
+        deleteCustomItem(item.id);
       }
     });
   }
@@ -66,7 +85,7 @@ class CustomItemInventoryController extends ChangeNotifier {
       orElse: () => OwnedCustomItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         customItem: item,
-        remainingSeconds: 3600, // 1 hour default
+        remainingSeconds: item.durationMinutes * 60,
         purchasedAt: DateTime.now(),
       ),
     );
@@ -77,7 +96,7 @@ class CustomItemInventoryController extends ChangeNotifier {
       _ownedCustomItems.add(OwnedCustomItem(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         customItem: item,
-        remainingSeconds: 3600,
+        remainingSeconds: item.durationMinutes * 60,
         purchasedAt: DateTime.now(),
       ));
     }
@@ -110,6 +129,7 @@ class CustomItemInventoryController extends ChangeNotifier {
 
   void deleteCustomItem(String ownedItemId) {
     _ownedCustomItems.removeWhere((i) => i.id == ownedItemId);
+    _activatedCustomItems.removeWhere((i) => i.id == ownedItemId);
     notifyListeners();
   }
 

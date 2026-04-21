@@ -1,7 +1,7 @@
 // timer_service.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/models/task/task.dart';
 
 class TimerService extends ChangeNotifier {
   Timer? _timer;
@@ -10,7 +10,7 @@ class TimerService extends ChangeNotifier {
   bool _isRunning = false;
   
   // This callback needs to be called!
-  Function(int, int)? onProgressUpdate;
+  Function(String, int)? onProgressUpdate;
   
   Task? get activeTask => _activeTask;
   bool get isRunning => _isRunning;

@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
+import 'package:rpg_task_manager/models/configs/item_config.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 part 'item.g.dart';
@@ -8,7 +9,7 @@ part 'item.g.dart';
 @HiveType(typeId: 4)
 class Item {
   @HiveField(0)
-  int id;
+  String id;
   
   @HiveField(1)
   String name;
@@ -52,10 +53,8 @@ class Item {
   @HiveField(14)
   bool isActivated;
 
-  // Instead of inheriting and making hive break, just gonna use a flag
-  // isCustomItem = true means it is a voucher/customItem created by user
   @HiveField(15)
-  bool isCustomItem; 
+  ItemConfig itemConfig;
 
   Item({
     required this.id,
@@ -73,11 +72,11 @@ class Item {
     required this.acquiredDate,
     this.remainingSeconds = 300,
     required this.isActivated,
-    required this.isCustomItem
+    required this.itemConfig,
   });
 
   Item copyWith({
-    int? id,
+    String? id,
     String? name,
     String? description,
     int? level,
@@ -90,7 +89,7 @@ class Item {
     bool? isPermanent,
     ItemRarity? rarity,
     int? priceCrystal,
-    bool? isCustomItem
+    ItemConfig? itemConfig
   }) {
     return Item(
       id: id ?? this.id,
@@ -106,7 +105,7 @@ class Item {
       isPermanent: isPermanent ?? this.isPermanent,
       rarity: rarity ?? this.rarity,
       priceCrystal: priceCrystal ?? this.priceCrystal,
-      isCustomItem: isCustomItem ?? this.isCustomItem,
+      itemConfig: itemConfig ?? this.itemConfig,
     );
   }
 
@@ -116,6 +115,26 @@ class Item {
 
   String getFormattedRemainingDuration() {
     return HelperFunctions.formatDuration(remainingSeconds);
+  }
+
+  String generateDescription(){
+    String desc = "";
+    for (var effect in effects) {
+      switch (effect.type) {
+        case EffectType.increaseXpGain:
+          desc += "+${(effect.value * 100).toInt()}% XP ";
+          break;
+        case EffectType.increaseGoldGain:
+          desc += "+${(effect.value * 100).toInt()}% Gold";
+          break;
+        case EffectType.increaseCrystalDropChance:
+          desc += "+${(effect.value * 100).toInt()}% Crystal ";
+          break;
+        default:
+          break;
+      }
+    }
+    return desc;
   }
 }
 
@@ -208,7 +227,7 @@ extension ItemEffectExtensions on List<ItemEffect> {
 class ItemFactory {
   // XP Boost Item
   static Item createXpBoostItem({
-    required int id,
+    required String id,
     required String name,
     required double xpBoostPercent, // 20% boost
     required int durationSeconds,
@@ -221,6 +240,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
+    required ItemConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -245,12 +265,12 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      isCustomItem: false
+      itemConfig: itemConfig
     );
   }
 
    static Item createGoldBoostItem({
-    required int id,
+    required String id,
     required String name,
     required double goldBoostPercent, // 20% boost
     required int durationSeconds,
@@ -263,6 +283,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
+    required ItemConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -276,7 +297,7 @@ class ItemFactory {
       thresholdLevel: thresholdLevel,
       effects: [
         ItemEffect(
-          type: EffectType.increaseXpGain,
+          type: EffectType.increaseGoldGain,
           value: goldBoostPercent,
           isStackable: true,
           maxStack: 2, // Max 200% boost
@@ -287,13 +308,13 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      isCustomItem: false
+      itemConfig: itemConfig,
     );
   }
   
   // Lucky Crystal (increases crystal drop chance)
   static Item createCrystalChanceItem({
-    required int id,
+    required String id,
     required double crystalDropChance, // 15% increase
     required int durationSeconds,
     required int priceGold,
@@ -306,6 +327,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
+    required ItemConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -329,7 +351,7 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      isCustomItem: false
+      itemConfig: itemConfig,
     );
   }
 }

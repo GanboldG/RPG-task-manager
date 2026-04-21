@@ -113,6 +113,7 @@ class ItemShopController extends ChangeNotifier{
   // Add a new custom item
   Future<void> addCustomItem({
     required String name,
+    required int durationMinutes,
     required String description,
     required int priceGold,
     required File? imageFile,
@@ -126,6 +127,7 @@ class ItemShopController extends ChangeNotifier{
     final newItem = CustomItem(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: name.trim(),
+      durationMinutes: durationMinutes,
       description: description.trim(),
       priceGold: priceGold,
       createdAt: DateTime.now(),
@@ -144,7 +146,7 @@ class ItemShopController extends ChangeNotifier{
       _customItems[index] = _customItems[index].copyWith(
         purchaseCount: _customItems[index].purchaseCount + 1,
       );
-      _customInventoryController.addCustomItem(_customItems[index]); // Note: Update InventoryController to accept CustomItem
+      _customInventoryController.addCustomItem(_customItems[index]); 
       // _saveCustomItems();
       notifyListeners();
     }
@@ -239,6 +241,7 @@ extension CustomItemExtension on CustomItem {
   CustomItem copyWith({
     String? id,
     String? name,
+    int? durationMinutes,
     String? description,
     int? priceGold,
     DateTime? createdAt,
@@ -248,6 +251,7 @@ extension CustomItemExtension on CustomItem {
     return CustomItem(
       id: id ?? this.id,
       name: name ?? this.name,
+      durationMinutes: durationMinutes ?? this.durationMinutes,
       description: description ?? this.description,
       priceGold: priceGold ?? this.priceGold,
       createdAt: createdAt ?? this.createdAt,

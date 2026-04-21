@@ -2,12 +2,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color(0xFFF9F9F9);
@@ -33,7 +34,6 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
   late final UserController _userController;
-  late final InventoryController _inventoryController;
   late final ItemShopController _shopController;
 
   @override 
@@ -42,7 +42,6 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     _tab = TabController(length: 2, vsync: this); 
     
     _userController = context.read<UserController>();
-    _inventoryController = context.read<InventoryController>();
     _shopController = context.read<ItemShopController>();
   }
   
@@ -164,7 +163,9 @@ class _TokenShopTab extends StatelessWidget {
             child: Image.asset(item.imageUrl),
           ),
           name: item.name,
-          subtitle: item.description,
+          durationSec: item.durationSeconds,
+          rarity: item.rarity,
+          subtitle: "${item.generateDescription()} (${item.getFormattedBaseDuration()})",
           price: item.priceGold,
           onBuy: () => onBuy(item),
         );
@@ -223,6 +224,7 @@ class _CustomItemShopTab extends StatelessWidget {
       child: _CustomItemCard(
         leading: _CustomItemAvatar(imagePath: item.imagePath, size: 50),
         name: item.name,
+        duration: HelperFunctions.formatDuration(item.durationMinutes * 60),
         subtitle: item.description,
         price: item.priceGold,
         onBuy: () => onBuy(item),
@@ -242,12 +244,13 @@ class AddCustomItemScreen extends StatefulWidget {
 class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   final _nameCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
+  final _durationCtrl = TextEditingController(); // NEW: duration controller
   final _descCtrl = TextEditingController();
   File? _imageFile;
   static const double _feeRate = 0.15;
 
   int get _price => int.tryParse(_priceCtrl.text) ?? 0;
-  int get _receive => (_price * (1 - _feeRate)).toInt();
+  int get _duration => int.tryParse(_durationCtrl.text) ?? 0; // NEW: duration getter
   int get _fee => (_price * _feeRate).toInt();
 
   Future<void> _pickImage() async {
@@ -260,9 +263,9 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   }
 
   void _submit() async {
-    if (_nameCtrl.text.trim().isEmpty || _price == 0) {
+    if (_nameCtrl.text.trim().isEmpty || _price == 0 || _duration == 0) { // MODIFIED: added duration check
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Fill in name and price.'),
+        content: Text('Fill in name, price, and duration.'),
         backgroundColor: kRed,
       ));
       return;
@@ -274,6 +277,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       priceGold: _price,
+      durationMinutes: _duration, // NEW: pass duration
       imageFile: _imageFile,
     );
     
@@ -286,6 +290,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
   void dispose() { 
     _nameCtrl.dispose(); 
     _priceCtrl.dispose(); 
+    _durationCtrl.dispose(); // NEW: dispose duration controller
     _descCtrl.dispose(); 
     super.dispose(); 
   }
@@ -338,8 +343,12 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
                   const SizedBox(width: 6),
                   const Icon(Icons.monetization_on, color: kGold, size: 20),
                 ]),
-                const SizedBox(height: 8),
-                _PriceInfo(label: 'You receive:', value: _receive),
+                const SizedBox(height: 8), // NEW: spacing
+                Row(children: [ // NEW: duration field row
+                  Expanded(child: _Field(ctrl: _durationCtrl, hint: 'Duration (minutes)', isNumber: true, onChanged: (_) => setState(() {}))),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.timer, color: kPurpleMid, size: 20),
+                ]),
               ]),
             ),
           ]),
@@ -393,11 +402,15 @@ class _ShopItemCard extends StatelessWidget {
   final Widget leading;
   final String name, subtitle;
   final int price;
+  final int durationSec;
+  final ItemRarity rarity;
   final VoidCallback onBuy;
   
   const _ShopItemCard({
     required this.leading,
     required this.name,
+    required this.durationSec,
+    required this.rarity,
     required this.subtitle,
     required this.price,
     required this.onBuy,
@@ -408,7 +421,7 @@ class _ShopItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
-        color: kCard,
+        color: rarity.color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: kBorder)
       ),
@@ -417,7 +430,7 @@ class _ShopItemCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name,
+            Text("$name ",
               style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
             ),
             const SizedBox(height: 3),
@@ -443,12 +456,13 @@ class _ShopItemCard extends StatelessWidget {
 
 class _CustomItemCard extends StatelessWidget {
   final Widget leading;
-  final String name, subtitle;
+  final String name, duration, subtitle;
   final int price;
   final VoidCallback onBuy;
   
   const _CustomItemCard({
     required this.leading,
+    required this.duration,
     required this.name,
     required this.subtitle,
     required this.price,
@@ -469,7 +483,7 @@ class _CustomItemCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(name,
+            Text("$name ($duration)",
               style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
             ),
             const SizedBox(height: 3),
@@ -486,7 +500,7 @@ class _CustomItemCard extends StatelessWidget {
           const SizedBox(width: 3),
           const Icon(Icons.monetization_on, color: kGold, size: 14),
           const SizedBox(width: 6),
-          _BuyBtn(onTap: onBuy, label: 'BUY'),
+          _BuyBtn(onTap: onBuy, label: 'ACTIVATE'),
         ]),
       ]),
     );

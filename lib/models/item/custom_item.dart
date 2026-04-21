@@ -25,16 +25,19 @@ class CustomItem {
   @HiveField(6)
   final int purchaseCount;
 
+  @HiveField(7)
+  final int durationMinutes;
+
   CustomItem({
     required this.id,
     required this.name,
+    required this.durationMinutes,
     required this.description,
     required this.priceGold,
     required this.createdAt,
     this.imagePath,
     this.purchaseCount = 0,
   });
-
   // Helper to check if item is new (created within last 7 days)
   bool get isNew {
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));

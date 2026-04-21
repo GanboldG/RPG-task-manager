@@ -7,8 +7,11 @@ import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
+import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/models/reward.dart';
-import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/models/task/task.dart';
+import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
@@ -21,7 +24,15 @@ import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
   
-// In main.dart, make sure the callback is set AFTER controller is created
+// Run this once after model changes
+Future<void> resetHiveForNewSchema() async {
+  await Hive.close();
+
+  await Hive.deleteBoxFromDisk('active_tasks');
+  await Hive.deleteBoxFromDisk('completed_tasks');
+  await Hive.deleteBoxFromDisk('abandoned_tasks');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -31,8 +42,10 @@ void main() async {
 
   // Initialize Hive for data storage
   await _initializeHive();
+
+
   await ConfigService.loadConfigs();
-  await UserService().initializeUser();
+  UserService().initializeUser();
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();
@@ -60,21 +73,24 @@ void main() async {
 Future<void> _initializeHive() async{
   await Hive.initFlutter();
 
-  //await Hive.deleteFromDisk();
-  // Add default values for new variables of old element
-  // final taskService = TaskService();
-  // await taskService.resetAllHiveData();
-
   // Register your adapters
   Hive.registerAdapter(TaskAdapter());
   Hive.registerAdapter(DifficultyAdapter());
   Hive.registerAdapter(RewardAdapter());
+  Hive.registerAdapter(ItemRarityAdapter());
+  Hive.registerAdapter(CustomItemAdapter());
+  Hive.registerAdapter(TaskTypeAdapter());
 
   // Open boxes (creates files on disk)
   await Hive.openBox<Task>('active_tasks');
   await Hive.openBox<Task>('completed_tasks');
   await Hive.openBox<Task>('abandoned_tasks');
   await Hive.openBox('settings');  // Non-typed box for simple values
+  
+  final box = Hive.box<Task>('active_tasks');
+  debugPrint("${box.length.toString()} tasks in active_tasks");
+  final completeBox = Hive.box<Task>('completed_tasks');
+  debugPrint("${completeBox.length.toString()} tasks in completed_tasks");
 }
 
 
@@ -86,19 +102,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'RPG Task Manager',
       theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.background,
+        scaffoldBackgroundColor: const Color.fromARGB(255, 224, 208, 235),
         primaryColor: const Color.from(alpha: 1, red: 0.882, green: 0.706, blue: 0.996),
 
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
           secondary: AppColors.secondary,
-          surface: AppColors.surface,
+          // surface: AppColors.surface,
         ),
 
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: AppColors.primary,
           selectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-          unselectedItemColor: Colors.black,
+          // unselectedItemColor: Colors.black,
         ),
 
         appBarTheme: AppBarThemeData(
@@ -110,7 +126,7 @@ class MyApp extends StatelessWidget {
           headerBackgroundColor: AppColors.textSecondary, // Or AppColors.primary
           headerForegroundColor: Colors.white,
           dayBackgroundColor: WidgetStateProperty.all(Colors.white),
-          dayForegroundColor: WidgetStateProperty.all(Colors.black87),
+          // dayForegroundColor: WidgetStateProperty.all(Colors.black87),
           dayOverlayColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.1)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

@@ -403,17 +403,17 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
               ),
             
             // Stack/Add more button
-            ListTile(
-              leading: const Icon(Icons.add_circle, color: kBlue),
-              title: const Text('Add Stack (+1)', style: TextStyle(color: kTxt)),
-              subtitle: const Text('Add another instance of this reward', style: TextStyle(color: kTxtSub, fontSize: 11)),
-              onTap: () {
-                Navigator.pop(context);
-                context.read<CustomItemInventoryController>().addStackToCustomItem(ownedItem.id);
-              },
-            ),
+            // ListTile(
+            //   leading: const Icon(Icons.add_circle, color: kBlue),
+            //   title: const Text('Add Stack (+1)', style: TextStyle(color: kTxt)),
+            //   subtitle: const Text('Add another instance of this reward', style: TextStyle(color: kTxtSub, fontSize: 11)),
+            //   onTap: () {
+            //     Navigator.pop(context);
+            //     context.read<CustomItemInventoryController>().addStackToCustomItem(ownedItem.id);
+            //   },
+            // ),
             
-            const Divider(color: kBorder, height: 0),
+            // const Divider(color: kBorder, height: 0),
             
             // Delete button
             ListTile(
@@ -461,7 +461,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final itemTimerService = context.watch<ItemTimerService>();
+    // final itemTimerService = context.watch<ItemTimerService>();
     final inventoryController = context.watch<InventoryController>();
     final customInventoryController = context.watch<CustomItemInventoryController>();
     
@@ -799,71 +799,71 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   // ─── CUSTOM ITEMS TAB (NEW UI) ────────────────────────────────────────────
   Widget _buildCustomItemsTab(List<OwnedCustomItem> ownedCustomItems) {
     final filteredItems = getFilteredAndSortedCustomItems(ownedCustomItems);
-    final totalStacks = ownedCustomItems.fold<int>(0, (sum, item) => sum + item.stackCount);
+    // final totalStacks = ownedCustomItems.fold<int>(0, (sum, item) => sum + item.stackCount);
     
     return Column(
       children: [
-        // Top section - Stats and summary
-        Container(
-          padding: const EdgeInsets.all(16),
-          color: kCardAlt,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatCard(
-                    icon: Icons.card_giftcard,
-                    label: 'Unique Items',
-                    value: ownedCustomItems.length.toString(),
-                    color: kPurple,
-                  ),
-                  _buildStatCard(
-                    icon: Icons.layers,
-                    label: 'Total Stacks',
-                    value: totalStacks.toString(),
-                    color: kBlue,
-                  ),
-                  _buildStatCard(
-                    icon: Icons.timer,
-                    label: 'Active',
-                    value: ownedCustomItems.where((i) => i.isActive && !i.isPaused).length.toString(),
-                    color: kGreen,
-                  ),
-                  _buildStatCard(
-                    icon: Icons.pause,
-                    label: 'Paused',
-                    value: ownedCustomItems.where((i) => i.isPaused).length.toString(),
-                    color: kOrange,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: kCard,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: kBorder),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.info_outline, color: kTxtSub, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Custom rewards have no usage limit. Tap on an item to pause, resume, or add more stacks.',
-                        style: TextStyle(color: kTxtSub, fontSize: 11),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        // // Top section - Stats and summary
+        // Container(
+        //   padding: const EdgeInsets.all(16),
+        //   color: kCardAlt,
+        //   child: Column(
+        //     children: [
+        //       Row(
+        //         mainAxisAlignment: MainAxisAlignment.spaceAround,
+        //         children: [
+        //           _buildStatCard(
+        //             icon: Icons.card_giftcard,
+        //             label: 'Unique Items',
+        //             value: ownedCustomItems.length.toString(),
+        //             color: kPurple,
+        //           ),
+        //           _buildStatCard(
+        //             icon: Icons.layers,
+        //             label: 'Total Stacks',
+        //             value: totalStacks.toString(),
+        //             color: kBlue,
+        //           ),
+        //           _buildStatCard(
+        //             icon: Icons.timer,
+        //             label: 'Active',
+        //             value: ownedCustomItems.where((i) => i.isActive && !i.isPaused).length.toString(),
+        //             color: kGreen,
+        //           ),
+        //           _buildStatCard(
+        //             icon: Icons.pause,
+        //             label: 'Paused',
+        //             value: ownedCustomItems.where((i) => i.isPaused).length.toString(),
+        //             color: kOrange,
+        //           ),
+        //         ],
+        //       ),
+        //       const SizedBox(height: 12),
+        //       Container(
+        //         padding: const EdgeInsets.all(8),
+        //         decoration: BoxDecoration(
+        //           color: kCard,
+        //           borderRadius: BorderRadius.circular(8),
+        //           border: Border.all(color: kBorder),
+        //         ),
+        //         child: const Row(
+        //           mainAxisAlignment: MainAxisAlignment.center,
+        //           children: [
+        //             Icon(Icons.info_outline, color: kTxtSub, size: 16),
+        //             SizedBox(width: 8),
+        //             Expanded(
+        //               child: Text(
+        //                 'Custom rewards have no usage limit. Tap on an item to pause, resume, or add more stacks.',
+        //                 style: TextStyle(color: kTxtSub, fontSize: 11),
+        //                 textAlign: TextAlign.center,
+        //               ),
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
 
         // Search and sort bar
         Padding(
@@ -885,7 +885,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                     },
                     style: const TextStyle(color: kTxt, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Search custom rewards...',
+                      hintText: 'Search custom items...',
                       hintStyle: const TextStyle(color: kTxtSub, fontSize: 13),
                       prefixIcon: const Icon(Icons.search, color: kTxtSub, size: 20),
                       border: InputBorder.none,
@@ -1112,16 +1112,16 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
                                   ),
-                                if (!isExpired)
-                                  IconButton(
-                                    icon: const Icon(Icons.add_circle, color: kBlue, size: 28),
-                                    onPressed: () {
-                                      context.read<CustomItemInventoryController>().addStackToCustomItem(ownedItem.id);
-                                    },
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                  ),
-                                const SizedBox(height: 4),
+                                // if (!isExpired)
+                                //   IconButton(
+                                //     icon: const Icon(Icons.add_circle, color: kBlue, size: 28),
+                                //     onPressed: () {
+                                //       context.read<CustomItemInventoryController>().addStackToCustomItem(ownedItem.id);
+                                //     },
+                                //     padding: EdgeInsets.zero,
+                                //     constraints: const BoxConstraints(),
+                                //   ),
+                                // const SizedBox(height: 4),
                                 IconButton(
                                   icon: const Icon(Icons.delete_outline, color: kRed, size: 24),
                                   onPressed: () => _showDeleteConfirmation(ownedItem),
@@ -1141,30 +1141,30 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildStatCard({required IconData icon, required String label, required String value, required Color color}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: kCard,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: kBorder),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          Text(
-            label,
-            style: const TextStyle(color: kTxtSub, fontSize: 10),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildStatCard({required IconData icon, required String label, required String value, required Color color}) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //     decoration: BoxDecoration(
+  //       color: kCard,
+  //       borderRadius: BorderRadius.circular(10),
+  //       border: Border.all(color: kBorder),
+  //     ),
+  //     child: Column(
+  //       children: [
+  //         Icon(icon, color: color, size: 20),
+  //         const SizedBox(height: 4),
+  //         Text(
+  //           value,
+  //           style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
+  //         ),
+  //         Text(
+  //           label,
+  //           style: const TextStyle(color: kTxtSub, fontSize: 10),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   String _formatDuration(int seconds) {
     if (seconds <= 0) return 'Expired';
