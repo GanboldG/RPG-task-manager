@@ -8,7 +8,7 @@ part 'item.g.dart';
 @HiveType(typeId: 4)
 class Item {
   @HiveField(0)
-  int id;
+  String id;
   
   @HiveField(1)
   String name;
@@ -77,7 +77,7 @@ class Item {
   });
 
   Item copyWith({
-    int? id,
+    String? id,
     String? name,
     String? description,
     int? level,
@@ -208,7 +208,7 @@ extension ItemEffectExtensions on List<ItemEffect> {
 class ItemFactory {
   // XP Boost Item
   static Item createXpBoostItem({
-    required int id,
+    required String id,
     required String name,
     required double xpBoostPercent, // 20% boost
     required int durationSeconds,
@@ -250,7 +250,7 @@ class ItemFactory {
   }
 
    static Item createGoldBoostItem({
-    required int id,
+    required String id,
     required String name,
     required double goldBoostPercent, // 20% boost
     required int durationSeconds,
@@ -293,7 +293,7 @@ class ItemFactory {
   
   // Lucky Crystal (increases crystal drop chance)
   static Item createCrystalChanceItem({
-    required int id,
+    required String id,
     required double crystalDropChance, // 15% increase
     required int durationSeconds,
     required int priceGold,

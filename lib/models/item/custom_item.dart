@@ -5,7 +5,7 @@ part 'custom_item.g.dart';
 @HiveType(typeId: 3)
 class CustomItem {
   @HiveField(0)
-  final int id;
+  final String id;
   
   @HiveField(1)
   final String name;

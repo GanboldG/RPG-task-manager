@@ -7,8 +7,11 @@ import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
+import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
+import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
@@ -21,25 +24,6 @@ import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-Future<void> resetHiveBoxes() async {
-  List<String> boxes = ["active_tasks", "completed_tasks", "abandoned_tasks"];
-
-  for (String box in boxes){
-    // Check if box is open and close it first
-    if (Hive.isBoxOpen(box)) {
-      await Hive.box(box).close();
-    }
-    
-    // Delete the box from disk
-    await Hive.deleteBoxFromDisk(box);
-    
-    // Reopen the box with proper type
-    await Hive.openBox<Task>(box);
-  }
-}
-
-
-// In main.dart, make sure the callback is set AFTER controller is created
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -52,8 +36,10 @@ void main() async {
   await ConfigService.loadConfigs();
   UserService().initializeUser();
 
-  // Clear the boxes in case I add more variables in the future
-  // await resetHiveBoxes();
+  final box = Hive.box<Task>('active_tasks');
+  debugPrint("${box.length.toString()} tasks in active_tasks");
+  final completeBox = Hive.box<Task>('completed_tasks');
+  debugPrint("${completeBox.length.toString()} tasks in completed_tasks");
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();
@@ -90,6 +76,9 @@ Future<void> _initializeHive() async{
   Hive.registerAdapter(TaskAdapter());
   Hive.registerAdapter(DifficultyAdapter());
   Hive.registerAdapter(RewardAdapter());
+  Hive.registerAdapter(ItemRarityAdapter());
+  Hive.registerAdapter(CustomItemAdapter());
+  Hive.registerAdapter(TaskTypeAdapter());
 
   // Open boxes (creates files on disk)
   await Hive.openBox<Task>('active_tasks');
@@ -113,13 +102,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.light(
           primary: AppColors.primary,
           secondary: AppColors.secondary,
-          surface: AppColors.surface,
+          // surface: AppColors.surface,
         ),
 
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
           backgroundColor: AppColors.primary,
           selectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-          unselectedItemColor: Colors.black,
+          // unselectedItemColor: Colors.black,
         ),
 
         appBarTheme: AppBarThemeData(
@@ -131,7 +120,7 @@ class MyApp extends StatelessWidget {
           headerBackgroundColor: AppColors.textSecondary, // Or AppColors.primary
           headerForegroundColor: Colors.white,
           dayBackgroundColor: WidgetStateProperty.all(Colors.white),
-          dayForegroundColor: WidgetStateProperty.all(Colors.black87),
+          // dayForegroundColor: WidgetStateProperty.all(Colors.black87),
           dayOverlayColor: WidgetStateProperty.all(AppColors.primary.withOpacity(0.1)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),

@@ -18,6 +18,7 @@ class TaskAdapter extends TypeAdapter<Task> {
     };
     return Task(
       id: fields[0] as int,
+      orderId: fields[11] as int?,
       name: fields[1] as String,
       description: fields[2] as String,
       isCompleted: fields[3] as bool,
@@ -28,7 +29,6 @@ class TaskAdapter extends TypeAdapter<Task> {
       createdAt: fields[8] as DateTime,
       completedAt: fields[9] as DateTime?,
       reward: fields[10] as Reward,
-      orderId: fields[11] as int?,
       type: fields[12] as TaskType?,
     );
   }
@@ -36,7 +36,7 @@ class TaskAdapter extends TypeAdapter<Task> {
   @override
   void write(BinaryWriter writer, Task obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -60,7 +60,9 @@ class TaskAdapter extends TypeAdapter<Task> {
       ..writeByte(10)
       ..write(obj.reward)
       ..writeByte(11)
-      ..write(obj.orderId);
+      ..write(obj.orderId)
+      ..writeByte(12)
+      ..write(obj.type);
   }
 
   @override

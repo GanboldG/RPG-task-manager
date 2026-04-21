@@ -1,5 +1,7 @@
 import 'package:hive/hive.dart';
 
+part 'task_type.g.dart';  // Generated file
+
 @HiveType(typeId: 8)
 enum TaskType {
   @HiveField(0)

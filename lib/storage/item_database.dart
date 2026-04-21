@@ -10,7 +10,7 @@ class ItemDatabase {
   static final List<Item> allItems = [
     // Common Items
     ItemFactory.createXpBoostItem(
-      id: 1001,
+      id: "1",
       name: 'Minor XP Potion',
       xpBoostPercent: 0.10, // Base value (will be randomized)
       durationSeconds: 15,
@@ -26,7 +26,7 @@ class ItemDatabase {
     ),
     
     ItemFactory.createGoldBoostItem(
-      id: 1002,
+      id: "2",
       name: 'Gold Charm',
       goldBoostPercent: 0.08,
       durationSeconds: 20,
@@ -42,7 +42,7 @@ class ItemDatabase {
     ),
     
     ItemFactory.createCrystalChanceItem(
-      id: 2003,
+      id: "3",
       name: 'Crystal Shard',
       crystalDropChance: 0.08,
       durationSeconds: 60,
@@ -100,7 +100,7 @@ class ItemDatabase {
   // Clone an item with randomized values
   static Item randomizeItem(Item original, int userLevel) {
     // Generate new unique ID
-    final newId = DateTime.now().millisecondsSinceEpoch + _random.nextInt(10000);
+    final newId = DateTime.now().millisecondsSinceEpoch.toString();
     
     // Randomize effect values (±30% variance)
     final randomizedEffects = original.effects.map((effect) {
