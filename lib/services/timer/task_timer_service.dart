@@ -10,7 +10,7 @@ class TimerService extends ChangeNotifier {
   bool _isRunning = false;
   
   // This callback needs to be called!
-  Function(int, int)? onProgressUpdate;
+  Function(String, int)? onProgressUpdate;
   
   Task? get activeTask => _activeTask;
   bool get isRunning => _isRunning;

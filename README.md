@@ -1,10 +1,9 @@
 Planned things to do:
 
 Easier:
-- Add Labels to task 
 - Add Task delete penalty
 - Stop item shop from having many of the same item
-- Remove unnecessary lines from files
+- Rework item rarity (Any item can be any rarity, rarity range is defined in config file)
 - Move item infos into config file
 - Add more item variety
 - Debug Screen for:

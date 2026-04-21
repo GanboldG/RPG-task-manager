@@ -41,7 +41,7 @@ class TaskController extends ChangeNotifier {
     TaskType type = TaskType.career,
   }) {
     final newTask = Task(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       orderId: 0,  // Adding a task always puts at index 1 (on top)
       name: name,
       difficulty: difficulty,
@@ -61,7 +61,7 @@ class TaskController extends ChangeNotifier {
   }
 
   // --------------------FINISH----------------------
-  String finishTask(int id) {
+  String finishTask(String id) {
     Task? matchedTask = _findTaskByID(id);
 
     if (matchedTask != null) {
@@ -70,12 +70,8 @@ class TaskController extends ChangeNotifier {
       }
       
       _userController.addReward(matchedTask.reward);
+      taskService.completeTask(matchedTask.id);
       _tasks.remove(matchedTask);
-      // Add a method in service, that archives the task in finished_task box
-      // Add a method in service, that archives the task in finished_task box
-      // Instead of this::::::::
-      taskService.deleteTask(matchedTask.id);
-      // Add a method in service, that archives the task in finished_task box
 
       notifyListeners();
       return matchedTask.name;
@@ -85,7 +81,7 @@ class TaskController extends ChangeNotifier {
   }
 
   // --------------------DELETE----------------------
-  String deleteTask(int id) {
+  String deleteTask(String id) {
     Task? matchedTask = _findTaskByID(id);
 
     if (matchedTask != null) {
@@ -105,7 +101,7 @@ class TaskController extends ChangeNotifier {
 
   // --------------------UPDATE----------------------
   void updateTask({    
-    required int id,
+    required String id,
     String name = "", 
     Difficulty difficulty = Difficulty.easy, 
     double baseMinutes = 0,
@@ -128,7 +124,7 @@ class TaskController extends ChangeNotifier {
 
   // Called whenever "Pause" button's pressed, causing updated duration to be saved in Hive
   void updateHiveTaskDoneDuration({
-    required int taskId,
+    required String taskId,
   }) async {
     final task = _findTaskByID(taskId);
 
@@ -138,7 +134,7 @@ class TaskController extends ChangeNotifier {
   }
 
   // This gets called every second by the timer
-  void updateTaskProgress(int taskId, int doneSeconds) {
+  void updateTaskProgress(String taskId, int doneSeconds) {
     final task = _findTaskByID(taskId);
     if (task != null) {
       task.doneDurationSec = doneSeconds;
@@ -147,7 +143,7 @@ class TaskController extends ChangeNotifier {
   }
 
 
-  Task? _findTaskByID(int id) {
+  Task? _findTaskByID(String id) {
     try {
       return _tasks.firstWhere((task) => task.id == id);
     } catch (e) {

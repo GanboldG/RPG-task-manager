@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
@@ -23,21 +24,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Column(
         children: [
           const SizedBox(height: 20),
-          
-          // View Data Button
-          _buildSettingsButton(
-            icon: Icons.view_list,
-            text: 'View All Hive Data',
-            color: Colors.blue,
-            onPressed: _showDataOptionsDialog,
-          ),
-          
-          const SizedBox(height: 12),
-          
           // Reset Data Button
           _buildSettingsButton(
             icon: Icons.delete_sweep,
-            text: 'Reset All Task Data',
+            text: 'Reset All Task Data\n(Activate before changing a hive field)',
             color: Colors.red,
             onPressed: _confirmResetData,
           ),
@@ -180,16 +170,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final box = Hive.box<Task>(boxName);
       final tasks = box.values.toList();
       
-      if (tasks.isEmpty) {
-        if (mounted) {
-          Navigator.pop(context); // Close loading if needed
-          _showEmptyDialog(boxName);
-        }
-      } else {
-        if (mounted) {
-          _showTasksDialog(boxName, tasks);
-        }
+      if (mounted) {
+        _showTasksDialog(boxName, tasks);
       }
+        
     } catch (e) {
       if (mounted) {
         _showErrorDialog(boxName, e.toString());
@@ -509,32 +493,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _resetAllData() async {
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
+  
+  try {
+    // Close all boxes first
+    await Hive.close();
     
-    try {
-      for (String boxName in _boxNames) {
-        if (Hive.isBoxOpen(boxName)) {
-          await Hive.box(boxName).close();
-        }
-        await Hive.deleteBoxFromDisk(boxName);
-        await Hive.openBox<Task>(boxName);
-      }
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('All task data has been reset')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error resetting data: $e')),
-        );
-      }
-    } finally {
-      setState(() => _isLoading = false);
+    // Delete each box from disk
+    for (String boxName in _boxNames) {
+      await Hive.deleteBoxFromDisk(boxName);
     }
+    
+    // Reopen all boxes with proper typing
+    for (String boxName in _boxNames) {
+      await Hive.openBox<Task>(boxName);
+    }
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All task data has been reset\nNow restart the app! (IMPORTANT)')),
+      );
+    }
+    
+    // Debug print to verify
+    final box = Hive.box<Task>('active_tasks');
+    debugPrint("${box.length} tasks in active_tasks");
+    final completeBox = Hive.box<Task>('completed_tasks');
+    debugPrint("${completeBox.length} tasks in completed_tasks");
+    
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error resetting data: $e')),
+      );
+      _showErrorDialog('Reset', e.toString());
+    }
+  } finally {
+    setState(() => _isLoading = false);
   }
+}
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '

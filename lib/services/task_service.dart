@@ -7,7 +7,7 @@ class TaskService {
   final Box<Task> abandonedBox = Hive.box<Task>('abandoned_tasks');
   
   // ----------------ADD--------------------
-  Future<int> addTask(Task task) async {
+  Future<String> addTask(Task task) async {
     // int newId = await TaskIdCounter.getNextId();
     // Add to box (key = task.id, value = task)
     await activeBox.put(task.id, task);
@@ -31,7 +31,7 @@ class TaskService {
   }
 
   // ----------------UPDATE--------------------
-  Future<void> completeTask(int taskId) async {
+  Future<void> completeTask(String taskId) async {
     
     // Get existing task
     Task? task = activeBox.get(taskId);
@@ -52,7 +52,7 @@ class TaskService {
   }
 
   // ----------------DELETE---------------------
-  Future<void> deleteTask(int taskId, {bool permanent = false}) async {
+  Future<void> deleteTask(String taskId, {bool permanent = false}) async {
     if (permanent) {
       Task? task = activeBox.get(taskId);
       if (task != null){
@@ -88,30 +88,4 @@ class TaskService {
     // Or delete everything (all boxes)
     await Hive.deleteFromDisk();
   }
-
-  // ----------------MIGRATION---------------------
-  // Adds default values of new variables in old elements
-  // Future<void> migrateTasks() async {
-
-  //   // Migrate active tasks
-  //   for (var key in activeBox.keys) {
-  //     final task = activeBox.get(key);
-  //     if (task != null) {
-  //       // Check if orderId is null (old task)
-  //       if (task.orderId == null) {
-  //         task.orderId = 0;  // Set default value
-  //         await activeBox.put(key, task);
-  //       }
-  //     }
-  //   }
-    
-  //   // Migrate completed tasks
-  //   for (var key in completedBox.keys) {
-  //     final task = completedBox.get(key);
-  //     if (task != null && task.orderId == null) {
-  //       task.orderId = 0;
-  //       await completedBox.put(key, task);
-  //     }
-  //   }
-  // }
 }

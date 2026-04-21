@@ -14,7 +14,7 @@ class Task {
   // --------------Hive Stuff that converts to bytes to storage----------------
 
   @HiveField(0)
-  int id;
+  String id;
   
   @HiveField(1)
   String name;

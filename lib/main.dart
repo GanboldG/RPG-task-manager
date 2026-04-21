@@ -23,6 +23,15 @@ import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+  
+// Run this once after model changes
+Future<void> resetHiveForNewSchema() async {
+  await Hive.close();
+
+  await Hive.deleteBoxFromDisk('active_tasks');
+  await Hive.deleteBoxFromDisk('completed_tasks');
+  await Hive.deleteBoxFromDisk('abandoned_tasks');
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,13 +42,10 @@ void main() async {
 
   // Initialize Hive for data storage
   await _initializeHive();
+
+
   await ConfigService.loadConfigs();
   UserService().initializeUser();
-
-  final box = Hive.box<Task>('active_tasks');
-  debugPrint("${box.length.toString()} tasks in active_tasks");
-  final completeBox = Hive.box<Task>('completed_tasks');
-  debugPrint("${completeBox.length.toString()} tasks in completed_tasks");
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();
@@ -67,11 +73,6 @@ void main() async {
 Future<void> _initializeHive() async{
   await Hive.initFlutter();
 
-  //await Hive.deleteFromDisk();
-  // Add default values for new variables of old element
-  // final taskService = TaskService();
-  // await taskService.resetAllHiveData();
-
   // Register your adapters
   Hive.registerAdapter(TaskAdapter());
   Hive.registerAdapter(DifficultyAdapter());
@@ -85,6 +86,11 @@ Future<void> _initializeHive() async{
   await Hive.openBox<Task>('completed_tasks');
   await Hive.openBox<Task>('abandoned_tasks');
   await Hive.openBox('settings');  // Non-typed box for simple values
+  
+  final box = Hive.box<Task>('active_tasks');
+  debugPrint("${box.length.toString()} tasks in active_tasks");
+  final completeBox = Hive.box<Task>('completed_tasks');
+  debugPrint("${completeBox.length.toString()} tasks in completed_tasks");
 }
 
 
