@@ -8,7 +8,7 @@ import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:rpg_task_manager/models/reward.dart';
-import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
@@ -20,7 +20,25 @@ import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-  
+
+Future<void> resetHiveBoxes() async {
+  List<String> boxes = ["active_tasks", "completed_tasks", "abandoned_tasks"];
+
+  for (String box in boxes){
+    // Check if box is open and close it first
+    if (Hive.isBoxOpen(box)) {
+      await Hive.box(box).close();
+    }
+    
+    // Delete the box from disk
+    await Hive.deleteBoxFromDisk(box);
+    
+    // Reopen the box with proper type
+    await Hive.openBox<Task>(box);
+  }
+}
+
+
 // In main.dart, make sure the callback is set AFTER controller is created
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +51,9 @@ void main() async {
   await _initializeHive();
   await ConfigService.loadConfigs();
   UserService().initializeUser();
+
+  // Clear the boxes in case I add more variables in the future
+  // await resetHiveBoxes();
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();

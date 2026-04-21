@@ -213,8 +213,11 @@ class ShopManager {
       final originalItem = availableItems[_random.nextInt(availableItems.length)];
       
       // 3. Clone and randomize values
-      final randomizedItem = ItemDatabase.randomizeItem(originalItem, userLevel);
-      
+      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, userLevel);
+
+      // To test
+      randomizedItem.durationSeconds = 5;
+      randomizedItem.remainingSeconds = 5;
       shopItems.add(randomizedItem);
     }
     

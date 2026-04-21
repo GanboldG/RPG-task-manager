@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
-import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/models/task/task.dart';
+import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/timer/task_timer_service.dart';
@@ -37,6 +38,7 @@ class TaskController extends ChangeNotifier {
     double baseMinutes = 0,
     DateTime? deadline,
     String description = "",
+    TaskType type = TaskType.career,
   }) {
     final newTask = Task(
       id: DateTime.now().millisecondsSinceEpoch,
@@ -49,6 +51,7 @@ class TaskController extends ChangeNotifier {
       description: description,
       createdAt: DateTime.now(),
       reward: RewardService.calculateTaskReward(difficulty, HelperFunctions.minToSec(baseMinutes), UserService().currentUser.level),
+      type: type,
     );
 
     _tasks.insert(0, newTask);
@@ -108,6 +111,7 @@ class TaskController extends ChangeNotifier {
     double baseMinutes = 0,
     DateTime? deadline,
     String description = "",
+    TaskType type = TaskType.career
   }) async {
     final task = _tasks.firstWhere((k) => k.id == id);
     task.name = name;
@@ -116,6 +120,7 @@ class TaskController extends ChangeNotifier {
     task.deadline = deadline;
     task.description = description;
     task.reward = RewardService.calculateTaskReward(difficulty, task.getRemainingSeconds(), UserService().currentUser.level);
+    task.type = type;
 
     await taskService.updateTask(task);
     notifyListeners();

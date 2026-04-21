@@ -1,7 +1,7 @@
 // timer_service.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/models/task.dart';
+import 'package:rpg_task_manager/models/task/task.dart';
 
 class TimerService extends ChangeNotifier {
   Timer? _timer;

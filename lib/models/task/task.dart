@@ -4,6 +4,7 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/difficulty.dart';
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/reward.dart';
+import 'package:rpg_task_manager/models/task/task_type.dart';
 
 part 'task.g.dart';  // Generated file
 
@@ -48,6 +49,9 @@ class Task {
   @HiveField(11)
   int? orderId;
 
+  @HiveField(12)
+  TaskType? type;
+
   Task({required this.id, 
         required this.orderId,
         required this.name,
@@ -60,6 +64,7 @@ class Task {
         required this.createdAt,
         DateTime? completedAt,
         required this.reward,
+        required this.type,
   }) : deadline = deadline != null 
       ? DateTime(deadline.year, deadline.month, deadline.day, deadline.hour, deadline.minute)
       : null; // Removes seconds / milleseconds from deadline

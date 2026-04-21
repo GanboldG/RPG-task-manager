@@ -461,7 +461,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    final itemTimerService = context.watch<ItemTimerService>();
+    // final itemTimerService = context.watch<ItemTimerService>();
     final inventoryController = context.watch<InventoryController>();
     final customInventoryController = context.watch<CustomItemInventoryController>();
     

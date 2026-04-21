@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 import "package:rpg_task_manager/helpers/app_colors.dart";
 import "package:rpg_task_manager/helpers/app_fonts.dart";
 import "package:rpg_task_manager/helpers/helper_functions.dart";
-import "package:rpg_task_manager/models/task.dart";
+import "package:rpg_task_manager/models/task/task.dart";
 
 class TaskTile extends StatefulWidget{
   final Task task;
