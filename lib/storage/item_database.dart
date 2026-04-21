@@ -6,7 +6,6 @@ import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 // ==================== 1. ITEM DATABASE (Hardcoded Items) ====================
 class ItemDatabase {
-  static final Random _random = Random();
   static final ItemConfig _itemConfig = ItemConfig(
     durationMultipliers: {  // Applied last
       ItemRarity.common: 0,
@@ -26,11 +25,11 @@ class ItemDatabase {
     },
     effectMultipliers: {
       ItemRarity.common: 0,
-      ItemRarity.uncommon: 0.3,
-      ItemRarity.rare: 0.8,
-      ItemRarity.epic: 1,
-      ItemRarity.legendary: 2,
-      ItemRarity.mythic: 3
+      ItemRarity.uncommon: 0.2,
+      ItemRarity.rare: 0.4,
+      ItemRarity.epic: 0.8,
+      ItemRarity.legendary: 1.6,
+      ItemRarity.mythic: 2
     },
     effectMultPerLevel: {
       ItemRarity.common: 0.05,
@@ -40,7 +39,7 @@ class ItemDatabase {
       ItemRarity.legendary: 1.5,
       ItemRarity.mythic: 2
     },
-    costMultPerLevel: 0.25
+    costMultPerLevel: 0.4
   );
 
   // Pre-defined items - like a catalog
@@ -115,7 +114,7 @@ class ItemDatabase {
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
 
     // 2. Assign Rarity
-    final ItemRarity itemRarity = rarity;
+    final ItemRarity newRarity = rarity;
 
     // 3. Calculate new duration
     final double durationMult = original.itemConfig.durationMultipliers[rarity] ?? 0;
@@ -162,7 +161,7 @@ class ItemDatabase {
       priceCrystal: original.priceCrystal,
       thresholdLevel: original.thresholdLevel,
       effects: newEffects,
-      rarity: original.rarity,
+      rarity: newRarity,
       level: original.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
@@ -216,9 +215,9 @@ class ShopManager {
 
   ItemRarity _getItemRarity(){
     Map<ItemRarity, double> rarities = 
-      {ItemRarity.common: 0.7,
-      ItemRarity.uncommon: 0.11,
-      ItemRarity.rare: 0.09,
+      {ItemRarity.common: 0.4,
+      ItemRarity.uncommon: 0.3,
+      ItemRarity.rare: 0.1,
       ItemRarity.epic: 0.05,
       ItemRarity.legendary: 0.03,
       ItemRarity.mythic: 0.02};

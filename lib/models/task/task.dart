@@ -138,22 +138,12 @@ class Task {
     return doneDurationSec / baseDurationSec;
   }
 
-  String getRewardString(){
-    String rwstring = "";
-    if (reward.xp != 0){
-      rwstring += "${reward.xp}XP";
-    }
+  int getRewardXp(){
+    return reward.xp;
+  }
 
-    if (reward.gold != 0){
-      rwstring += " / ${reward.gold}Gold";
-    }
-
-    return rwstring;
-    // User not knowing which task has crystal will make him prioritize random tasks instead of targeting one
-
-    // if (reward.crystal != 0){
-    //   rwstring += "${reward.gold}crystal";
-    // }
+  int getRewardGold(){
+    return reward.gold;
   }
 
   int getRemainingSeconds(){

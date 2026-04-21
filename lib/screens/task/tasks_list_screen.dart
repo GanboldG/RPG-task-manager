@@ -397,13 +397,13 @@ class _TaskScreenState extends State<TaskScreen>{
     return Container(
       key: ValueKey(task.id),
       margin: EdgeInsets.symmetric(vertical: 4, horizontal: 0),
-      decoration: isFirstTask && !isThisTaskRunning ? BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withAlpha(125),
-          width: 2,
-        ),
-      ) : null,
+      // decoration: isFirstTask && !isThisTaskRunning ? BoxDecoration(
+      //   borderRadius: BorderRadius.circular(12),
+      //   border: Border.all(
+      //     color: AppColors.textSecondary.withAlpha(125),
+      //     width: 2,
+      //   ),
+      // ) : null,
       child: TaskTile(
         task: task,
         index: i,

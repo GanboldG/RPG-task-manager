@@ -51,11 +51,11 @@ enum ItemRarity {
       case ItemRarity.rare:
         return AppColors.rarityRare;
       case ItemRarity.epic:
-        return AppColors.rarityEpic;
+        return const Color.fromARGB(255, 202, 142, 255);
       case ItemRarity.legendary:
         return AppColors.rarityLegendary;
       case ItemRarity.mythic:
-        return AppColors.rarityMythic;
+        return const Color.fromARGB(255, 255, 101, 101);
     }
   }
 

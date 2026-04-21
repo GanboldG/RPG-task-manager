@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
@@ -35,7 +34,6 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
   late final UserController _userController;
-  late final InventoryController _inventoryController;
   late final ItemShopController _shopController;
 
   @override 
@@ -44,7 +42,6 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     _tab = TabController(length: 2, vsync: this); 
     
     _userController = context.read<UserController>();
-    _inventoryController = context.read<InventoryController>();
     _shopController = context.read<ItemShopController>();
   }
   
@@ -168,7 +165,7 @@ class _TokenShopTab extends StatelessWidget {
           name: item.name,
           durationSec: item.durationSeconds,
           rarity: item.rarity,
-          subtitle: item.description,
+          subtitle: "${item.generateDescription()} (${item.getFormattedBaseDuration()})",
           price: item.priceGold,
           onBuy: () => onBuy(item),
         );
@@ -437,7 +434,7 @@ class _ShopItemCard extends StatelessWidget {
               style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 13)
             ),
             const SizedBox(height: 3),
-            Text("$subtitle (${HelperFunctions.formatDuration(durationSec)})",
+            Text(subtitle,
               style: const TextStyle(color: kPurpleMid, fontSize: 11),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

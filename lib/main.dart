@@ -102,7 +102,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'RPG Task Manager',
       theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.background,
+        scaffoldBackgroundColor: const Color.fromARGB(255, 224, 208, 235),
         primaryColor: const Color.from(alpha: 1, red: 0.882, green: 0.706, blue: 0.996),
 
         colorScheme: ColorScheme.light(

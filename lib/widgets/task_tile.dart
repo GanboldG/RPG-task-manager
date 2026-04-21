@@ -4,18 +4,18 @@ import "package:rpg_task_manager/helpers/app_fonts.dart";
 import "package:rpg_task_manager/helpers/helper_functions.dart";
 import "package:rpg_task_manager/models/task/task.dart";
 
-class TaskTile extends StatefulWidget{
+class TaskTile extends StatefulWidget {
   final Task task;
   final VoidCallback onRemoved;
   final VoidCallback onEdited;
   final VoidCallback onFinished;
   final int index;
-  final VoidCallback onPlayPause; 
+  final VoidCallback onPlayPause;
   final bool isRunning;
   final bool isFirstTask;
-  
-  TaskTile(
-    {super.key, 
+
+  const TaskTile({
+    super.key,
     required this.task,
     required this.index,
     required this.onRemoved,
@@ -26,157 +26,282 @@ class TaskTile extends StatefulWidget{
     required this.isFirstTask,
   });
 
-  @override 
+  @override
   State<TaskTile> createState() => _TaskTileState();
 }
 
-class _TaskTileState extends State<TaskTile>{
+class _TaskTileState extends State<TaskTile> {
   @override
-  void initState() {
-    super.initState();
-  }
-  
-  @override 
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              _getTaskBGcolor(),
-              AppColors.primaryLight,
-            ],
-            stops: [0.05, 0.15], 
+        // Soft pink background
+        color: AppColors.primaryLight,
+        borderRadius: BorderRadius.circular(16),
+        // Difficulty color as border
+        border: Border.all(
+          color: _getDifficultyColor(),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _getDifficultyColor().withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ],
+      ),
+      child: Stack(
         children: [
-          _buildDragListener(),
-          _buildCircularProgress(),
-          SizedBox(width:5),
-          _buildTaskInfo(),
-          _buildRemoveButton(),
-        ]
-      )
+          // Subtle pattern overlay
+          _buildPatternOverlay(),
+          
+          // Main content
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildDragHandle(),
+                const SizedBox(width: 8),
+                _buildProgressSection(),
+                const SizedBox(width: 12),
+                Expanded(child: _buildTaskDetails()),
+                _buildMenuButton(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDragListener(){
-    return ReorderableDragStartListener(
-      index: widget.index,
-      child: Container(
-        padding: EdgeInsets.all(6),
-        child: Icon(
-          Icons.drag_handle,
-          color: Colors.black,
-          size: 30,
-        ),
-      )
-    );
-  }
-
-
-  // Circular bar to show progress of the task
-Widget _buildCircularProgress() {
-  return Column(
-    children: [
-      Padding(
-        padding: EdgeInsets.all(5),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 60,
-              height: 60,
-              child: CircularProgressIndicator(
-                value: widget.task.progress,
-                strokeWidth: 6,
-                backgroundColor: AppColors.textSecondary.withOpacity(0.3),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.textSecondary,
-                ),
-              ),
-            ),
-            Text(
-              "${(widget.task.progress * 100).toStringAsFixed(1)}%",
-            ),
-          ],
+  // ==================== BACKGROUND DESIGN ====================
+  Widget _buildPatternOverlay() {
+    return Positioned.fill(
+      child: Opacity(
+        opacity: 0.05,
+        child: CustomPaint(
+          painter: DotPatternPainter(),
         ),
       ),
-      // Auto-size text to fit on one line
-      Container(
-        width: 60, // Match circular progress width
-        margin: EdgeInsets.only(top: 4),
-        child: FittedBox(
-            fit: BoxFit.scaleDown, // Shrinks font to fit, but doesn't stretch
-            child: Text(
-              "${widget.task.getRemainingTimeString()} left",
-              textAlign: TextAlign.center,
+    );
+  }
+
+  // ==================== DRAG HANDLE ====================
+  Widget _buildDragHandle() {
+    return ReorderableDragStartListener(
+      index: widget.index,
+      child: const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Icon(
+          Icons.drag_handle, 
+          color: Colors.black54, 
+          size: 28,
+        ),
+      ),
+    );
+  }
+
+  // ==================== PROGRESS SECTION ====================
+  Widget _buildProgressSection() {
+    return SizedBox(
+      width: 70,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildProgressCircle(),
+          const SizedBox(height: 8),
+          _buildRemainingTime(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressCircle() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: 60,
+          height: 60,
+          child: CircularProgressIndicator(
+            value: widget.task.progress,
+            strokeWidth: 6,
+            backgroundColor: AppColors.textSecondary.withOpacity(0.3),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppColors.textSecondary,
             ),
-            // child: Text(
-            //   "${(widget.task.getBaseMinutes() - widget.task.getDoneMinutes()).toStringAsFixed(1)} min left",
-            //   textAlign: TextAlign.center,
-            // ),
+          ),
+        ),
+        Container(
+          width: 45,
+          height: 45,
+          decoration: BoxDecoration(
+            color: AppColors.textSecondary.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              "${(widget.task.progress * 100).toStringAsFixed(0)}%",
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
         ),
       ],
     );
   }
 
-  // Builds the main task info
-  Widget _buildTaskInfo(){
-    return Expanded(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+  Widget _buildRemainingTime() {
+    String timeLeft = widget.task.getRemainingTimeString();
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.textSecondary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            widget.task.name,
-            maxLines: 2,           // Limit to 2 lines
-            overflow: TextOverflow.ellipsis,  // Add "..." when overflow),
+          Icon(Icons.timer, size: 12, color: Colors.black54),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              timeLeft,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-
-          // Deadline datetime text
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Column(
-              children: [
-                Text(
-                  HelperFunctions.formatDateTimeToString(widget.task.deadline),
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  )
-                ),
-                
-                if (widget.task.getRewardString() != "")
-                  Text(
-                    widget.task.getRewardString(),
-                    style: TextStyle(
-                      color: const Color.fromARGB(255, 255, 147, 6),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    )
-                  ),
-              ]
-            )
-          )
-        ]
-      )
+        ],
+      ),
     );
   }
 
+  // ==================== TASK DETAILS ====================
+  Widget _buildTaskDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Task Name
+        Text(
+          widget.task.name,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 8),
+        
+        // Deadline
+        if (widget.task.deadline != null)
+          _buildDeadlineRow(),
+          
+        const SizedBox(height: 6),
+        
+        // Rewards (XP & Gold with icons)
+        _buildRewardsRow(),
+      ],
+    );
+  }
 
-  // Builds the remove button
-  Widget _buildRemoveButton(){
+  Widget _buildDeadlineRow() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.textSecondary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.calendar_today, size: 12, color: Colors.black54),
+          const SizedBox(width: 4),
+          Text(
+            HelperFunctions.formatDateTimeToString(widget.task.deadline),
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRewardsRow() {
+    return Row(
+      children: [
+        // XP Chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.textSecondary.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.auto_awesome, size: 14, color: AppColors.textSecondary),
+              const SizedBox(width: 4),
+              Text(
+                "${widget.task.getRewardXp()} XP",
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        
+        // Gold Chip
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.amber.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.attach_money, size: 14, color: Colors.amber[900]),
+              const SizedBox(width: 4),
+              Text(
+                "${widget.task.getRewardGold()}",
+                style: TextStyle(
+                  color: Colors.amber[900],
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ==================== MENU BUTTON ====================
+  Widget _buildMenuButton() {
     return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert), // 3 dots icon
+      icon: const Icon(Icons.more_vert, color: Colors.black54),
       color: AppColors.primaryLight,
       onSelected: (String value) {
-        switch (value){
+        switch (value) {
           case "edit":
             widget.onEdited();
             break;
@@ -188,37 +313,34 @@ Widget _buildCircularProgress() {
             break;
         }
       },
-      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-        PopupMenuItem<String>(
+      itemBuilder: (BuildContext context) => [
+        const PopupMenuItem<String>(
           value: 'edit',
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.edit, size: AppFonts.sizeBig),
+              Icon(Icons.edit, size: 20, color: Colors.black87),
               SizedBox(width: 12),
-              Text('Edit', style: TextStyle(fontSize: AppFonts.sizeMedium)),
+              Text('Edit', style: TextStyle(color: Colors.black87)),
             ],
           ),
         ),
-        PopupMenuItem<String>(
+        const PopupMenuItem<String>(
           value: 'delete',
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.delete, size: AppFonts.sizeBig),
+              Icon(Icons.delete, size: 20, color: Colors.black87),
               SizedBox(width: 12),
-              Text('Delete', style: TextStyle(fontSize: AppFonts.sizeMedium)),
+              Text('Delete', style: TextStyle(color: Colors.black87)),
             ],
           ),
         ),
-        PopupMenuItem<String>(
+        const PopupMenuItem<String>(
           value: 'finish',
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.done, size: AppFonts.sizeBig),
+              Icon(Icons.done, size: 20, color: Colors.black87),
               SizedBox(width: 12),
-              Text('Finish', style: TextStyle(fontSize: AppFonts.sizeMedium)),
+              Text('Finish', style: TextStyle(color: Colors.black87)),
             ],
           ),
         ),
@@ -226,8 +348,30 @@ Widget _buildCircularProgress() {
     );
   }
 
-
-  Color _getTaskBGcolor(){
+  // ==================== HELPER METHODS ====================
+  Color _getDifficultyColor() {
     return widget.task.difficulty.color;
   }
+}
+
+// ==================== CUSTOM PAINTER FOR PATTERN ====================
+class DotPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+    
+    const dotSpacing = 20.0;
+    const dotRadius = 1.0;
+    
+    for (double x = 0; x < size.width; x += dotSpacing) {
+      for (double y = 0; y < size.height; y += dotSpacing) {
+        canvas.drawCircle(Offset(x, y), dotRadius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

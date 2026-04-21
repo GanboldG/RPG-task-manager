@@ -116,6 +116,26 @@ class Item {
   String getFormattedRemainingDuration() {
     return HelperFunctions.formatDuration(remainingSeconds);
   }
+
+  String generateDescription(){
+    String desc = "";
+    for (var effect in effects) {
+      switch (effect.type) {
+        case EffectType.increaseXpGain:
+          desc += "+${(effect.value * 100).toInt()}% XP ";
+          break;
+        case EffectType.increaseGoldGain:
+          desc += "+${(effect.value * 100).toInt()}% Gold";
+          break;
+        case EffectType.increaseCrystalDropChance:
+          desc += "+${(effect.value * 100).toInt()}% Crystal ";
+          break;
+        default:
+          break;
+      }
+    }
+    return desc;
+  }
 }
 
 // ==================== EFFECT TYPES ====================
@@ -277,7 +297,7 @@ class ItemFactory {
       thresholdLevel: thresholdLevel,
       effects: [
         ItemEffect(
-          type: EffectType.increaseXpGain,
+          type: EffectType.increaseGoldGain,
           value: goldBoostPercent,
           isStackable: true,
           maxStack: 2, // Max 200% boost
