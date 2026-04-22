@@ -41,13 +41,15 @@ class UserAdapter extends TypeAdapter<User> {
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
       maxEquippedItemAmount: fields[23] as int,
+      shopSize: fields[24] as int,
+      shopRerolls: fields[25] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(24)
+      ..writeByte(26)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -95,7 +97,11 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(22)
       ..write(obj.activatedCustomItems)
       ..writeByte(23)
-      ..write(obj.maxEquippedItemAmount);
+      ..write(obj.maxEquippedItemAmount)
+      ..writeByte(24)
+      ..write(obj.shopSize)
+      ..writeByte(25)
+      ..write(obj.shopRerolls);
   }
 
   @override

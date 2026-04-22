@@ -52,7 +52,7 @@ class TaskService {
   }
 
   // ----------------DELETE---------------------
-  Future<void> deleteTask(String taskId, {bool permanent = false}) async {
+  Future<void> deleteTask(String taskId, {bool permanent = true}) async {
     if (permanent) {
       Task? task = activeBox.get(taskId);
       if (task != null){

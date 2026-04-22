@@ -80,6 +80,19 @@ class TaskController extends ChangeNotifier {
     return "Something went wrong";
   }
 
+  // --------------------ABANDON----------------------
+  String abandonTask(String id){
+    // Remove the rewards as abandon penalty
+    Task? matchedTask = _findTaskByID(id);
+
+    if (matchedTask != null){
+      _userController.reduceReward(matchedTask.reward);
+    }
+
+    return deleteTask(id);
+  }
+
+
   // --------------------DELETE----------------------
   String deleteTask(String id) {
     Task? matchedTask = _findTaskByID(id);

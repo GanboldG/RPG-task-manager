@@ -37,6 +37,8 @@ class InventoryController extends ChangeNotifier{
 
   // ---------------ACTIVATE----------------
   void equipItem(Item item) {
+    debugPrint("${item.generateDescription()} ${item.getFormattedBaseDuration()}");
+
     if (_user.ownedItems.contains(item)) {
       if (_user.equippedItems.length < _user.maxEquippedItemAmount){
         _user.equippedItems.add(item);

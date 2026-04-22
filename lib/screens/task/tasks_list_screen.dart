@@ -410,11 +410,77 @@ class _TaskScreenState extends State<TaskScreen>{
         isRunning: isThisTaskRunning,
         isFirstTask: isFirstTask, // Pass this to TaskTile for styling
         onRemoved: (){
-          if (isThisTaskRunning) {
-            timerService.stopTimer();
-          }
-          String deletedTaskName = controller.deleteTask(task.id);
-          HelperFunctions.showMessage(context, "Removed Task \"$deletedTaskName\"");
+          showDialog(
+            context: context,
+            builder: (BuildContext dialogContext) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF1E1E2E), // Dark background
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
+                ),
+                title: const Text(
+                  'Delete Task?',
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Are you sure you want to delete "${task.name}"?',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'You will lose:',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${task.getRewardXp()} XP',
+                          style: const TextStyle(color: AppColors.level),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.monetization_on, color: Color(0xFFFFD700), size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${task.getRewardGold()} Gold',
+                          style: const TextStyle(color: AppColors.gold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+
+                      // ----------ACTUAL DELETE METHODS----------
+                      if (isThisTaskRunning) timerService.stopTimer();
+                      String deletedTaskName = controller.abandonTask(task.id); // this deletes
+                      HelperFunctions.showMessage(context, "Removed Task \"$deletedTaskName\"");
+
+                    },
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text('Delete'),
+                  ),
+                ],
+              );
+            },
+          );
         },
         onFinished: (){
           if (isThisTaskRunning) {

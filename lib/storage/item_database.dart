@@ -3,6 +3,8 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/configs/item_config.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
+import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 // ==================== 1. ITEM DATABASE (Hardcoded Items) ====================
 class ItemDatabase {
@@ -88,7 +90,58 @@ class ItemDatabase {
       priceCrystal: 10,
       imageUrl: 'assets/images/items/crystal_shard.png',
       isPermanent: false,
-      thresholdLevel: 5,
+      thresholdLevel: 0,
+      rarity: ItemRarity.common,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
+    ),
+    
+    ItemFactory.createGoldBoostItem(
+      id: "4",
+      name: 'Money Seed',
+      goldBoostPercent: 0.01,
+      durationSeconds: 1000,
+      priceGold: 30,
+      priceCrystal: 0,
+      imageUrl: 'assets/images/items/money_seed.png',
+      isPermanent: false,
+      thresholdLevel: 0,
+      rarity: ItemRarity.common,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
+    ),
+
+    ItemFactory.createXpBoostItem(
+      id: "5",
+      name: 'Suspicious Cocktail',
+      xpBoostPercent: 0.10,
+      durationSeconds: 900,
+      priceGold: 80,
+      priceCrystal: 0,
+      imageUrl: 'assets/images/items/suspicious_cocktail.png',
+      isPermanent: false,
+      thresholdLevel: 0,
+      rarity: ItemRarity.common,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
+    ),
+
+    ItemFactory.createCrystalChanceItem(
+      id: "6",
+      name: 'Protector',
+      crystalDropChance: 0.2,
+      durationSeconds: 1200,
+      priceGold: 90,
+      priceCrystal: 0,
+      imageUrl: 'assets/images/items/protector.png',
+      isPermanent: false,
+      thresholdLevel: 0,
       rarity: ItemRarity.common,    
       level: 1,
       isActivated: false,
@@ -157,6 +210,7 @@ class ItemDatabase {
       imageUrl: original.imageUrl,
       isPermanent: newDurationMin == 0,
       durationSeconds: newDurationSec,
+      remainingSeconds: newDurationSec,
       priceGold: newCost,
       priceCrystal: original.priceCrystal,
       thresholdLevel: original.thresholdLevel,
@@ -165,7 +219,7 @@ class ItemDatabase {
       level: original.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
-      itemConfig: original.itemConfig
+      itemConfig: original.itemConfig,
     );
   }
   
@@ -195,15 +249,17 @@ class ShopManager {
   final Random _random = Random();
   
   // Generate shop items
-  List<Item> generateShopItems(int userLevel, int shopSize) {
+  List<Item> generateShopItems() {
+    final User user = UserService().currentUser;
+
     List<Item> shopItems = [];
     
-    for (int i = 0; i < shopSize; i++) {
+    for (int i = 0; i < user.shopSize; i++) {
       // 1. Get a random item
       final originalItem = ItemDatabase.allItems[_random.nextInt(ItemDatabase.allItems.length)];
       
       // 2. Clone and randomize values
-      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, userLevel, _getItemRarity());
+      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, user.level, _getItemRarity());
 
       // 3. Generate shop item
       shopItems.add(randomizedItem);

@@ -29,7 +29,9 @@ class UserService {
       experienceThreshold: RewardService.xpForNextLevel(1),
       golds: 999,
       crystals: 999,
-      maxEquippedItemAmount: 3
+      maxEquippedItemAmount: 3,
+      shopSize: 5,
+      shopRerolls: 5
     );
   }
   
