@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import "package:rpg_task_manager/helpers/app_colors.dart";
-import "package:rpg_task_manager/helpers/app_fonts.dart";
 import "package:rpg_task_manager/helpers/helper_functions.dart";
 import "package:rpg_task_manager/models/task/task.dart";
 
@@ -272,18 +271,18 @@ class _TaskTileState extends State<TaskTile> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(0.15),
+            color: const Color.fromARGB(255, 255, 196, 101).withOpacity(1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.attach_money, size: 14, color: Colors.amber[900]),
+              Icon(Icons.attach_money, size: 14, color: const Color.fromARGB(255, 255, 85, 0)),
               const SizedBox(width: 4),
               Text(
-                "${widget.task.getRewardGold()}",
+                "${widget.task.getRewardGold()}  ",
                 style: TextStyle(
-                  color: Colors.amber[900],
+                  color: const Color.fromARGB(255, 255, 85, 0),
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -315,6 +314,16 @@ class _TaskTileState extends State<TaskTile> {
       },
       itemBuilder: (BuildContext context) => [
         const PopupMenuItem<String>(
+          value: 'finish',
+          child: Row(
+            children: [
+              Icon(Icons.done, size: 20, color: Colors.black87),
+              SizedBox(width: 12),
+              Text('Finish', style: TextStyle(color: Colors.black87)),
+            ],
+          ),
+        ),
+        const PopupMenuItem<String>(
           value: 'edit',
           child: Row(
             children: [
@@ -331,16 +340,6 @@ class _TaskTileState extends State<TaskTile> {
               Icon(Icons.delete, size: 20, color: Colors.black87),
               SizedBox(width: 12),
               Text('Delete', style: TextStyle(color: Colors.black87)),
-            ],
-          ),
-        ),
-        const PopupMenuItem<String>(
-          value: 'finish',
-          child: Row(
-            children: [
-              Icon(Icons.done, size: 20, color: Colors.black87),
-              SizedBox(width: 12),
-              Text('Finish', style: TextStyle(color: Colors.black87)),
             ],
           ),
         ),

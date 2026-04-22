@@ -62,7 +62,7 @@ class Item {
     required this.description,
     required this.imageUrl,
     required this.isPermanent,
-    this.durationSeconds = 300,
+    required this.durationSeconds,
     required this.priceGold,
     required this.priceCrystal,
     this.thresholdLevel = 0,
@@ -70,7 +70,7 @@ class Item {
     required this.rarity,
     required this.level,
     required this.acquiredDate,
-    this.remainingSeconds = 300,
+    required this.remainingSeconds,
     required this.isActivated,
     required this.itemConfig,
   });

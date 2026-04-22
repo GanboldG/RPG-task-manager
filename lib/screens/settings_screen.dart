@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -254,7 +255,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 const Divider(),
                                 _buildInfoRow('Difficulty', task.difficulty.toString()),
                                 _buildInfoRow('Type', task.type.toString()),
-                                _buildInfoRow('Base Minutes', '${task.getBaseMinutes()}'),
+                                _buildInfoRow('Duration', HelperFunctions.formatDuration(task.baseDurationSec)),
+                                _buildInfoRow('Finished in', HelperFunctions.formatDuration(task.doneDurationSec)),
                                 _buildInfoRow('Description', task.description.isNotEmpty ? task.description : 'No description'),
                                 _buildInfoRow('Deadline', task.deadline != null ? _formatDate(task.deadline!) : 'No deadline'),
                                 _buildInfoRow('Created', _formatDate(task.createdAt)),

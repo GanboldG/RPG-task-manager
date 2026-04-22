@@ -121,8 +121,8 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
             unselectedLabelColor: kTxtSub,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             tabs: const [
-              Tab(text: '🛒 Item Shop'), 
-              Tab(text: '🎫 Custom Items'),
+              Tab(text: 'Item Shop',), 
+              Tab(text: 'Custom Items'),
             ],
           ),
         ),
@@ -150,27 +150,41 @@ class _TokenShopTab extends StatelessWidget {
     ItemShopController controller = context.watch<ItemShopController>();
     final items = controller.items;
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(14),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) {
-        final item = items[i];
-        return _ShopItemCard(
-          leading: Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(color: kCardAlt, borderRadius: BorderRadius.circular(8)),
-            child: Image.asset(item.imageUrl),
+      return Column(
+        children: [
+          SizedBox(
+            child: Image.asset(
+              'assets/images/shop_banner.gif',
+              fit: BoxFit.cover,
+              width: double.infinity,
+            )
           ),
-          name: item.name,
-          durationSec: item.durationSeconds,
-          rarity: item.rarity,
-          subtitle: "${item.generateDescription()} (${item.getFormattedBaseDuration()})",
-          price: item.priceGold,
-          onBuy: () => onBuy(item),
-        );
-      },
-    );
+
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.all(14),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (_, i) {
+                final item = items[i];
+                return _ShopItemCard(
+                  leading: Container(
+                    width: 42, height: 42,
+                    decoration: BoxDecoration(color: const Color.fromARGB(255, 179, 148, 194), borderRadius: BorderRadius.circular(8)),
+                    child: Image.asset(item.imageUrl),
+                  ),
+                  name: item.name,
+                  durationSec: item.durationSeconds,
+                  rarity: item.rarity,
+                  subtitle: "${item.generateDescription()} (${item.getFormattedBaseDuration()})",
+                  price: item.priceGold,
+                  onBuy: () => onBuy(item),
+                );
+              },
+            )
+          )
+        ]
+      );
   }
 }
 
@@ -187,34 +201,47 @@ class _CustomItemShopTab extends StatelessWidget {
     final controller = context.watch<ItemShopController>();
     final allItems = controller.customItems;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 90),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const _SecTitle('📜 All Custom Items:'),
-          _AddVoucherBtn(onTap: () async {
-            await Navigator.push(context, MaterialPageRoute(
-              builder: (_) => AddCustomItemScreen()
-            ));
-            // Refresh after adding
-            controller.refreshCustomItems();
-          }),
-        ]),
-        const SizedBox(height: 8),
-        if (allItems.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(child: Column(children: [
-              Icon(Icons.local_activity_outlined, color: kTxtSub, size: 42),
-              SizedBox(height: 10),
-              Text('No custom items yet.\nCreate custom rewards for completing tasks!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: kTxtSub, fontSize: 13, height: 1.5)),
-            ])),
+    return Column(
+      children: [
+        SizedBox(
+          child: Image.asset(
+            'assets/images/custom_banner.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
           )
-        else
-          ...allItems.map((item) => _buildCard(item, onBuyCustomItem)),
-      ]),
+        ),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 90),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                const _SecTitle('📜 All Custom Items:'),
+                _AddVoucherBtn(onTap: () async {
+                  await Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => AddCustomItemScreen()
+                  ));
+                  // Refresh after adding
+                  controller.refreshCustomItems();
+                }),
+              ]),
+              const SizedBox(height: 8),
+              if (allItems.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: Column(children: [
+                    Icon(Icons.local_activity_outlined, color: kTxtSub, size: 42),
+                    SizedBox(height: 10),
+                    Text('No custom items yet.\nCreate custom rewards for completing tasks!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: kTxtSub, fontSize: 13, height: 1.5)),
+                  ])),
+                )
+              else
+                ...allItems.map((item) => _buildCard(item, onBuyCustomItem)),
+            ]),
+          )
+        )
+      ]
     );
   }
 
@@ -421,9 +448,17 @@ class _ShopItemCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
-        color: rarity.color,
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            Colors.white,        // Left side
+            rarity.color,        // Right side
+          ],
+          stops: const [0.3, 1.0],  // Optional: controls where each color starts/stops
+        ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: kBorder)
+        border: Border.all(color: kBorder),
       ),
       child: Row(children: [
         leading,
@@ -436,6 +471,14 @@ class _ShopItemCard extends StatelessWidget {
             const SizedBox(height: 3),
             Text(subtitle,
               style: const TextStyle(color: kPurpleMid, fontSize: 11),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 3),
+
+            Text(rarity.name.toUpperCase(),
+              style: TextStyle(color: rarity.color, fontSize: 11, fontWeight: FontWeight.bold),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -566,7 +609,7 @@ class _AddVoucherBtn extends StatelessWidget {
       child: const Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(Icons.add, color: Colors.white, size: 14),
         SizedBox(width: 4),
-        Text('+ ADD ITEM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text('ADD ITEM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
       ]),
     ),
   );

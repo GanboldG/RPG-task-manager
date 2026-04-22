@@ -157,6 +157,7 @@ class ItemDatabase {
       imageUrl: original.imageUrl,
       isPermanent: newDurationMin == 0,
       durationSeconds: newDurationSec,
+      remainingSeconds: newDurationSec,
       priceGold: newCost,
       priceCrystal: original.priceCrystal,
       thresholdLevel: original.thresholdLevel,
@@ -165,7 +166,7 @@ class ItemDatabase {
       level: original.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
-      itemConfig: original.itemConfig
+      itemConfig: original.itemConfig,
     );
   }
   

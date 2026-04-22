@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/reward.dart';
@@ -19,6 +21,12 @@ class UserController extends ChangeNotifier{
     addGolds(reward.gold);
   }
 
+  // By deleting task, you risk losing your gold and xp
+  void reduceReward(Reward reward){
+    reduceExperience(reward.xp);
+    reduceGolds(reward.gold);
+  }
+
   // Update user level based on XP
   void levelUp() {
     user.level++;
@@ -36,10 +44,20 @@ class UserController extends ChangeNotifier{
     }
     notifyListeners();
   }
-  
+
+  void reduceExperience(int xp){
+    user.experiencePoints = max(user.experiencePoints - xp, 0);
+    notifyListeners();
+  }
+
   // Add coins
   void addGolds(int amount) {
     user.golds += amount;
+    notifyListeners();
+  }
+
+  void reduceGolds(int amount){
+    user.golds -= amount;
     notifyListeners();
   }
   

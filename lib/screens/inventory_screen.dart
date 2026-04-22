@@ -609,7 +609,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                         style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 14),
                                       ),
                                       Text(
-                                        item.description,
+                                        item.generateDescription(),
                                         style: const TextStyle(color: kPurple, fontWeight: FontWeight.bold, fontSize: 13),
                                       ),
                                     ],
@@ -760,7 +760,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
-                                  "${item.description} (${item.getFormattedBaseDuration()})",
+                                  "${item.generateDescription()} (${item.getFormattedBaseDuration()})",
                                   style: const TextStyle(color: kTxt, fontSize: 10, fontWeight: FontWeight.w500),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
