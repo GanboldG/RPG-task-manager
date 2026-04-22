@@ -1,17 +1,15 @@
 Planned things to do:
 
 Easier:
-- Add more item variety
+- Add SFX for everything
 - Sort option on task list
-- Make items work
 
+- Make items work
 - Debug Screen for:
     - Changing config json files
 - Improved / cleaner / smoother GUI
 - Make statistics screen work
-
-- Make reroll / Item shop slot / Custom shop slot user resources (Add levels in config, values in User)
-- Add SFX for everything
+- Make profile screen work
 
 Harder:
 - Add Daily / Weekly tasks

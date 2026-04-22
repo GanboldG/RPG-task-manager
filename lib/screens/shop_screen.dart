@@ -9,9 +9,10 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
+import 'package:rpg_task_manager/services/audio_service.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
-const kBg        = Color(0xFFF9F9F9);
+const kBg        = Color.fromARGB(255, 246, 232, 255);
 const kCard      = Color.fromARGB(255, 225, 180, 254);
 const kCardAlt   = Color.fromARGB(255, 171, 155, 179);
 const kBorder    = Color.fromARGB(255, 0, 0, 0);
@@ -57,6 +58,8 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
       final shopController = context.read<ItemShopController>();
       shopController.buyItem(item);
       
+      AudioService.instance.playSfx("assets/audio/watcha_say.mp3");
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Purchased ${item.name}!', style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.textSecondary,
@@ -452,7 +455,7 @@ class _ShopItemCard extends StatelessWidget {
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
           colors: [
-            Colors.white,        // Left side
+            const Color.fromARGB(255, 250, 241, 255),        // Left side
             rarity.color,        // Right side
           ],
           stops: const [0.3, 1.0],  // Optional: controls where each color starts/stops

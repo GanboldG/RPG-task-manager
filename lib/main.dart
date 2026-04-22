@@ -17,6 +17,7 @@ import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
+import 'package:rpg_task_manager/services/audio_service.dart';
 import 'package:rpg_task_manager/services/config_service.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
@@ -39,12 +40,17 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
   );
+  
+  // Initialize Audio Player for SFX
+  await AudioService.instance.init();
 
   // Initialize Hive for data storage
   await _initializeHive();
 
-
+  // Initialize configs
   await ConfigService.loadConfigs();
+
+  // Initialize the user
   UserService().initializeUser();
 
   final itemTimerService = ItemTimerService();
@@ -185,6 +191,14 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _index,
           onTap: (i) {
             setState(() => _index = i);
+
+            // inventory
+            if (i == 2){
+              AudioService.instance.playBackgroundMusic("assets/audio/touhou_alice.mp3");
+            }
+            else{
+              AudioService.instance.stopBackgroundMusic();
+            }
           },
 
           items: const [

@@ -5,7 +5,6 @@ import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
-import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/storage/item_database.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -26,7 +25,7 @@ class ItemShopController extends ChangeNotifier{
 
   ItemShopController(InventoryController inventoryController, CustomItemInventoryController customController){
     shopManager = ShopManager();
-    _items = shopManager.generateShopItems(UserService().currentUser.level, shopSize);
+    _items = shopManager.generateShopItems();
     _inventoryController = inventoryController;
     _customInventoryController = customController;
   }
@@ -49,7 +48,7 @@ class ItemShopController extends ChangeNotifier{
 
   // ------------REFRESH SHOP-----------------
   void refreshShop(){
-    _items = shopManager.generateShopItems(UserService().currentUser.level, shopSize);
+    _items = shopManager.generateShopItems();
     notifyListeners();
   }
 

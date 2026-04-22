@@ -81,7 +81,13 @@ class User {
   @HiveField(23)
   int maxEquippedItemAmount;
 
-  // Constructor
+  // All the additional parametes
+  @HiveField(24)
+  int shopSize;
+
+  @HiveField(25)
+  int shopRerolls;
+
   User({
     required this.id,
     required this.fullName,
@@ -107,6 +113,8 @@ class User {
     required this.createdAt,
     required this.lastActive,
     required this.maxEquippedItemAmount,
+    required this.shopSize,
+    required this.shopRerolls
   }) : ownedItems = ownedItems ?? [],
        equippedItems = equippedItems ?? [],
        ownedCustomItems = ownedCustomItems ?? [],
@@ -149,7 +157,9 @@ class User {
       friends: this.friends,
       createdAt: this.createdAt,
       lastActive: this.lastActive,
-      maxEquippedItemAmount: this.maxEquippedItemAmount
+      maxEquippedItemAmount: this.maxEquippedItemAmount,
+      shopSize: this.shopSize,
+      shopRerolls: this.shopRerolls
     );
   }
 }
