@@ -1,4 +1,5 @@
-import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/item_effect.dart';
+import 'package:rpg_task_manager/models/item/effect_type.dart';
 
 class EffectApplier {
 

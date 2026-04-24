@@ -87,12 +87,6 @@ class UserController extends ChangeNotifier{
     return false;
   }
   
-  // Add work time
-  void addWorkTime(Duration duration) {
-    user.totalWorkTime += duration;
-    notifyListeners();
-  }
-  
   // Unlock achievement
   void unlockAchievement(int achievementId) {
     if (user.unlockedAchievements.contains(achievementId)) {

@@ -49,43 +49,36 @@ class User {
   @HiveField(13)
   DateTime lastActive;
 
-  // ==================== STATISTICS ====================
-  @HiveField(14)
-  int tasksCompleted;
-  
-  @HiveField(15)
-  Duration totalWorkTime;
-
   // ==================== INVENTORY ====================
-  @HiveField(16)
+  @HiveField(14)
   List<Item> ownedItems; // Item IDs or names
   
-  @HiveField(17)
+  @HiveField(15)
   List<Item> equippedItems; // slot: itemId (e.g., 'avatar_frame': 'gold_frame')
   
-  @HiveField(18)
+  @HiveField(16)
   List<int> unlockedAchievements; // Achievement IDs
   
-  @HiveField(19)
+  @HiveField(17)
   List<int> badges; // Badge IDs
 
-  @HiveField(20)
+  @HiveField(18)
   int experienceThreshold;
 
-  @HiveField(21)
+  @HiveField(19)
   List<OwnedCustomItem> ownedCustomItems;
 
-  @HiveField(22)
+  @HiveField(20)
   List<OwnedCustomItem> activatedCustomItems;
 
-  @HiveField(23)
+  @HiveField(21)
   int maxEquippedItemAmount;
 
   // All the additional parametes
-  @HiveField(24)
+  @HiveField(22)
   int shopSize;
 
-  @HiveField(25)
+  @HiveField(23)
   int shopRerolls;
 
   User({
@@ -108,8 +101,6 @@ class User {
     List<int>? unlockedAchievements,
     List<int>? badges,
     List<int>? friends,
-    this.tasksCompleted = 0,
-    this.totalWorkTime = Duration.zero,
     required this.createdAt,
     required this.lastActive,
     required this.maxEquippedItemAmount,
@@ -152,8 +143,6 @@ class User {
       equippedItems: this.equippedItems,
       unlockedAchievements: this.unlockedAchievements,
       badges: this.badges,
-      tasksCompleted: this.tasksCompleted,
-      totalWorkTime: this.totalWorkTime,
       friends: this.friends,
       createdAt: this.createdAt,
       lastActive: this.lastActive,

@@ -1,0 +1,35 @@
+{
+  "durationMultipliers": {
+    "common": 0,
+    "uncommon": 0.2,
+    "rare": 0.6,
+    "epic": 1.4,
+    "legendary": 2,
+    "mythic": 3
+  },
+  "durationMultPerLevel": {
+    "common": 0,
+    "uncommon": 0.2,
+    "rare": 0.6,
+    "epic": 1.4,
+    "legendary": 2,
+    "mythic": 3
+  },
+  "effectMultipliers": {
+    "common": 0,
+    "uncommon": 0.2,
+    "rare": 0.4,
+    "epic": 0.8,
+    "legendary": 1.6,
+    "mythic": 2
+  },
+  "effectMultPerLevel": {
+    "common": 0.05,
+    "uncommon": 0.2,
+    "rare": 0.5,
+    "epic": 0.9,
+    "legendary": 1.5,
+    "mythic": 2
+  },
+  "costMultPerLevel": 0.4
+}

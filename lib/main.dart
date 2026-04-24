@@ -6,12 +6,6 @@ import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
-import 'package:rpg_task_manager/models/difficulty.dart';
-import 'package:rpg_task_manager/models/item/custom_item.dart';
-import 'package:rpg_task_manager/models/item/item_rarity.dart';
-import 'package:rpg_task_manager/models/reward.dart';
-import 'package:rpg_task_manager/models/task/task.dart';
-import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
@@ -19,20 +13,11 @@ import 'package:rpg_task_manager/screens/shop_screen.dart';
 import 'package:rpg_task_manager/screens/task/tasks_list_screen.dart';
 import 'package:rpg_task_manager/services/audio_service.dart';
 import 'package:rpg_task_manager/services/config_service.dart';
+import 'package:rpg_task_manager/services/hive_service.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
-import 'package:provider/provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-  
-// Run this once after model changes
-Future<void> resetHiveForNewSchema() async {
-  await Hive.close();
-
-  await Hive.deleteBoxFromDisk('active_tasks');
-  await Hive.deleteBoxFromDisk('completed_tasks');
-  await Hive.deleteBoxFromDisk('abandoned_tasks');
-}
+import 'package:provider/provider.dart';  
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,13 +30,13 @@ void main() async {
   await AudioService.instance.init();
 
   // Initialize Hive for data storage
-  await _initializeHive();
+  await HiveService.initializeHive();
 
   // Initialize configs
-  await ConfigService.loadConfigs();
+  await ConfigService.loadAllConfigs();
 
   // Initialize the user
-  UserService().initializeUser();
+  UserService().loadUserData();
 
   final itemTimerService = ItemTimerService();
   final userController = UserController();
@@ -74,31 +59,6 @@ void main() async {
     )
   );
 }
-
-
-Future<void> _initializeHive() async{
-  await Hive.initFlutter();
-
-  // Register your adapters
-  Hive.registerAdapter(TaskAdapter());
-  Hive.registerAdapter(DifficultyAdapter());
-  Hive.registerAdapter(RewardAdapter());
-  Hive.registerAdapter(ItemRarityAdapter());
-  Hive.registerAdapter(CustomItemAdapter());
-  Hive.registerAdapter(TaskTypeAdapter());
-
-  // Open boxes (creates files on disk)
-  await Hive.openBox<Task>('active_tasks');
-  await Hive.openBox<Task>('completed_tasks');
-  await Hive.openBox<Task>('abandoned_tasks');
-  await Hive.openBox('settings');  // Non-typed box for simple values
-  
-  final box = Hive.box<Task>('active_tasks');
-  debugPrint("${box.length.toString()} tasks in active_tasks");
-  final completeBox = Hive.box<Task>('completed_tasks');
-  debugPrint("${completeBox.length.toString()} tasks in completed_tasks");
-}
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
