@@ -1,21 +1,24 @@
 import 'dart:math';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
-import 'package:rpg_task_manager/models/configs/item_config.dart';
+import 'package:rpg_task_manager/models/configs/item_rarity_config.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/item_effect.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/config_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
+import 'package:rpg_task_manager/models/item/effect_type.dart';
 
 // ==================== 1. ITEM DATABASE (Hardcoded Items) ====================
 class ItemDatabase {
-  static final ItemConfig _itemConfig = ItemConfig(
+  static final ItemRarityConfig _itemConfig = ItemRarityConfig(
     durationMultipliers: {  // Applied last
       ItemRarity.common: 0,
       ItemRarity.uncommon: 0.2,
       ItemRarity.rare: 0.6,
       ItemRarity.epic: 1.4,
       ItemRarity.legendary: 2,
-      ItemRarity.mythic: 5
+      ItemRarity.mythic: 3
     },
     durationMultPerLevel: { // Applied per user level
       ItemRarity.common: 0,
@@ -163,6 +166,8 @@ class ItemDatabase {
   
   // Clone an item with randomized values
   static Item randomizeItem(Item original, int userLevel, ItemRarity rarity) {
+    final config = ConfigService.itemRarityConfig;
+
     // 1. Generate new unique ID
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -170,8 +175,8 @@ class ItemDatabase {
     final ItemRarity newRarity = rarity;
 
     // 3. Calculate new duration
-    final double durationMult = original.itemConfig.durationMultipliers[rarity] ?? 0;
-    final double durMultLvl = original.itemConfig.durationMultPerLevel[rarity] ?? 0;
+    final double durationMult = config.durationMultipliers[rarity] ?? 0;
+    final double durMultLvl = config.durationMultPerLevel[rarity] ?? 0;
 
     final int minDuration = (original.durationSeconds + userLevel * durMultLvl).round();
     final int maxDuration = (minDuration * (1 + durationMult)).round();
@@ -179,8 +184,8 @@ class ItemDatabase {
     final int newDurationMin = (newDurationSec / 60).round();
 
     // 4. Calculate new effect value
-    final double effectMult = original.itemConfig.effectMultipliers[rarity] ?? 0;
-    final double effectMultLvl = original.itemConfig.effectMultPerLevel[rarity] ?? 0;
+    final double effectMult = config.effectMultipliers[rarity] ?? 0;
+    final double effectMultLvl = config.effectMultPerLevel[rarity] ?? 0;
 
     List<ItemEffect> newEffects = [];
 
@@ -197,7 +202,7 @@ class ItemDatabase {
     }
 
     // 5. Calculate new cost
-    final costMultPerlevel = original.itemConfig.costMultPerLevel;
+    final costMultPerlevel = config.costMultPerLevel;
     final int minCost = original.priceGold;
     final int maxCost = (minCost * (1 + costMultPerlevel * userLevel)).round();
     final int newCost = HelperFunctions.randomInt(minCost, maxCost);
@@ -219,7 +224,6 @@ class ItemDatabase {
       level: original.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
-      itemConfig: original.itemConfig,
     );
   }
   

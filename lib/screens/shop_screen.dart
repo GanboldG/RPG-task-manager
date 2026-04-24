@@ -10,6 +10,7 @@ import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/services/audio_service.dart';
+import 'package:rpg_task_manager/services/item_service.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color.fromARGB(255, 246, 232, 255);
@@ -101,7 +102,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   void _refreshShop(){
     final shopController = context.read<ItemShopController>();
     shopController.refreshShop();
-    _shopController.refreshCustomItems();
+    // _shopController.refreshCustomItems();
   }
 
   @override
@@ -224,7 +225,7 @@ class _CustomItemShopTab extends StatelessWidget {
                     builder: (_) => AddCustomItemScreen()
                   ));
                   // Refresh after adding
-                  controller.refreshCustomItems();
+                  // controller.refreshCustomItems();
                 }),
               ]),
               const SizedBox(height: 8),
@@ -240,7 +241,7 @@ class _CustomItemShopTab extends StatelessWidget {
                   ])),
                 )
               else
-                ...allItems.map((item) => _buildCard(item, onBuyCustomItem)),
+                ...allItems.map((item) => _buildCard(item, onBuyCustomItem, context)),
             ]),
           )
         )
@@ -248,16 +249,105 @@ class _CustomItemShopTab extends StatelessWidget {
     );
   }
 
-  Widget _buildCard(CustomItem item, void Function(CustomItem) onBuy) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: _CustomItemCard(
-        leading: _CustomItemAvatar(imagePath: item.imagePath, size: 50),
-        name: item.name,
-        duration: HelperFunctions.formatDuration(item.durationMinutes * 60),
-        subtitle: item.description,
-        price: item.priceGold,
-        onBuy: () => onBuy(item),
+  Widget _buildCard(CustomItem item, void Function(CustomItem) onBuy, BuildContext context) {
+    return GestureDetector(
+      onTap: () => _showCustomItemOptions(item, onBuy, context),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: _CustomItemCard(
+          leading: _CustomItemAvatar(imagePath: item.imagePath, size: 50),
+          name: item.name,
+          duration: HelperFunctions.formatDuration(item.durationMinutes * 60),
+          subtitle: item.description,
+          price: item.priceGold,
+          onBuy: () => onBuy(item),
+        ),
+      ),
+    );
+  }
+
+  void _showCustomItemOptions(CustomItem item, void Function(CustomItem) onBuy, BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: kCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              decoration: BoxDecoration(
+                color: kBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Description section
+            if (item.description.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  item.description,
+                  style: const TextStyle(color: kTxt, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ListTile(
+              leading: const Icon(Icons.edit, color: kBlue),
+              title: const Text('Edit', style: TextStyle(color: kTxt)),
+              onTap: () {
+                Navigator.pop(context);
+                _editCustomItem(item);
+              },
+            ),
+            const Divider(color: kBorder, height: 0),
+            ListTile(
+              leading: const Icon(Icons.delete, color: kRed),
+              title: const Text('Delete', style: TextStyle(color: kTxt)),
+              onTap: () {
+                Navigator.pop(context);
+                _confirmDeleteCustomItem(item, context);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _editCustomItem(CustomItem item) {
+    // TODO Edit methods
+  }
+
+  void _confirmDeleteCustomItem(CustomItem item, BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: kCard,
+        title: const Text('Delete Item', style: TextStyle(color: kTxt)),
+        content: Text('Delete "${item.name}"?', style: const TextStyle(color: kTxt)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              context.read<ItemShopController>().deleteCustomItem(item.id);
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('"${item.name}" deleted')),
+              );
+            },
+            child: const Text('Delete', style: TextStyle(color: kRed)),
+          ),
+        ],
       ),
     );
   }
@@ -403,16 +493,16 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: kCardAlt,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: kBorder)
-            ),
-            child: _PriceInfo(label: 'Listing fee (15%):', value: _fee),
-          ),
+          // const SizedBox(height: 12),
+          // Container(
+          //   padding: const EdgeInsets.all(10),
+          //   decoration: BoxDecoration(
+          //     color: kCardAlt,
+          //     borderRadius: BorderRadius.circular(10),
+          //     border: Border.all(color: kBorder)
+          //   ),
+          //   child: _PriceInfo(label: 'Listing fee (15%):', value: _fee),
+          // ),
           const Spacer(),
           Row(children: [
             Expanded(child: _OutlineBtn(label: 'Cancel', color: kRed, onTap: () => Navigator.pop(context))),

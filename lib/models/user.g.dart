@@ -25,31 +25,29 @@ class UserAdapter extends TypeAdapter<User> {
       avatarUrl: fields[5] as String?,
       bio: fields[6] as String?,
       experiencePoints: fields[7] as int,
-      experienceThreshold: fields[20] as int,
+      experienceThreshold: fields[18] as int,
       golds: fields[8] as int,
       crystals: fields[9] as int,
       level: fields[10] as int,
-      ownedItems: (fields[16] as List?)?.cast<Item>(),
-      equippedItems: (fields[17] as List?)?.cast<Item>(),
-      ownedCustomItems: (fields[21] as List?)?.cast<OwnedCustomItem>(),
-      activatedCustomItems: (fields[22] as List?)?.cast<OwnedCustomItem>(),
-      unlockedAchievements: (fields[18] as List?)?.cast<int>(),
-      badges: (fields[19] as List?)?.cast<int>(),
+      ownedItems: (fields[14] as List?)?.cast<Item>(),
+      equippedItems: (fields[15] as List?)?.cast<Item>(),
+      ownedCustomItems: (fields[19] as List?)?.cast<OwnedCustomItem>(),
+      activatedCustomItems: (fields[20] as List?)?.cast<OwnedCustomItem>(),
+      unlockedAchievements: (fields[16] as List?)?.cast<int>(),
+      badges: (fields[17] as List?)?.cast<int>(),
       friends: (fields[11] as List?)?.cast<int>(),
-      tasksCompleted: fields[14] as int,
-      totalWorkTime: fields[15] as Duration,
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
-      maxEquippedItemAmount: fields[23] as int,
-      shopSize: fields[24] as int,
-      shopRerolls: fields[25] as int,
+      maxEquippedItemAmount: fields[21] as int,
+      shopSize: fields[22] as int,
+      shopRerolls: fields[23] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(26)
+      ..writeByte(24)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -79,28 +77,24 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(13)
       ..write(obj.lastActive)
       ..writeByte(14)
-      ..write(obj.tasksCompleted)
-      ..writeByte(15)
-      ..write(obj.totalWorkTime)
-      ..writeByte(16)
       ..write(obj.ownedItems)
-      ..writeByte(17)
+      ..writeByte(15)
       ..write(obj.equippedItems)
-      ..writeByte(18)
+      ..writeByte(16)
       ..write(obj.unlockedAchievements)
-      ..writeByte(19)
+      ..writeByte(17)
       ..write(obj.badges)
-      ..writeByte(20)
+      ..writeByte(18)
       ..write(obj.experienceThreshold)
-      ..writeByte(21)
+      ..writeByte(19)
       ..write(obj.ownedCustomItems)
-      ..writeByte(22)
+      ..writeByte(20)
       ..write(obj.activatedCustomItems)
-      ..writeByte(23)
+      ..writeByte(21)
       ..write(obj.maxEquippedItemAmount)
-      ..writeByte(24)
+      ..writeByte(22)
       ..write(obj.shopSize)
-      ..writeByte(25)
+      ..writeByte(23)
       ..write(obj.shopRerolls);
   }
 

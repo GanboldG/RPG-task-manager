@@ -1,10 +1,10 @@
-// services/user_service.dart
+import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
 
-// Add user file read / write operations in here, in the future!
-
 class UserService {
+
+  //--------------Singleton Variables---------------
   static final UserService _instance = UserService._internal();
   factory UserService() => _instance;
   UserService._internal();
@@ -18,11 +18,34 @@ class UserService {
     return _currentUser!;
   }
   
-  void initializeUser() {
-    _currentUser = User(
+  //----------------Hive Stuff---------------
+  final Box<User> _userBox = Hive.box<User>('user');
+  
+  User? loadUserData() {
+    if (hasUserData()){
+      _currentUser = _userBox.get('user');
+    }
+    else {
+      _currentUser = getFirstTimeUser();
+    }
+
+    return currentUser;
+  }
+  
+  bool hasUserData() {
+    return _userBox.containsKey('user');
+  }
+
+  Future<void> saveCurrentUserData() async {
+    await _userBox.put('user', currentUser);
+  }
+
+  //----------------Init for the first time---------------
+  User getFirstTimeUser() {
+    return User(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      fullName: 'GanaaPlayzXD',
-      email: 'admin@example.com',
+      fullName: '[NoName]',
+      email: 'noname@example.com',
       createdAt: DateTime.now(),
       lastActive: DateTime.now(),
       level: 1,
@@ -33,9 +56,5 @@ class UserService {
       shopSize: 5,
       shopRerolls: 5
     );
-  }
-  
-  void updateUser(User updatedUser) {
-    _currentUser = updatedUser;
   }
 }

@@ -1,6 +1,8 @@
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
-import 'package:rpg_task_manager/models/configs/item_config.dart';
+import 'package:rpg_task_manager/models/configs/item_rarity_config.dart';
+import 'package:rpg_task_manager/models/item/effect_type.dart';
+import 'package:rpg_task_manager/models/item/item_effect.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 
 part 'item.g.dart';
@@ -53,9 +55,6 @@ class Item {
   @HiveField(14)
   bool isActivated;
 
-  @HiveField(15)
-  ItemConfig itemConfig;
-
   Item({
     required this.id,
     required this.name,
@@ -72,7 +71,6 @@ class Item {
     required this.acquiredDate,
     required this.remainingSeconds,
     required this.isActivated,
-    required this.itemConfig,
   });
 
   Item copyWith({
@@ -89,7 +87,7 @@ class Item {
     bool? isPermanent,
     ItemRarity? rarity,
     int? priceCrystal,
-    ItemConfig? itemConfig
+    ItemRarityConfig? itemConfig
   }) {
     return Item(
       id: id ?? this.id,
@@ -105,7 +103,6 @@ class Item {
       isPermanent: isPermanent ?? this.isPermanent,
       rarity: rarity ?? this.rarity,
       priceCrystal: priceCrystal ?? this.priceCrystal,
-      itemConfig: itemConfig ?? this.itemConfig,
     );
   }
 
@@ -136,76 +133,6 @@ class Item {
     }
     return desc;
   }
-}
-
-// ==================== EFFECT TYPES ====================
-@HiveType(typeId: 10)
-enum EffectType {
-  @HiveField(0)
-  increaseXpGain,
-  
-  @HiveField(1)
-  increaseGoldGain,
-  
-  @HiveField(2)
-  increaseCrystalDropChance,
-  
-  @HiveField(3)
-  reduceGoldGain, // Trade-off effect
-  
-  @HiveField(4)
-  reduceCustomShopCost,
-  
-  @HiveField(5)
-  reduceBaseShopCost,
-  
-  @HiveField(6)
-  rerollBaseShop,
-  
-  @HiveField(7)
-  increaseItemRarity,
-  
-  @HiveField(8)
-  reduceTaskDuration,
-  
-  @HiveField(9)
-  increaseTaskReward,
-  
-  @HiveField(10)
-  passiveIncomeBonus,
-
-  @HiveField(11)
-  reduceXpGain,
-}
-
-// ==================== EFFECT MODEL ====================
-@HiveType(typeId: 11)
-class ItemEffect {
-  @HiveField(0)
-  EffectType type;
-  
-  @HiveField(1)
-  double value; // Percentage as decimal (0.1 = 10%)
-  
-  @HiveField(2)
-  String? secondaryValue; // For trade-off effects (e.g., -5% gold)
-  
-  @HiveField(3)
-  bool isStackable; // Can multiple items with same effect stack?
-  
-  @HiveField(4)
-  int? maxStack; // Maximum stack percentage
-
-  ItemEffect({
-    required this.type,
-    required this.value,
-    this.secondaryValue,
-    this.isStackable = true,
-    this.maxStack,
-  });
-  
-  // Helper to get formatted percentage
-  String get formattedValue => '${(value * 100).toInt()}%';
 }
 
 // ==================== HELPER EXTENSIONS ====================
@@ -240,7 +167,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
-    required ItemConfig itemConfig,
+    required ItemRarityConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -265,7 +192,6 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      itemConfig: itemConfig
     );
   }
 
@@ -283,7 +209,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
-    required ItemConfig itemConfig,
+    required ItemRarityConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -308,7 +234,6 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      itemConfig: itemConfig,
     );
   }
   
@@ -327,7 +252,7 @@ class ItemFactory {
     required int level,
     required DateTime acquiredDate,
     required bool isActivated,
-    required ItemConfig itemConfig,
+    required ItemRarityConfig itemConfig,
   }) {
     return Item(
       id: id,
@@ -351,7 +276,6 @@ class ItemFactory {
       acquiredDate: acquiredDate,
       remainingSeconds: durationSeconds,
       isActivated : isActivated,
-      itemConfig: itemConfig,
     );
   }
 }

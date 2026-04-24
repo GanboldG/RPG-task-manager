@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -12,19 +12,29 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final List<String> _boxNames = ["active_tasks", "completed_tasks", "abandoned_tasks"];
+  final List<String> _taskBoxNames = ["active_tasks", "completed_tasks", "abandoned_tasks"];
   bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Debug Screen'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
+
+          Text("Tasks",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            )
+          ),
+
+          const SizedBox(height: 10),
+
           // Reset Data Button
           _buildSettingsButton(
             icon: Icons.delete_sweep,
@@ -61,6 +71,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () => _showBoxContents('abandoned_tasks'),
           ),
           
+          const SizedBox(height: 12),
+          
+          Text("User",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            )
+          ),
+
+          const SizedBox(height: 11),
+
+          _buildSettingsButton(
+            icon: Icons.check_circle,
+            text: 'Save User Data locally (To Hive)',
+            color: const Color.fromARGB(255, 0, 157, 255),
+            onPressed: () async {
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+              
+              try {
+                await UserService().saveCurrentUserData();
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User data saved successfully!')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error saving data: $e')),
+                  );
+                }
+              }
+            },
+          ),
+
           const Spacer(),
           
           // Loading indicator
@@ -191,7 +243,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       Map<String, List<Task>> allTasks = {};
       int totalCount = 0;
       
-      for (String boxName in _boxNames) {
+      for (String boxName in _taskBoxNames) {
         if (!Hive.isBoxOpen(boxName)) {
           await Hive.openBox<Task>(boxName);
         }
@@ -502,12 +554,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await Hive.close();
     
     // Delete each box from disk
-    for (String boxName in _boxNames) {
+    for (String boxName in _taskBoxNames) {
       await Hive.deleteBoxFromDisk(boxName);
     }
     
     // Reopen all boxes with proper typing
-    for (String boxName in _boxNames) {
+    for (String boxName in _taskBoxNames) {
       await Hive.openBox<Task>(boxName);
     }
     
