@@ -41,11 +41,14 @@ class CustomItemInventoryController extends ChangeNotifier {
 
   late List<OwnedCustomItem> _activatedCustomItems;
   List<OwnedCustomItem> get activatedCustomItems => List.unmodifiable(_activatedCustomItems);
-
   
   // Timer update stream for real-time UI updates
   final _timerUpdateController = StreamController<void>.broadcast();
   Stream<void> get timerUpdateStream => _timerUpdateController.stream;
+
+  // Save user data on every 30 tick
+  int timerCounter = 0;
+  int userSaveInterval = 30;
 
   CustomItemInventoryController() {
     _user = UserService().currentUser;
@@ -70,6 +73,13 @@ class CustomItemInventoryController extends ChangeNotifier {
       }
       if (updated) {
         _timerUpdateController.add(null);
+
+        timerCounter++;
+        if (timerCounter > userSaveInterval){
+          timerCounter = 0;
+          UserService().saveCurrentUserData();
+        }
+
         notifyListeners();
       }
 
@@ -100,14 +110,18 @@ class CustomItemInventoryController extends ChangeNotifier {
         purchasedAt: DateTime.now(),
       ));
     }
+
     notifyListeners();
+    UserService().saveCurrentUserData();
   }
 
   void addStackToCustomItem(String ownedItemId) {
     final index = _ownedCustomItems.indexWhere((i) => i.id == ownedItemId);
     if (index != -1) {
       _ownedCustomItems[index].addStack();
+
       notifyListeners();
+      UserService().saveCurrentUserData();
     }
   }
 
@@ -115,7 +129,9 @@ class CustomItemInventoryController extends ChangeNotifier {
     final index = _ownedCustomItems.indexWhere((i) => i.id == ownedItemId);
     if (index != -1) {
       _ownedCustomItems[index].isPaused = true;
+
       notifyListeners();
+      UserService().saveCurrentUserData();
     }
   }
 
@@ -123,14 +139,18 @@ class CustomItemInventoryController extends ChangeNotifier {
     final index = _ownedCustomItems.indexWhere((i) => i.id == ownedItemId);
     if (index != -1) {
       _ownedCustomItems[index].isPaused = false;
+
       notifyListeners();
+      UserService().saveCurrentUserData();
     }
   }
 
   void deleteCustomItem(String ownedItemId) {
     _ownedCustomItems.removeWhere((i) => i.id == ownedItemId);
     _activatedCustomItems.removeWhere((i) => i.id == ownedItemId);
+
     notifyListeners();
+    UserService().saveCurrentUserData();
   }
 
   @override

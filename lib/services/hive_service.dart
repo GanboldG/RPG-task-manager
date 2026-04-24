@@ -16,7 +16,8 @@ class HiveService{
     'completed_tasks' : Task,
     'abandoned_tasks' : Task,
     'user' : User,
-    'shop_items' : Item
+    'shop_items' : Item,
+    'custom_shop_items' : CustomItem
   };
 
   // Initialize Hive
@@ -41,5 +42,6 @@ class HiveService{
     await Hive.openBox<Task>('abandoned_tasks');
     await Hive.openBox<User>('user');
     await Hive.openBox<Item>('shop_items');
+    await Hive.openBox<CustomItem>('custom_shop_items');
   }
 }

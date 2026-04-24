@@ -1,0 +1,1 @@
+// Local storage solution for both shops!

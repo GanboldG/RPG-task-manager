@@ -36,8 +36,8 @@ class UserService {
     return _userBox.containsKey('user');
   }
 
-  Future<void> saveUserData(User data) async {
-    await _userBox.put('user', data);
+  Future<void> saveCurrentUserData() async {
+    await _userBox.put('user', currentUser);
   }
 
   //----------------Init for the first time---------------

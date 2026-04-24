@@ -16,6 +16,11 @@ class InventoryController extends ChangeNotifier{
   late List<Item> _activatedItems;
   List<Item> get activatedItems => _activatedItems;
 
+  // TimerCounter is counting every item duration tick
+  int timerCounter = 0;
+  // Save user inventory items info locally on every this seconds
+  int userSaveInterval = 30;
+
   InventoryController(this._timerService){
     _user = UserService().currentUser;
     _inventoryItems = _user.ownedItems;
@@ -33,6 +38,7 @@ class InventoryController extends ChangeNotifier{
     _inventoryItems.add(item);
 
     notifyListeners();
+    UserService().saveCurrentUserData();
   }
 
   // ---------------ACTIVATE----------------
@@ -44,7 +50,9 @@ class InventoryController extends ChangeNotifier{
         _user.equippedItems.add(item);
         _user.ownedItems.remove(item);
         item.isActivated = true;
+
         notifyListeners();
+        UserService().saveCurrentUserData();
 
         // Try to start the timer
         _checkAndStartTimer();
@@ -58,12 +66,16 @@ class InventoryController extends ChangeNotifier{
     _activatedItems.remove(item);
 
     notifyListeners();
+    UserService().saveCurrentUserData();
   }
 
   // ---------------SELL-----------------
   void sellItem(Item item){
+    // No functions for now
     notifyListeners();
   }
+
+
 
   // ---------------TIMER RELATED METHODS-----------------
    void _decrementAllActiveItems() {
@@ -86,6 +98,12 @@ class InventoryController extends ChangeNotifier{
     }
     
     if (hasChanges) {
+      timerCounter++;
+      if (timerCounter > userSaveInterval){
+        timerCounter = 0;
+        UserService().saveCurrentUserData();
+      }
+
       notifyListeners();
     }
     

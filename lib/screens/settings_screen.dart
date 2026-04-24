@@ -95,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
               
               try {
-                await UserService().saveUserData(UserService().currentUser);
+                await UserService().saveCurrentUserData();
                 if (mounted) {
                   Navigator.pop(context); // Close loading dialog
                   ScaffoldMessenger.of(context).showSnackBar(
