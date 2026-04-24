@@ -5,6 +5,7 @@ import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/services/item_service.dart';
 import 'package:rpg_task_manager/storage/item_database.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -28,6 +29,8 @@ class ItemShopController extends ChangeNotifier{
     _items = shopManager.generateShopItems();
     _inventoryController = inventoryController;
     _customInventoryController = customController;
+
+    loadCustomItems();
   }
 
   // ------------BUY-----------------
@@ -53,18 +56,6 @@ class ItemShopController extends ChangeNotifier{
   }
 
   // -----------------------------CUSTOM ITEMS-------------------------------
-
-  // Load custom items from Hive/storage (to be implemented with Hive later)
-  Future<void> _loadCustomItems() async {
-    // TODO: Implement Hive loading
-    // For now, keep empty list
-    notifyListeners();
-  }
-
-  // Save custom items to Hive (to be implemented)
-  Future<void> _saveCustomItems() async {
-    // TODO: Implement Hive saving
-  }
 
   // Get most popular custom items (purchased at least once, top 2)
   List<CustomItem> get bestSellers {
@@ -134,7 +125,8 @@ class ItemShopController extends ChangeNotifier{
     );
     
     _customItems.add(newItem);
-    await _saveCustomItems();
+
+    await ItemService().addCustomItem(newItem);
     notifyListeners();
   }
 
@@ -170,7 +162,8 @@ class ItemShopController extends ChangeNotifier{
       }
       
       _customItems.removeWhere((i) => i.id == itemId);
-      await _saveCustomItems();
+
+      await ItemService().deleteCustomItem(itemId);
       notifyListeners();
     }
   }
@@ -205,7 +198,8 @@ class ItemShopController extends ChangeNotifier{
     
     // Clear the list
     _customItems.clear();
-    await _saveCustomItems();
+
+    await ItemService().deleteAllCustomItems();
     notifyListeners();
     
     // Delete the directory if empty
@@ -221,16 +215,9 @@ class ItemShopController extends ChangeNotifier{
     }
   }
 
-  // Clear all custom items (without deleting images - useful for testing)
-  void clearAllCustomItems() {
-    _customItems.clear();
-    _saveCustomItems();
-    notifyListeners();
-  }
-
   // Refresh/load from storage
-  Future<void> refreshCustomItems() async {
-    await _loadCustomItems();
+  Future<void> loadCustomItems() async {
+    _customItems = ItemService().getAllCustomItems();
     notifyListeners();
   }
 }
