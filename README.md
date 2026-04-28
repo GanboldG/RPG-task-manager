@@ -1,7 +1,5 @@
-Planned things to do:
-
-Easy:
-- Make Custom item / Shop Item stored locally (Hive)
+To Do:
+-  Shop Item stored locally (Hive)
 - Option to create / update profile
 - Add custom_shop size as User variable
 - Sort option on task list
@@ -11,15 +9,13 @@ Easy:
 - Connect Firebase
 - Add SFX for everything
 - Make task service a singleton
---------------------------------------------
+- Make the app not turn off with screen turn-off time
 - Make statistics screen work
 - Debug Screen for:
     - Changing config json files
 - Some animations
 - Add reward collecting animation
 - Show expanded item info when pressed from inventory
-
-Hard:
 - Add Daily / Weekly tasks
 - Add Daily login reward
 - Add lootboxes with animation
@@ -28,3 +24,7 @@ Hard:
 - Add more item functionality
 - ML classifier for task labels -> Google colab -> Firebase etc
 - Rework the GUI into something modern
+- Use real SHA fingerprints instead of the debug one
+
+Finished:
+- Make custom item store locally (Hive)

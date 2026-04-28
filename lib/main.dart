@@ -18,6 +18,7 @@ import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';  
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,19 +46,27 @@ void main() async {
   final customInventoryController = CustomItemInventoryController();
   final shopController = ItemShopController(inventoryController, customInventoryController);
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: taskController),
-        ChangeNotifierProvider.value(value: shopController),
-        ChangeNotifierProvider.value(value: userController),
-        ChangeNotifierProvider.value(value: inventoryController),
-        ChangeNotifierProvider.value(value: itemTimerService),
-        ChangeNotifierProvider.value(value: customInventoryController),
-      ],
-      child: const MyApp(),
-    )
-  );
+  // Try to connect to Firebase
+  try {
+    await Firebase.initializeApp();
+    debugPrint('✅ Firebase амжилттай холбогдлоо.');
+  } catch (e) {
+    debugPrint('❌ Firebase холболтолд алдаа гарлаа: $e');
+  } finally {
+    runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: taskController),
+            ChangeNotifierProvider.value(value: shopController),
+            ChangeNotifierProvider.value(value: userController),
+            ChangeNotifierProvider.value(value: inventoryController),
+            ChangeNotifierProvider.value(value: itemTimerService),
+            ChangeNotifierProvider.value(value: customInventoryController),
+          ],
+          child: const MyApp(),
+        )
+      );
+  }
 }
 
 class MyApp extends StatelessWidget {
