@@ -1,11 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/screens/Statistics/Detailed_Statistics.dart';
+
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final userController = context.watch<UserController>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SafeArea(
@@ -35,31 +43,62 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
+    final userController = context.read<UserController>();
+    final user = userController.user;
+
     return Center(
       child: Column(
         children: [
-          Container(
-            width: 90,
-            height: 90,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFE8E0F5),
-              border: Border.all(color: const Color(0xFFB39DDB), width: 2),
-            ),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/images/profile.png',
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Center(child: Placeholder(color: Color(0xFFB39DDB))),
+          Stack(
+            children: [
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFE8E0F5),
+                  border: Border.all(color: const Color(0xFFB39DDB), width: 2),
+                ),
+                child: ClipOval(
+                  child: userController.user.avatarUrl == null
+                    ? Image.asset(
+                        "assets/profile.png",
+                        fit: BoxFit.cover,
+                      )
+                    : Image.file(
+                        File(userController.user.avatarUrl!),
+                        fit: BoxFit.cover,
+                      ),
+                ),
               ),
-            ),
+
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () async {
+                    final file = await pickImage();
+                    if (file == null) return;
+                    await userController.updateUserImage(File(file.path));
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                    child: const Icon(Icons.camera_alt, size: 18),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            'HELLO',
+          Text(
+            user.fullName,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -68,45 +107,52 @@ class _ProfileHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Task Hunter   Joined 2025/04/09',
+          Text(
+            'Joined ${DateFormat('yyyy-MM-dd').format(user.createdAt)}',
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ],
       ),
     );
   }
+
+  Future<File?> pickImage() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+
+    if (file == null) return null;
+    return File(file.path);
+  }
 }
 
 class _XPProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    const double current = 12400;
-    const double total = 15000;
-    final double progress = current / total;
+    final userController = context.read<UserController>();
+    final user = userController.user;
 
     return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('Lv25', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          children: [
+            Text("LVL${user.level}", style: TextStyle(fontSize: 12, color: Colors.grey)),
             Text(
-              '12,400/15,000 XP',
+              '${user.experiencePoints}/${user.experienceThreshold}XP',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
             ),
-            Text('Lv26', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text("LVL${user.level+1}", style: TextStyle(fontSize: 12, color: Colors.grey)),
           ],
         ),
         const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
-            value: progress,
+            value: user.experiencePoints / user.experienceThreshold,
             minHeight: 10,
             backgroundColor: const Color(0xFFE0E0E0),
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7E57C2)),

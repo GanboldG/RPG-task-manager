@@ -48,7 +48,9 @@ void main() async {
 
   // Try to connect to Firebase
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      // options: DefaultfireBaseOptions.currentPlatform,
+    );
     debugPrint('✅ Firebase амжилттай холбогдлоо.');
   } catch (e) {
     debugPrint('❌ Firebase холболтолд алдаа гарлаа: $e');
@@ -195,5 +197,4 @@ class _HomePageState extends State<HomePage> {
         ),
     );
   }
-
 }

@@ -1,12 +1,11 @@
 To Do:
--  Shop Item stored locally (Hive)
+- Connect Firebase
+- Shop Item stored locally with Hive, with timer that refreshes 
+- Make shop items reset every 2 hours
 - Option to create / update profile
 - Add custom_shop size as User variable
 - Sort option on task list
-- Make shop items reset every 2 hours
-- Make profile screen work
 - Make items work
-- Connect Firebase
 - Add SFX for everything
 - Make task service a singleton
 - Make the app not turn off with screen turn-off time
@@ -28,3 +27,4 @@ To Do:
 
 Finished:
 - Make custom item store locally (Hive)
+- Make profile screen work

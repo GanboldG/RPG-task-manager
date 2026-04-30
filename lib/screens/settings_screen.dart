@@ -26,6 +26,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const SizedBox(height: 10),
 
+          Padding(
+            padding: EdgeInsets.all(5),
+              child: Text("Warning: This is debug screen! Will move it in the future, and replace with actual settings screen!!",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 21,
+                  color: Colors.red,
+                )
+            ),
+          ),
+
           Text("Tasks",
             style: TextStyle(
               fontWeight: FontWeight.bold,
