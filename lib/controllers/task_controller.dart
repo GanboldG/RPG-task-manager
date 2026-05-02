@@ -12,8 +12,9 @@ import 'package:rpg_task_manager/services/user_service.dart';
 class TaskController extends ChangeNotifier {
   final TimerService _timerService = TimerService();
   TimerService get timerService => _timerService;
-  final TaskService _taskSerivce = TaskService();
-  TaskService get taskService => _taskSerivce;
+
+  TaskService get taskService => TaskService();
+
   late UserController _userController;
   late List<Task> _tasks;
   List<Task> get tasks => _tasks;

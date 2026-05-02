@@ -28,6 +28,32 @@ class ItemEffect {
     this.maxStack,
   });
   
+  
+  // ================= FIRESTORE TO MAP =================
+  Map<String, dynamic> toMap() {
+    return {
+      'type': type.name,
+      'value': value,
+      'secondaryValue': secondaryValue,
+      'isStackable': isStackable,
+      'maxStack': maxStack,
+    };
+  }
+
+  // ================= FIRESTORE FROM MAP =================
+  factory ItemEffect.fromMap(Map<String, dynamic> map) {
+    return ItemEffect(
+      type: EffectType.values.firstWhere(
+        (e) => e.name == map['type'],
+        orElse: () => EffectType.values.first,
+      ),
+      value: (map['value'] ?? 0).toDouble(),
+      secondaryValue: map['secondaryValue'],
+      isStackable: map['isStackable'] ?? false,
+      maxStack: map['maxStack'],
+    );
+  }
+
   // Helper to get formatted percentage
   String get formattedValue => '${(value * 100).toInt()}%';
 }

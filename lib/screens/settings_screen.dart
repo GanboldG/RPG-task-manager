@@ -134,6 +134,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           
           const SizedBox(height: 20),
+
+           _buildSettingsButton(
+            icon: Icons.check_circle,
+            text: 'Sync To Firestore',
+            color: const Color.fromARGB(255, 0, 157, 255),
+            onPressed: () async {
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+              
+              // try
+              // send every data to firestore
+            },
+          ),
         ],
       ),
     );

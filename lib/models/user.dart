@@ -1,12 +1,11 @@
 import 'package:hive/hive.dart';
-import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/owned_custom_item.dart';
 
 part 'user.g.dart';
 
 @HiveType(typeId: 3)
 class User {
-  // ==================== PERSONAL INFO ====================
   @HiveField(0)
   String id;
   
@@ -149,6 +148,96 @@ class User {
       maxEquippedItemAmount: this.maxEquippedItemAmount,
       shopSize: this.shopSize,
       shopRerolls: this.shopRerolls
+    );
+  }
+
+    // ================= FIRESTORE TO MAP =================
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'fullName': fullName,
+      'email': email,
+      'phoneNumber': phoneNumber,
+      'dateOfBirth': dateOfBirth,
+      'avatarUrl': avatarUrl,
+      'bio': bio,
+      'experiencePoints': experiencePoints,
+      'golds': golds,
+      'crystals': crystals,
+      'level': level,
+      'friends': friends,
+      'createdAt': createdAt,
+      'lastActive': lastActive,
+
+      'ownedItems': ownedItems.map((e) => e.toMap()).toList(),
+      'equippedItems': equippedItems.map((e) => e.toMap()).toList(),
+
+      'unlockedAchievements': unlockedAchievements,
+      'badges': badges,
+
+      'experienceThreshold': experienceThreshold,
+
+      'ownedCustomItems':
+          ownedCustomItems.map((e) => e.toMap()).toList(),
+
+      'activatedCustomItems':
+          activatedCustomItems.map((e) => e.toMap()).toList(),
+
+      'maxEquippedItemAmount': maxEquippedItemAmount,
+      'shopSize': shopSize,
+      'shopRerolls': shopRerolls,
+    };
+  }
+
+  // ================= FIRESTORE FROM MAP =================
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
+      id: map['id'] ?? '',
+      fullName: map['fullName'] ?? '',
+      email: map['email'] ?? '',
+      phoneNumber: map['phoneNumber'],
+      dateOfBirth: map['dateOfBirth']?.toDate(),
+      avatarUrl: map['avatarUrl'],
+      bio: map['bio'],
+
+      experiencePoints: map['experiencePoints'] ?? 0,
+      golds: map['golds'] ?? 0,
+      crystals: map['crystals'] ?? 0,
+      level: map['level'] ?? 1,
+
+      friends: List<int>.from(map['friends'] ?? []),
+
+      createdAt: map['createdAt'].toDate(),
+      lastActive: map['lastActive'].toDate(),
+
+      ownedItems: (map['ownedItems'] as List? ?? [])
+          .map((e) => Item.fromMap(e))
+          .toList(),
+
+      equippedItems: (map['equippedItems'] as List? ?? [])
+          .map((e) => Item.fromMap(e))
+          .toList(),
+
+      unlockedAchievements:
+          List<int>.from(map['unlockedAchievements'] ?? []),
+
+      badges: List<int>.from(map['badges'] ?? []),
+
+      experienceThreshold: map['experienceThreshold'] ?? 0,
+
+      ownedCustomItems: (map['ownedCustomItems'] as List? ?? [])
+          .map((e) => OwnedCustomItem.fromMap(e))
+          .toList(),
+
+      activatedCustomItems: (map['activatedCustomItems'] as List? ?? [])
+          .map((e) => OwnedCustomItem.fromMap(e))
+          .toList(),
+
+      maxEquippedItemAmount:
+          map['maxEquippedItemAmount'] ?? 0,
+
+      shopSize: map['shopSize'] ?? 0,
+      shopRerolls: map['shopRerolls'] ?? 0,
     );
   }
 }

@@ -106,6 +106,57 @@ class Item {
     );
   }
 
+  // ================= FIRESTORE TO MAP =================
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'imageUrl': imageUrl,
+      'isPermanent': isPermanent,
+      'durationSeconds': durationSeconds,
+      'priceGold': priceGold,
+      'priceCrystal': priceCrystal,
+      'thresholdLevel': thresholdLevel,
+      'effects': effects.map((e) => e.toMap()).toList(),
+      'rarity': rarity.name,
+      'level': level,
+      'acquiredDate': acquiredDate,
+      'remainingSeconds': remainingSeconds,
+      'isActivated': isActivated,
+    };
+  }
+
+  // ================= FIRESTORE FROM MAP =================
+  factory Item.fromMap(Map<String, dynamic> map) {
+    return Item(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      description: map['description'] ?? '',
+      imageUrl: map['imageUrl'] ?? '',
+      isPermanent: map['isPermanent'] ?? false,
+      durationSeconds: map['durationSeconds'] ?? 0,
+      priceGold: map['priceGold'] ?? 0,
+      priceCrystal: map['priceCrystal'] ?? 0,
+      thresholdLevel: map['thresholdLevel'] ?? 0,
+
+      effects: (map['effects'] as List? ?? [])
+          .map((e) => ItemEffect.fromMap(e))
+          .toList(),
+
+      rarity: ItemRarity.values.firstWhere(
+        (e) => e.name == map['rarity'],
+        orElse: () => ItemRarity.common,
+      ),
+
+      level: map['level'] ?? 0,
+      acquiredDate: map['acquiredDate']?.toDate(),
+      remainingSeconds: map['remainingSeconds'] ?? 0,
+      isActivated: map['isActivated'] ?? false,
+    );
+  }
+
+
   String getFormattedBaseDuration() {
     return HelperFunctions.formatDuration(durationSeconds);
   }

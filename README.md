@@ -1,8 +1,10 @@
 To Do:
+- Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
 - Connect Firebase
 - Shop Item stored locally with Hive, with timer that refreshes 
 - Make shop items reset every 2 hours
 - Option to create / update profile
+- Add data such as total time, completed task, daily login streaks to user
 - Add custom_shop size as User variable
 - Sort option on task list
 - Make items work
@@ -24,6 +26,8 @@ To Do:
 - ML classifier for task labels -> Google colab -> Firebase etc
 - Rework the GUI into something modern
 - Use real SHA fingerprints instead of the debug one
+
+
 
 Finished:
 - Make custom item store locally (Hive)
