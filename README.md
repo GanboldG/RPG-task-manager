@@ -1,5 +1,5 @@
 To Do:
-- Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
+- Figure out how to upload images to firestore
 - Connect Firebase
 - Shop Item stored locally with Hive, with timer that refreshes 
 - Make shop items reset every 2 hours
@@ -14,8 +14,8 @@ To Do:
 - Make statistics screen work
 - Debug Screen for:
     - Changing config json files
-- Some animations
 - Add reward collecting animation
+- Fix the jankiness in task creation
 - Show expanded item info when pressed from inventory
 - Add Daily / Weekly tasks
 - Add Daily login reward
@@ -28,24 +28,8 @@ To Do:
 - Use real SHA fingerprints instead of the debug one
 
 
-
 Finished:
 - Make custom item store locally (Hive)
 - Make profile screen work
-
-
-How login / signin works:
-if user == null:
-    show login screen:
-        if sign with google:
-            if user in firestore:
-                download from firestore
-                upload to hive
-            else:
-                creation screen:
-                    upload to firestore
-                    upload to hive
-
-        else if work offline:
-            creation screen:
-                upload to hive
+- Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
+- Add rules to firestore

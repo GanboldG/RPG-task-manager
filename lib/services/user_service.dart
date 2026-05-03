@@ -65,11 +65,11 @@ class UserService {
       lastActive: DateTime.now(),
       level: 1,
       experienceThreshold: RewardService.xpForNextLevel(1),
-      golds: 999,
-      crystals: 999,
+      golds: 0,
+      crystals: 0,
       maxEquippedItemAmount: 3,
-      shopSize: 5,
-      shopRerolls: 5
+      shopSize: 3,
+      shopRerolls: 1
     );
   }
 

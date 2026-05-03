@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
@@ -35,8 +34,6 @@ void main() async {
   await AudioService.instance.init();
   await ConfigService.loadAllConfigs();
 
-  final appState = AppState();
-
   try {
     await Firebase.initializeApp(
       // options: DefaultfireBaseOptions.currentPlatform,
@@ -48,6 +45,14 @@ void main() async {
 
   // Delete
   // await Hive.deleteBoxFromDisk("user");
+  
+  await UserService().loadUserData();
+  
+  final appState = AppState();
+  if (!UserService().currentUserisNull()){
+    appState.setLoggedIn();
+  }
+
 
   runApp(
     ChangeNotifierProvider(

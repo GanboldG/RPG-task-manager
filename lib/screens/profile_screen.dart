@@ -65,7 +65,7 @@ class _ProfileHeader extends StatelessWidget {
                 child: ClipOval(
                   child: userController.user.avatarUrl == null
                     ? Image.asset(
-                        "assets/profile.png",
+                        "assets/images/profile.png",
                         fit: BoxFit.cover,
                       )
                     : Image.file(
