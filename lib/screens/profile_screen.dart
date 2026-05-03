@@ -111,6 +111,11 @@ class _ProfileHeader extends StatelessWidget {
             'Joined ${DateFormat('yyyy-MM-dd').format(user.createdAt)}',
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
+          const SizedBox(height: 4),
+          Text(
+            '${user.email}',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
         ],
       ),
     );

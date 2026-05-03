@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
@@ -31,6 +32,8 @@ void main() async {
 
   // Initialize Hive for data storage
   await HiveService.initializeHive();
+  await AudioService.instance.init();
+  await ConfigService.loadAllConfigs();
 
   final appState = AppState();
 
@@ -43,21 +46,20 @@ void main() async {
     debugPrint('❌ Firebase холболтолд алдаа гарлаа: $e');
   } 
 
-  final hasUser = await UserService().hasUser(); 
+  // Delete
+  // await Hive.deleteBoxFromDisk("user");
 
   runApp(
     ChangeNotifierProvider(
       create: (_) => appState,
-      child: MyApp(hasUser: hasUser),
+      child: MyApp(),
     )
   );
 }
 
 
 class MyApp extends StatelessWidget {
-  final bool hasUser;
-
-  const MyApp({super.key, required this.hasUser});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +108,7 @@ class MyApp extends StatelessWidget {
           hourMinuteShape: const CircleBorder(),
         )
       ),
-      home: BootstrapScreen(hasUser: hasUser),
+      home: BootstrapScreen(),
     );
   }
 }
@@ -114,43 +116,23 @@ class MyApp extends StatelessWidget {
 
 
 
-
-
-
-
+// Chooses between login screen & main screen
 class BootstrapScreen extends StatefulWidget {
-  final bool hasUser;
-
-  const BootstrapScreen({super.key, required this.hasUser});
+  const BootstrapScreen({super.key});
 
   @override
   State<BootstrapScreen> createState() => _BootstrapScreenState();
 }
 
 class _BootstrapScreenState extends State<BootstrapScreen> {
-  bool initialized = false;
-  bool loading = false;
-
-  Future<void> _initControllers() async {
-    loading = true;
-    setState(() {});
-
-    await AudioService.instance.init();
-    await ConfigService.loadAllConfigs();
-    UserService().loadUserData();
-
-    initialized = true;
-    loading = false;
-
-    if (mounted) setState(() {});
-  }
+  bool hasUser = UserService().hasUser();
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
 
     final canEnterApp =
-        widget.hasUser ||
+        hasUser ||
         appState.isLoggedIn ||
         appState.isOffline;
 
@@ -158,17 +140,14 @@ class _BootstrapScreenState extends State<BootstrapScreen> {
       return LoginScreen();
     }
 
-    // user just logged in / chose offline
-    if (!initialized && !loading) {
-      _initControllers();
-    }
+    // Can only run if LoginScreen Navigation is popped
 
-    if (!initialized) {
+    if (!appState.isLoggedIn) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
+    
     return AppProviders(child: HomePage());
   }
 }
@@ -182,6 +161,7 @@ class AppProviders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    
     final itemTimerService = ItemTimerService();
     final userController = UserController();
     final taskController = TaskController(userController);

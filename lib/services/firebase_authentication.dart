@@ -20,36 +20,27 @@ class FirebaseAuthentication {
     }
   }
 
- Future<String?> loginWithGoogle() async {
-  try {
-    print("E");
-    await _initGoogle();
+  Future<String?> loginWithGoogle() async {
+    try {
+      await _initGoogle();
 
-    print("Z");
-    final GoogleSignInAccount account =
-        await _googleSignIn.authenticate();
+      final GoogleSignInAccount account =
+          await _googleSignIn.authenticate();
 
-    final auth = account.authentication;
-    print("Auth done");
+      final auth = account.authentication;
 
-    final credential = GoogleAuthProvider.credential(
-      idToken: auth.idToken,
-    );
-    print("Cred done");
+      final credential = GoogleAuthProvider.credential(
+        idToken: auth.idToken,
+      );
 
+      final userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
 
-    final userCredential =
-        await _firebaseAuth.signInWithCredential(credential);
-
-    print("User cred done");
-
-
-    return userCredential.user?.uid;
-  } catch (e) {
-    print('Google login failed: $e');
-    return null;
+      return userCredential.user?.uid;
+    } catch (e) {
+      return null;
+    }
   }
-}
 
   Future<bool> logoutGoogle() async {
     try {

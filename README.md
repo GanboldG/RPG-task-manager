@@ -32,3 +32,20 @@ To Do:
 Finished:
 - Make custom item store locally (Hive)
 - Make profile screen work
+
+
+How login / signin works:
+if user == null:
+    show login screen:
+        if sign with google:
+            if user in firestore:
+                download from firestore
+                upload to hive
+            else:
+                creation screen:
+                    upload to firestore
+                    upload to hive
+
+        else if work offline:
+            creation screen:
+                upload to hive

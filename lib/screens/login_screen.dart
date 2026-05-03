@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/app_state.dart';
+import 'package:rpg_task_manager/screens/create_user_screen.dart';
 import 'package:rpg_task_manager/services/firebase_authentication.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -109,12 +111,41 @@ class LoginScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          onPressed: () async {
-                            await FirebaseAuthentication()
-                                .loginWithGoogle();
 
-                            appState.setLoggedIn();
-                          },
+                          // PROBLEMS
+                          onPressed: () async {
+                            final uid = await FirebaseAuthentication().loginWithGoogle();
+                            if (uid == null) return;
+
+                            final service = UserService();
+                            final exists = await service.userExistInFirestore(uid);
+
+                            // If user doesn't exist in firestore, bring up CreateScreen
+                            if (!exists) {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CreateUserScreen(isOffline: false),
+                                ),
+                              );
+
+                              if (result == null) return;
+
+                              await service.initializeFirstTimeUser(result, false);
+                            } 
+
+                            // If user exists in firestore
+                            else {
+                              final user = await service.getFromFirestore();
+                              if (user != null) {
+                                service.setCurrentUser(user);
+                                
+                                // TODO: Also get all the task, custom item info to save locally
+                                service.saveCurrentUserData();
+                                context.read<AppState>().setLoggedIn();
+                              }
+                            }
+                          }
                         ),
                       ),
 
@@ -142,8 +173,20 @@ class LoginScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
                             appState.setOffline();
+
+                            final hasLocalUser = await UserService().loadUserData();
+
+                            if (!hasLocalUser) {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const CreateUserScreen(isOffline: true),
+                                ),
+                              );
+                              return;
+                            }
                           },
                         ),
                       ),
