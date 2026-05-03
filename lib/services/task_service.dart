@@ -1,12 +1,23 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class TaskService {
+
+  TaskService._internal();
+  static final TaskService _instance = TaskService._internal();
+  factory TaskService() {
+    return _instance;
+  }
+
   final Box<Task> activeBox = Hive.box<Task>('active_tasks');
   final Box<Task> completedBox = Hive.box<Task>('completed_tasks');
   final Box<Task> abandonedBox = Hive.box<Task>('abandoned_tasks');
   
-  // ----------------ADD--------------------
+
+  // ----------------HIVE METHODS---------------------
+
   Future<String> addTask(Task task) async {
     // int newId = await TaskIdCounter.getNextId();
     // Add to box (key = task.id, value = task)
@@ -14,26 +25,13 @@ class TaskService {
     return task.id;
   }
 
-  // ----------------GET--------------------
   List<Task> getAllActiveTasks() {
     final tasks = activeBox.values.toList();
-
     tasks.sort((a, b) => (a.orderId ?? 0).compareTo(b.orderId ?? 0));
     return tasks;  // Returns all values sorted
   }
 
-  Task? getTaskById(int id) {
-    return activeBox.get(id);  // O(1) lookup
-  }
-
-  Map<dynamic, Task> getTasksMap() {
-    return activeBox.toMap();  // {0: Task, 1: Task, ...}
-  }
-
-  // ----------------UPDATE--------------------
   Future<void> completeTask(String taskId) async {
-    
-    // Get existing task
     Task? task = activeBox.get(taskId);
     
     if (task != null) {
@@ -51,7 +49,6 @@ class TaskService {
     activeBox.put(updatedTask.id, updatedTask);
   }
 
-  // ----------------DELETE---------------------
   Future<void> deleteTask(String taskId, {bool permanent = true}) async {
     if (permanent) {
       Task? task = activeBox.get(taskId);
@@ -74,18 +71,44 @@ class TaskService {
     }
   }
 
-  // Delete all completed tasks
-  Future<void> clearCompletedTasks() async {
-    await completedBox.clear();
+
+  // ----------------FIRESTORE METHODS---------------------
+  Future<List<Task>> getFromFirestore() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+                            .collection("users")
+                            .doc(UserService().currentUser.id)
+                            .collection("tasks")
+                            .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return Task.fromMap(data);
+      }).toList();
+    } catch (e) {
+      print("Exception $e while getting tasks from firestore");
+      return [];
+    }
   }
 
-  Future<void> resetAllHiveData() async {
-    // Delete all boxes
-    await Hive.deleteBoxFromDisk('active_tasks');
-    await Hive.deleteBoxFromDisk('completed_tasks');
-    await Hive.deleteBoxFromDisk('abandoned_tasks');
-    
-    // Or delete everything (all boxes)
-    await Hive.deleteFromDisk();
+
+  Future<void> uploadToFirestore() async {
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      for (Task task in getAllActiveTasks()) {
+        final ref = FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(UserService().currentUser.id)
+                    .collection('tasks')
+                    .doc(task.id);
+
+        batch.set(ref, task.toMap());
+      }
+
+      await batch.commit();
+    } catch (e) {
+      print("Exception $e while uploading tasks to firestore");
+    }
   }
 }

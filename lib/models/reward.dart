@@ -19,4 +19,23 @@ class Reward{
   Reward({required this.xp,
          required this.gold,
          required this.crystal});
+
+
+  // ------------------------Firestore / JSON save & load------------------------
+
+  Map<String, dynamic> toMap() {
+    return {
+      'xp': xp,
+      'gold': gold,
+      'crystal': crystal,
+    };
+  }
+
+  factory Reward.fromMap(Map<String, dynamic> map) {
+    return Reward(
+      xp: map['xp'] ?? 0,
+      gold: map['gold'] ?? 0,
+      crystal: map['crystal'] ?? 0,
+    );
+  }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
@@ -7,6 +9,7 @@ import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/screens/inventory_screen.dart';
+import 'package:rpg_task_manager/screens/login_screen.dart';
 import 'package:rpg_task_manager/screens/profile_screen.dart';
 import 'package:rpg_task_manager/screens/settings_screen.dart';
 import 'package:rpg_task_manager/screens/shop_screen.dart';
@@ -18,6 +21,7 @@ import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';  
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,40 +29,34 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(
     SystemUiMode.immersiveSticky,
   );
-  
-  // Initialize Audio Player for SFX
-  await AudioService.instance.init();
 
   // Initialize Hive for data storage
   await HiveService.initializeHive();
-
-  // Initialize configs
+  await AudioService.instance.init();
   await ConfigService.loadAllConfigs();
 
-  // Initialize the user
-  UserService().loadUserData();
+  final appState = AppState();
 
-  final itemTimerService = ItemTimerService();
-  final userController = UserController();
-  final taskController = TaskController(userController);
-  final inventoryController = InventoryController(itemTimerService);
-  final customInventoryController = CustomItemInventoryController();
-  final shopController = ItemShopController(inventoryController, customInventoryController);
+  try {
+    await Firebase.initializeApp(
+      // options: DefaultfireBaseOptions.currentPlatform,
+    );
+    debugPrint('✅ Firebase амжилттай холбогдлоо.');
+  } catch (e) {
+    debugPrint('❌ Firebase холболтолд алдаа гарлаа: $e');
+  } 
+
+  // Delete
+  // await Hive.deleteBoxFromDisk("user");
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: taskController),
-        ChangeNotifierProvider.value(value: shopController),
-        ChangeNotifierProvider.value(value: userController),
-        ChangeNotifierProvider.value(value: inventoryController),
-        ChangeNotifierProvider.value(value: itemTimerService),
-        ChangeNotifierProvider.value(value: customInventoryController),
-      ],
-      child: const MyApp(),
+    ChangeNotifierProvider(
+      create: (_) => appState,
+      child: MyApp(),
     )
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -110,11 +108,88 @@ class MyApp extends StatelessWidget {
           hourMinuteShape: const CircleBorder(),
         )
       ),
-      home: HomePage(),
+      home: BootstrapScreen(),
     );
   }
 }
 
+
+
+
+// Chooses between login screen & main screen
+class BootstrapScreen extends StatefulWidget {
+  const BootstrapScreen({super.key});
+
+  @override
+  State<BootstrapScreen> createState() => _BootstrapScreenState();
+}
+
+class _BootstrapScreenState extends State<BootstrapScreen> {
+  bool hasUser = UserService().hasUser();
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+
+    final canEnterApp =
+        hasUser ||
+        appState.isLoggedIn ||
+        appState.isOffline;
+
+    if (!canEnterApp) {
+      return LoginScreen();
+    }
+
+    // Can only run if LoginScreen Navigation is popped
+
+    if (!appState.isLoggedIn) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    
+    return AppProviders(child: HomePage());
+  }
+}
+
+
+class AppProviders extends StatelessWidget {
+  final Widget child;
+
+  const AppProviders({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+
+    
+    final itemTimerService = ItemTimerService();
+    final userController = UserController();
+    final taskController = TaskController(userController);
+    final inventoryController = InventoryController(itemTimerService);
+    final customInventoryController = CustomItemInventoryController();
+    final shopController = ItemShopController(
+      inventoryController,
+      customInventoryController,
+    );
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: taskController),
+        ChangeNotifierProvider.value(value: shopController),
+        ChangeNotifierProvider.value(value: userController),
+        ChangeNotifierProvider.value(value: inventoryController),
+        ChangeNotifierProvider.value(value: itemTimerService),
+        ChangeNotifierProvider.value(value: customInventoryController),
+      ],
+      child: child,
+    );
+  }
+}
+
+
+
+
+// This should be called after app state has been decided (offline, online)
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -186,5 +261,4 @@ class _HomePageState extends State<HomePage> {
         ),
     );
   }
-
 }

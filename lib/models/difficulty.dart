@@ -18,6 +18,21 @@ enum Difficulty {
   @HiveField(3)
   expert;
 
+  // ------------------------Firestore / JSON save & load------------------------
+  
+  String toMap() {
+    return name;
+  }
+
+  static Difficulty fromMap(String value) {
+    return Difficulty.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => Difficulty.easy,
+    );
+  }
+
+  // ------------------------Helper methods------------------------
+
   // Computed properties
   String get displayName {
     switch (this) {

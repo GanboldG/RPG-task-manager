@@ -70,6 +70,47 @@ class Task {
       : null; // Removes seconds / milleseconds from deadline
 
 
+  // ------------------------Firestore / JSON save & load------------------------
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'isCompleted': isCompleted,
+      'difficulty': difficulty.toMap(),
+      'baseDurationSec': baseDurationSec,
+      'doneDurationSec': doneDurationSec,
+      'deadline': deadline,
+      'createdAt': createdAt,
+      'completedAt': completedAt,
+      'reward': reward.toMap(),
+      'orderId': orderId,
+      'type': type?.name, // enum example
+    };
+  }
+
+
+  factory Task.fromMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'],
+      name: map['name'],
+      description: map['description'],
+      isCompleted: map['isCompleted'],
+      difficulty: Difficulty.fromMap(map['difficulty']),
+      baseDurationSec: map['baseDurationSec'],
+      doneDurationSec: map['doneDurationSec'],
+      deadline: map['deadline']?.toDate(),
+      createdAt: map['createdAt'].toDate(),
+      completedAt: map['completedAt']?.toDate(),
+      reward: Reward.fromMap(map['reward']),
+      orderId: map['orderId'],
+      type: map['type'] != null
+          ? TaskType.values.firstWhere((e) => e.name == map['type'])
+          : null,
+    );
+  }
+
   // -----------------Helper methods related to DateTime-------------------
 
   double getBaseMinutes(){

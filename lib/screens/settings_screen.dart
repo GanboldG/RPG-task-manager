@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
+import 'package:rpg_task_manager/models/item/custom_item.dart';
+import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
+import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -26,6 +29,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const SizedBox(height: 10),
 
+          Padding(
+            padding: EdgeInsets.all(5),
+              child: Text("Warning: This is debug screen! Will move it in the future, and replace with actual settings screen!!",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 21,
+                  color: Colors.red,
+                )
+            ),
+          ),
+
           Text("Tasks",
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -38,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Reset Data Button
           _buildSettingsButton(
             icon: Icons.delete_sweep,
-            text: 'Reset All Task Data\n(Activate before changing a hive field)',
+            text: 'Reset All local (Hive) data\n(Activate before changing a Hive field)',
             color: Colors.red,
             onPressed: _confirmResetData,
           ),
@@ -113,8 +127,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
-          const Spacer(),
-          
+          const SizedBox(height: 11),
+
           // Loading indicator
           if (_isLoading)
             const Padding(
@@ -122,7 +136,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: CircularProgressIndicator(),
             ),
           
-          const SizedBox(height: 20),
+          Text("Firebase",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            )
+          ),
+
+          const SizedBox(height: 12),
+
+          _buildSettingsButton(
+            icon: Icons.check_circle,
+            text: 'Sync To Firestore',
+            color: const Color.fromARGB(255, 105, 0, 144),
+            onPressed: () async {
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -523,9 +558,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset All Task Data?'),
+        title: const Text('Reset ALL local Data?'),
         content: const Text(
-          'This will permanently delete all tasks from active, completed, and abandoned boxes. This action cannot be undone.',
+          'This will permanently delete all hive data from device. This action cannot be undone.',
           style: TextStyle(fontSize: 14),
         ),
         actions: [
@@ -547,48 +582,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _resetAllData() async {
-  setState(() => _isLoading = true);
-  
-  try {
-    // Close all boxes first
-    await Hive.close();
+    setState(() => _isLoading = true);
     
-    // Delete each box from disk
-    for (String boxName in _taskBoxNames) {
-      await Hive.deleteBoxFromDisk(boxName);
+    try {
+      // Close all boxes first
+      await Hive.close();
+      
+      // Delete each box from disk
+      for (String boxName in _taskBoxNames) {
+        await Hive.deleteBoxFromDisk(boxName);
+      }
+      
+      // Reopen all boxes with proper typing
+      for (String boxName in _taskBoxNames) {
+        await Hive.openBox<Task>(boxName);
+      }
+      
+      // ADDITION
+      _deleteNonTaskBoxes();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All task data has been reset\nNow restart the app! (IMPORTANT)')),
+        );
+      }
+      
+      // Debug print to verify
+      final box = Hive.box<Task>('active_tasks');
+      debugPrint("${box.length} tasks in active_tasks");
+      final completeBox = Hive.box<Task>('completed_tasks');
+      debugPrint("${completeBox.length} tasks in completed_tasks");
+      
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error resetting data: $e')),
+        );
+        _showErrorDialog('Reset', e.toString());
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
-    
-    // Reopen all boxes with proper typing
-    for (String boxName in _taskBoxNames) {
-      await Hive.openBox<Task>(boxName);
-    }
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All task data has been reset\nNow restart the app! (IMPORTANT)')),
-      );
-    }
-    
-    // Debug print to verify
-    final box = Hive.box<Task>('active_tasks');
-    debugPrint("${box.length} tasks in active_tasks");
-    final completeBox = Hive.box<Task>('completed_tasks');
-    debugPrint("${completeBox.length} tasks in completed_tasks");
-    
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error resetting data: $e')),
-      );
-      _showErrorDialog('Reset', e.toString());
-    }
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
            '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _deleteNonTaskBoxes() async{
+    try{
+      await Hive.deleteBoxFromDisk("user");
+      await Hive.deleteBoxFromDisk("shop_items");
+      await Hive.deleteBoxFromDisk("custom_shop_items");
+      await Hive.openBox<User>('user');
+      await Hive.openBox<Item>('shop_items');
+      await Hive.openBox<CustomItem>('custom_shop_items');
+    }catch(e){
+      print("Exception $e when trying to delete hive boxes");
+    }
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,8 @@ import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
+import 'package:path_provider/path_provider.dart';
+
 
 class UserController extends ChangeNotifier{
 
@@ -146,6 +149,37 @@ class UserController extends ChangeNotifier{
     notifyListeners();
     UserService().saveCurrentUserData();
   }
+
+  Future<void> updateUserImage(File tempImageFile) async{
+    final imagePath = await saveImagePermanently(tempImageFile); 
+    if (imagePath != null){
+      user.avatarUrl = imagePath;
+      notifyListeners();
+      UserService().saveCurrentUserData();
+    }
+  }
+
+    // Save image permanently from picked file
+  Future<String?> saveImagePermanently(File tempImageFile) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final customItemsDir = Directory('${appDir.path}/custom_items');
+      
+      if (!await customItemsDir.exists()) {
+        await customItemsDir.create(recursive: true);
+      }
+      
+      final fileName = 'custom_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedPath = '${customItemsDir.path}/$fileName';
+      await tempImageFile.copy(savedPath);
+      
+      return savedPath;
+    } catch (e) {
+      debugPrint('Error saving image: $e');
+      return null;
+    }
+  }
+
 
   // If at lvl 1, calculates lvl 2's required xp
   int calculateNextLevelThreshold(){
