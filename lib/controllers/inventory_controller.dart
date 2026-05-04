@@ -120,6 +120,13 @@ class InventoryController extends ChangeNotifier{
       _timerService.stopGlobalTimer();
     }
   }
+
+  bool checkInventoryLimitReached(){
+    if (_inventoryItems.length >= _user.inventorySlot){
+      return true;
+    }
+    return false;
+  }
   
 
   void _checkAndStartTimer() {

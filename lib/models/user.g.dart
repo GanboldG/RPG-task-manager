@@ -25,29 +25,30 @@ class UserAdapter extends TypeAdapter<User> {
       avatarUrl: fields[5] as String?,
       bio: fields[6] as String?,
       experiencePoints: fields[7] as int,
-      experienceThreshold: fields[18] as int,
+      experienceThreshold: fields[17] as int,
       golds: fields[8] as int,
       crystals: fields[9] as int,
       level: fields[10] as int,
       ownedItems: (fields[14] as List?)?.cast<Item>(),
       equippedItems: (fields[15] as List?)?.cast<Item>(),
-      ownedCustomItems: (fields[19] as List?)?.cast<OwnedCustomItem>(),
-      activatedCustomItems: (fields[20] as List?)?.cast<OwnedCustomItem>(),
+      ownedCustomItems: (fields[18] as List?)?.cast<OwnedCustomItem>(),
+      activatedCustomItems: (fields[19] as List?)?.cast<OwnedCustomItem>(),
       unlockedAchievements: (fields[16] as List?)?.cast<int>(),
-      badges: (fields[17] as List?)?.cast<int>(),
       friends: (fields[11] as List?)?.cast<int>(),
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
-      maxEquippedItemAmount: fields[21] as int,
-      shopSize: fields[22] as int,
+      maxEquippedItemAmount: fields[20] as int,
+      shopSlot: fields[21] as int,
+      customShopSlot: fields[22] as int,
       shopRerolls: fields[23] as int,
+      inventorySlot: fields[24] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(24)
+      ..writeByte(25)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -83,19 +84,21 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(16)
       ..write(obj.unlockedAchievements)
       ..writeByte(17)
-      ..write(obj.badges)
-      ..writeByte(18)
       ..write(obj.experienceThreshold)
-      ..writeByte(19)
+      ..writeByte(18)
       ..write(obj.ownedCustomItems)
-      ..writeByte(20)
+      ..writeByte(19)
       ..write(obj.activatedCustomItems)
-      ..writeByte(21)
+      ..writeByte(20)
       ..write(obj.maxEquippedItemAmount)
+      ..writeByte(21)
+      ..write(obj.shopSlot)
       ..writeByte(22)
-      ..write(obj.shopSize)
+      ..write(obj.customShopSlot)
       ..writeByte(23)
-      ..write(obj.shopRerolls);
+      ..write(obj.shopRerolls)
+      ..writeByte(24)
+      ..write(obj.inventorySlot);
   }
 
   @override

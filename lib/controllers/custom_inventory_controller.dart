@@ -25,8 +25,8 @@ class CustomItemInventoryController extends ChangeNotifier {
   // Called after login
   void initialize(){
      _user = UserService().currentUser;
-    _ownedCustomItems = _user.ownedCustomItems;
     _activatedCustomItems = _user.activatedCustomItems;
+    _ownedCustomItems = _user.ownedCustomItems;
 
     _startGlobalTimer();
   }

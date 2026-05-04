@@ -8,7 +8,7 @@ part of 'custom_item.dart';
 
 class CustomItemAdapter extends TypeAdapter<CustomItem> {
   @override
-  final int typeId = 7;
+  final int typeId = 13;
 
   @override
   CustomItem read(BinaryReader reader) {

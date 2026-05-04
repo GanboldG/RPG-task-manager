@@ -6,6 +6,7 @@ import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/services/item_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/storage/item_database.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -37,11 +38,17 @@ class ItemShopController extends ChangeNotifier{
   }
 
   // ------------BUY-----------------
-  void buyItem(Item item){
+  String buyItem(Item item){
+    if (_inventoryController.checkInventoryLimitReached()){
+      return "Inventory limit (${UserService().currentUser.inventorySlot}) reached";
+    }
+
     if (_items.remove(item)){
       _inventoryController.addItem(item);
       notifyListeners();
     }
+
+    return "";
   }
 
   // ---------------DELETE-----------------

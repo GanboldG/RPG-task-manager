@@ -115,16 +115,6 @@ class UserController extends ChangeNotifier{
     }
   }
   
-  // Add badge
-  void addBadge(int badgeId) {
-    if (user.badges.contains(badgeId)) {
-      user.badges.add(badgeId);
-
-      notifyListeners();
-      UserService().saveCurrentUserData();
-    }
-  }
-  
   // Add friend
   void addFriend(int userId) {
     if (user.friends.contains(userId)) {

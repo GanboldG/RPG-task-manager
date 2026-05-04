@@ -57,28 +57,31 @@ class User {
   
   @HiveField(16)
   List<int> unlockedAchievements; // Achievement IDs
-  
-  @HiveField(17)
-  List<int> badges; // Badge IDs
 
-  @HiveField(18)
+  @HiveField(17)
   int experienceThreshold;
 
-  @HiveField(19)
+  @HiveField(18)
   List<OwnedCustomItem> ownedCustomItems;
 
-  @HiveField(20)
+  @HiveField(19)
   List<OwnedCustomItem> activatedCustomItems;
 
-  @HiveField(21)
+  @HiveField(20)
   int maxEquippedItemAmount;
 
   // All the additional parametes
+  @HiveField(21)
+  int shopSlot;
+
   @HiveField(22)
-  int shopSize;
+  int customShopSlot;
 
   @HiveField(23)
   int shopRerolls;
+
+  @HiveField(24)
+  int inventorySlot;
 
   User({
     required this.id,
@@ -103,14 +106,15 @@ class User {
     required this.createdAt,
     required this.lastActive,
     required this.maxEquippedItemAmount,
-    required this.shopSize,
-    required this.shopRerolls
+    required this.shopSlot,
+    required this.customShopSlot,
+    required this.shopRerolls,
+    required this.inventorySlot,
   }) : ownedItems = ownedItems ?? [],
        equippedItems = equippedItems ?? [],
-       ownedCustomItems = ownedCustomItems ?? [],
        activatedCustomItems = activatedCustomItems ?? [],
+       ownedCustomItems = ownedCustomItems ?? [],
        unlockedAchievements = unlockedAchievements ?? [],
-       badges = badges ?? [],
        friends = friends ?? [];
 
   // Copy with method for partial updates
@@ -141,13 +145,14 @@ class User {
       ownedItems: this.ownedItems,
       equippedItems: this.equippedItems,
       unlockedAchievements: this.unlockedAchievements,
-      badges: this.badges,
       friends: this.friends,
       createdAt: this.createdAt,
       lastActive: this.lastActive,
       maxEquippedItemAmount: this.maxEquippedItemAmount,
-      shopSize: this.shopSize,
-      shopRerolls: this.shopRerolls
+      shopSlot: this.shopSlot,
+      customShopSlot: this.customShopSlot,
+      shopRerolls: this.shopRerolls,
+      inventorySlot: this.inventorySlot
     );
   }
 
@@ -173,7 +178,6 @@ class User {
       'equippedItems': equippedItems.map((e) => e.toMap()).toList(),
 
       'unlockedAchievements': unlockedAchievements,
-      'badges': badges,
 
       'experienceThreshold': experienceThreshold,
 
@@ -184,7 +188,9 @@ class User {
           activatedCustomItems.map((e) => e.toMap()).toList(),
 
       'maxEquippedItemAmount': maxEquippedItemAmount,
-      'shopSize': shopSize,
+      'shopSlot': shopSlot,
+      'customShopSlot': customShopSlot,
+      'inventorySlot': inventorySlot,
       'shopRerolls': shopRerolls,
     };
   }
@@ -221,8 +227,6 @@ class User {
       unlockedAchievements:
           List<int>.from(map['unlockedAchievements'] ?? []),
 
-      badges: List<int>.from(map['badges'] ?? []),
-
       experienceThreshold: map['experienceThreshold'] ?? 0,
 
       ownedCustomItems: (map['ownedCustomItems'] as List? ?? [])
@@ -236,8 +240,10 @@ class User {
       maxEquippedItemAmount:
           map['maxEquippedItemAmount'] ?? 0,
 
-      shopSize: map['shopSize'] ?? 0,
+      shopSlot: map['shopSlot'] ?? 0,
+      customShopSlot: map['customShopSlot'] ?? 0,
       shopRerolls: map['shopRerolls'] ?? 0,
+      inventorySlot: map['inventorySlot'] ?? 0,
     );
   }
 }
