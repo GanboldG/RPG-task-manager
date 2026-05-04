@@ -10,7 +10,7 @@ import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/services/audio_service.dart';
-import 'package:rpg_task_manager/services/item_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color.fromARGB(255, 246, 232, 255);
@@ -35,16 +35,11 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
-  late final UserController _userController;
-  late final ItemShopController _shopController;
 
   @override 
   void initState() { 
     super.initState(); 
     _tab = TabController(length: 2, vsync: this); 
-    
-    _userController = context.read<UserController>();
-    _shopController = context.read<ItemShopController>();
   }
   
   @override 
@@ -55,9 +50,16 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
 
   // Buy REAL items (XP/Gold boosts)
   void _buyShopItem(Item item) {
-    if (_userController.spendGolds(item.priceGold)) {
+    final userController = context.read<UserController>();
+
+    if (userController.spendGolds(item.priceGold)) {
       final shopController = context.read<ItemShopController>();
-      shopController.buyItem(item);
+
+      // If item can't be bought
+      String buyMessage = shopController.buyItem(item);
+      if (buyMessage != ""){
+        HelperFunctions.showMessage(context, buyMessage);
+      }
       
       AudioService.instance.playSfx("assets/audio/watcha_say.mp3");
 
@@ -77,7 +79,9 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
 
   // Buy CUSTOM ITEMS (user-created rewards) - Does NOT remove from shop
   void _buyCustomItem(CustomItem item) {
-    if (_userController.spendGolds(item.priceGold)) {
+    final userController = context.read<UserController>();
+
+    if (userController.spendGolds(item.priceGold)) {
       final shopController = context.read<ItemShopController>();
       shopController.purchaseCustomItem(item.id);
 
@@ -126,7 +130,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             tabs: const [
               Tab(text: 'Item Shop',), 
-              Tab(text: 'Custom Items'),
+              Tab(text: 'Reward Shop'),
             ],
           ),
         ),
@@ -219,8 +223,14 @@ class _CustomItemShopTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 14, 14, 90),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                const _SecTitle('📜 All Custom Items:'),
+                _SecTitle("📜 All Rewards (${allItems.length}/${UserService().currentUser.customShopSlot})"),
                 _AddVoucherBtn(onTap: () async {
+                  // Max rewards reached
+                  if (allItems.length >= UserService().currentUser.customShopSlot){
+                    HelperFunctions.showMessage(context, "Reward limit reached. Delete a reward to add new rewards!");
+                    return;
+                  }
+
                   await Navigator.push(context, MaterialPageRoute(
                     builder: (_) => AddCustomItemScreen()
                   ));
@@ -235,7 +245,7 @@ class _CustomItemShopTab extends StatelessWidget {
                   child: Center(child: Column(children: [
                     Icon(Icons.local_activity_outlined, color: kTxtSub, size: 42),
                     SizedBox(height: 10),
-                    Text('No custom items yet.\nCreate custom rewards for completing tasks!',
+                    Text('No rewards yet.\nCreate custom rewards for completing tasks!',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: kTxtSub, fontSize: 13, height: 1.5)),
                   ])),
@@ -422,7 +432,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
       appBar: AppBar(
         backgroundColor: kCard,
         iconTheme: const IconThemeData(color: kTxt),
-        title: const Text('Create Custom Item', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
+        title: const Text('Create a Reward', style: TextStyle(color: kTxt, fontWeight: FontWeight.bold)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -456,7 +466,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
             Flexible(
               flex: 2,
               child: Column(children: [
-                _Field(ctrl: _nameCtrl, hint: 'Item Name (e.g., "1 Hour Gaming")'),
+                _Field(ctrl: _nameCtrl, hint: 'Name ("1 Hour Gaming" etc)'),
                 const SizedBox(height: 8),
                 Row(children: [
                   Expanded(child: _Field(ctrl: _priceCtrl, hint: 'Price (Gold)', isNumber: true, onChanged: (_) => setState(() {}))),
@@ -487,22 +497,12 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
               expands: true,
               style: const TextStyle(color: kTxt, fontSize: 13),
               decoration: const InputDecoration(
-                hintText: 'What can the user do with this item?',
+                hintText: 'What can the user do with this reward?',
                 hintStyle: TextStyle(color: kTxtSub, fontSize: 13),
                 border: InputBorder.none,
               ),
             ),
           ),
-          // const SizedBox(height: 12),
-          // Container(
-          //   padding: const EdgeInsets.all(10),
-          //   decoration: BoxDecoration(
-          //     color: kCardAlt,
-          //     borderRadius: BorderRadius.circular(10),
-          //     border: Border.all(color: kBorder)
-          //   ),
-          //   child: _PriceInfo(label: 'Listing fee (15%):', value: _fee),
-          // ),
           const Spacer(),
           Row(children: [
             Expanded(child: _OutlineBtn(label: 'Cancel', color: kRed, onTap: () => Navigator.pop(context))),
@@ -702,7 +702,7 @@ class _AddVoucherBtn extends StatelessWidget {
       child: const Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(Icons.add, color: Colors.white, size: 14),
         SizedBox(width: 4),
-        Text('ADD ITEM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+        Text('CREATE REWARD', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
       ]),
     ),
   );

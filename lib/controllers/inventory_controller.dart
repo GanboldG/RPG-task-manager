@@ -21,7 +21,10 @@ class InventoryController extends ChangeNotifier{
   // Save user inventory items info locally on every this seconds
   int userSaveInterval = 30;
 
-  InventoryController(this._timerService){
+  InventoryController(this._timerService);
+
+  // Called after login happens
+  void initialize(){
     _user = UserService().currentUser;
     _inventoryItems = _user.ownedItems;
     _activatedItems = _user.equippedItems;
@@ -116,6 +119,13 @@ class InventoryController extends ChangeNotifier{
     if (_activatedItems.isEmpty) {
       _timerService.stopGlobalTimer();
     }
+  }
+
+  bool checkInventoryLimitReached(){
+    if (_inventoryItems.length >= _user.inventorySlot){
+      return true;
+    }
+    return false;
   }
   
 

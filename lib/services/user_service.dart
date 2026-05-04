@@ -2,8 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
+import 'dart:io';
+import 'dart:convert';
 
 class UserService {
 
@@ -22,9 +25,6 @@ class UserService {
   }
 
   User get currentUser {
-    if (_currentUser == null) {
-      
-    }
     return _currentUser!;
   }
 
@@ -56,7 +56,6 @@ class UserService {
 
   //----------------Init for the first time---------------
   User getFirstTimeUser(String fullname, String email) {
-    print("(Debug) Returning first time user");
     return User(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       fullName: fullname,
@@ -65,11 +64,13 @@ class UserService {
       lastActive: DateTime.now(),
       level: 1,
       experienceThreshold: RewardService.xpForNextLevel(1),
-      golds: 999,
-      crystals: 999,
+      golds: 0,
+      crystals: 0,
       maxEquippedItemAmount: 3,
-      shopSize: 5,
-      shopRerolls: 5
+      shopSlot: 3,
+      customShopSlot: 5,
+      inventorySlot: 15,
+      shopRerolls: 1
     );
   }
 
@@ -152,5 +153,31 @@ class UserService {
  
     print("(Debug) Current user: ${currentUser.fullName}");
     return true;
+  }
+
+
+  // Downloads the user json file to phone's download folder
+  Future<void> downloadUserDateAsJson() async{
+    final data = currentUser.toMap();
+    final encoder = JsonEncoder.withIndent(
+      '  ',
+      (object) {
+        if (object is DateTime) {
+          return object.toIso8601String();
+        }
+        if (object is DateTime?) {
+          return object?.toIso8601String();
+        }
+        return object.toString();
+      },
+    );
+
+    final jsonString = encoder.convert(currentUser.toMap());
+
+    final dir = Directory('/storage/emulated/0/Download');
+    final file = File('${dir.path}/debug_user.json');
+
+    await file.writeAsString(jsonString);
+    print(file.absolute.path);
   }
 }

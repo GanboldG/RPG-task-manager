@@ -31,10 +31,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           Padding(
             padding: EdgeInsets.all(5),
-              child: Text("Warning: This is debug screen! Will move it in the future, and replace with actual settings screen!!",
+              child: Text("Warning: This is debug screen! Will replace with actual settings screen in the future!!\nIf you pressed something here and broke the app, skill issue",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 21,
+                  fontSize: 15,
                   color: Colors.red,
                 )
             ),
@@ -128,6 +128,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
 
           const SizedBox(height: 11),
+
+          _buildSettingsButton(
+            icon: Icons.check_circle,
+            text: 'Create User json',
+            color: const Color.fromARGB(255, 11, 255, 182),
+            onPressed: () async {
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+              
+              try {
+                await UserService().downloadUserDateAsJson();
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User data downloaded as json')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error downloading User data as json $e')),
+                  );
+                }
+              }
+            },
+          ),
 
           // Loading indicator
           if (_isLoading)

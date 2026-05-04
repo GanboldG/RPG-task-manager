@@ -1,6 +1,16 @@
+In progress:
+- Create static achievements in firestore, and only store the ids in user.achievements[] 
+- Create a button that uploads tasks / user / custom items to firestore
+- Figure out how to upload images to firestore
+- Create limit for custom items, equipped custom items
+- Create achievements model
+
 To Do:
-- Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
-- Connect Firebase
+- Store the last 100 finished tasks locally
+- Add task limit of 30 
+- Remove abandoned tasks box
+- Only store the last 10 completed tasks in hive only
+- Update the statistics everytime task is deleted / completed etc
 - Shop Item stored locally with Hive, with timer that refreshes 
 - Make shop items reset every 2 hours
 - Option to create / update profile
@@ -14,8 +24,8 @@ To Do:
 - Make statistics screen work
 - Debug Screen for:
     - Changing config json files
-- Some animations
 - Add reward collecting animation
+- Fix the jankiness in task creation
 - Show expanded item info when pressed from inventory
 - Add Daily / Weekly tasks
 - Add Daily login reward
@@ -28,24 +38,16 @@ To Do:
 - Use real SHA fingerprints instead of the debug one
 
 
-
 Finished:
 - Make custom item store locally (Hive)
 - Make profile screen work
+- Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
+- Add rules to firestore
+- Connect Firebase
 
 
-How login / signin works:
-if user == null:
-    show login screen:
-        if sign with google:
-            if user in firestore:
-                download from firestore
-                upload to hive
-            else:
-                creation screen:
-                    upload to firestore
-                    upload to hive
 
-        else if work offline:
-            creation screen:
-                upload to hive
+Firestore structure:
+- Tasks: /user/userid/tasks
+- Owned Items: /user/userid/owned_items
+- Owned Items: /user/userid/equipped_items

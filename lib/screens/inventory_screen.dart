@@ -9,7 +9,7 @@ import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/owned_custom_item.dart';
 import 'package:rpg_task_manager/models/user.dart';
-import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 // ─── Color Palette (matching your shop screen) ───────────────────────────────
 const kBg        = Color(0xFFF9F9F9);
@@ -492,8 +492,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
           unselectedLabelColor: kTxtSub,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           tabs: const [
-            Tab(text: '⚔️ Token Items'),
-            Tab(text: '🎁 Custom Items'),
+            Tab(text: '⚔️ Items'),
+            Tab(text: '🎁 Rewards'),
           ],
         ),
       ),
@@ -691,7 +691,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${inventoryItems.length} items', style: const TextStyle(color: kTxtSub, fontSize: 12)),
+                    Text('${inventoryItems.length}/${UserService().currentUser.inventorySlot} items', style: const TextStyle(color: kTxtSub, fontSize: 12)),
                     Text('Showing ${_currentSort.label}', style: const TextStyle(color: kTxtSub, fontSize: 11, fontStyle: FontStyle.italic)),
                   ],
                 ),
@@ -886,7 +886,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                     },
                     style: const TextStyle(color: kTxt, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Search custom items...',
+                      hintText: 'Search rewards...',
                       hintStyle: const TextStyle(color: kTxtSub, fontSize: 13),
                       prefixIcon: const Icon(Icons.search, color: kTxtSub, size: 20),
                       border: InputBorder.none,
@@ -936,9 +936,9 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                     children: [
                       Icon(Icons.card_giftcard, size: 64, color: kTxtSub),
                       SizedBox(height: 16),
-                      Text('No custom rewards', style: TextStyle(color: kTxtSub, fontSize: 16, fontWeight: FontWeight.w500)),
+                      Text('No rewards redeemed', style: TextStyle(color: kTxtSub, fontSize: 16, fontWeight: FontWeight.w500)),
                       SizedBox(height: 8),
-                      Text('Buy rewards from the shop', style: TextStyle(color: kTxtSub, fontSize: 13)),
+                      Text('Go to shop to redeem rewards!', style: TextStyle(color: kTxtSub, fontSize: 13)),
                     ],
                   ),
                 )

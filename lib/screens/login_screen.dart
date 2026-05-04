@@ -112,8 +112,8 @@ class LoginScreen extends StatelessWidget {
                             ),
                           ),
 
-                          // PROBLEMS
                           onPressed: () async {
+                            final appState = context.read<AppState>(); // ✅ cache early
                             final uid = await FirebaseAuthentication().loginWithGoogle();
                             if (uid == null) return;
 
@@ -142,7 +142,8 @@ class LoginScreen extends StatelessWidget {
                                 
                                 // TODO: Also get all the task, custom item info to save locally
                                 service.saveCurrentUserData();
-                                context.read<AppState>().setLoggedIn();
+
+                                appState.setLoggedIn();
                               }
                             }
                           }

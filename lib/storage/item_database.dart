@@ -258,7 +258,7 @@ class ShopManager {
 
     List<Item> shopItems = [];
     
-    for (int i = 0; i < user.shopSize; i++) {
+    for (int i = 0; i < user.shopSlot; i++) {
       // 1. Get a random item
       final originalItem = ItemDatabase.allItems[_random.nextInt(ItemDatabase.allItems.length)];
       
