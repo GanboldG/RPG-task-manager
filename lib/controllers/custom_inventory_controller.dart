@@ -22,8 +22,9 @@ class CustomItemInventoryController extends ChangeNotifier {
   int timerCounter = 0;
   int userSaveInterval = 30;
 
-  CustomItemInventoryController() {
-    _user = UserService().currentUser;
+  // Called after login
+  void initialize(){
+     _user = UserService().currentUser;
     _ownedCustomItems = _user.ownedCustomItems;
     _activatedCustomItems = _user.activatedCustomItems;
 

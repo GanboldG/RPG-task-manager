@@ -19,9 +19,12 @@ class TaskController extends ChangeNotifier {
   late List<Task> _tasks;
   List<Task> get tasks => _tasks;
 
-  TaskController(UserController userController) {
-    _userController = userController;
-    
+  TaskController(UserController userController){
+    _userController = userController; 
+  }
+
+  // Calls after login happens
+  void initialize(){
     // Gets all task info from hive box (storage)
     _tasks = taskService.getAllActiveTasks();
 

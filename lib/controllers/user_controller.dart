@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
@@ -13,11 +14,11 @@ import 'package:path_provider/path_provider.dart';
 class UserController extends ChangeNotifier{
 
   late User user;
-
-  UserController(){
+  
+  void initialize(){
     user = UserService().currentUser;
   }
-  
+
   // XP, crystals, golds can only be added via this method
   // XP, crystals, golds can only be added via this method
   // XP, crystals, golds can only be added via this method

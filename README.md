@@ -1,6 +1,13 @@
-To Do:
+In progress:
 - Figure out how to upload images to firestore
-- Connect Firebase
+- Create a button that uploads tasks / user / custom items to firestore
+- Create limit for custom items, equipped custom items
+- Create achievements model
+- 
+
+To Do:
+- Store the last 100 finished tasks locally
+- Add task limit of 30 
 - Shop Item stored locally with Hive, with timer that refreshes 
 - Make shop items reset every 2 hours
 - Option to create / update profile
@@ -33,3 +40,4 @@ Finished:
 - Make profile screen work
 - Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
 - Add rules to firestore
+- Connect Firebase

@@ -53,27 +53,10 @@ void main() async {
     appState.setLoggedIn();
   }
 
-  final itemTimerService = ItemTimerService();
-  final userController = UserController();
-  final taskController = TaskController(userController);
-  final inventoryController = InventoryController(itemTimerService);
-  final customInventoryController = CustomItemInventoryController();
-  final shopController = ItemShopController(
-    inventoryController,
-    customInventoryController,
-  );
-  
+
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider.value(value: taskController),
-        ChangeNotifierProvider.value(value: shopController),
-        ChangeNotifierProvider.value(value: userController),
-        ChangeNotifierProvider.value(value: inventoryController),
-        ChangeNotifierProvider.value(value: itemTimerService),
-        ChangeNotifierProvider.value(value: customInventoryController),
-        ChangeNotifierProvider.value(value: appState),
-      ],
+    ChangeNotifierProvider(
+      create: (_) => appState,
       child: MyApp(),
     )
   );
@@ -169,51 +152,42 @@ class _BootstrapScreenState extends State<BootstrapScreen> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
-    // If logged, initialize the controllers
-    if (appState.isLoggedIn){
-      context.read<UserController>().initialize();
-      context.read<TaskController>().initialize();
-      context.read<InventoryController>().initialize();
-      context.read<CustomItemInventoryController>().initialize();
-      context.read<ItemShopController>().initialize();
-    } 
-
-    return HomePage();
+    
+    return AppProviders(child: HomePage());
   }
 }
 
 
-// class AppProviders extends StatelessWidget {
-//   final Widget child;
+class AppProviders extends StatelessWidget {
+  final Widget child;
 
-//   const AppProviders({super.key, required this.child});
+  const AppProviders({super.key, required this.child});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final itemTimerService = ItemTimerService();
-//     final userController = UserController();
-//     final taskController = TaskController(userController);
-//     final inventoryController = InventoryController(itemTimerService);
-//     final customInventoryController = CustomItemInventoryController();
-//     final shopController = ItemShopController(
-//       inventoryController,
-//       customInventoryController,
-//     );
+  @override
+  Widget build(BuildContext context) {
+    final itemTimerService = ItemTimerService();
+    final userController = UserController();
+    final taskController = TaskController(userController);
+    final inventoryController = InventoryController(itemTimerService);
+    final customInventoryController = CustomItemInventoryController();
+    final shopController = ItemShopController(
+      inventoryController,
+      customInventoryController,
+    );
 
-//     return MultiProvider(
-//       providers: [
-//         ChangeNotifierProvider.value(value: taskController),
-//         ChangeNotifierProvider.value(value: shopController),
-//         ChangeNotifierProvider.value(value: userController),
-//         ChangeNotifierProvider.value(value: inventoryController),
-//         ChangeNotifierProvider.value(value: itemTimerService),
-//         ChangeNotifierProvider.value(value: customInventoryController),
-//       ],
-//       child: child,
-//     );
-//   }
-// }
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: taskController),
+        ChangeNotifierProvider.value(value: shopController),
+        ChangeNotifierProvider.value(value: userController),
+        ChangeNotifierProvider.value(value: inventoryController),
+        ChangeNotifierProvider.value(value: itemTimerService),
+        ChangeNotifierProvider.value(value: customInventoryController),
+      ],
+      child: child,
+    );
+  }
+}
 
 
 

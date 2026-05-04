@@ -22,9 +22,6 @@ class UserService {
   }
 
   User get currentUser {
-    if (_currentUser == null) {
-      
-    }
     return _currentUser!;
   }
 

@@ -10,7 +10,6 @@ import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/services/audio_service.dart';
-import 'package:rpg_task_manager/services/item_service.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color.fromARGB(255, 246, 232, 255);
@@ -35,16 +34,11 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab;
-  late final UserController _userController;
-  late final ItemShopController _shopController;
 
   @override 
   void initState() { 
     super.initState(); 
     _tab = TabController(length: 2, vsync: this); 
-    
-    _userController = context.read<UserController>();
-    _shopController = context.read<ItemShopController>();
   }
   
   @override 
@@ -55,7 +49,9 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
 
   // Buy REAL items (XP/Gold boosts)
   void _buyShopItem(Item item) {
-    if (_userController.spendGolds(item.priceGold)) {
+    final userController = context.read<UserController>();
+
+    if (userController.spendGolds(item.priceGold)) {
       final shopController = context.read<ItemShopController>();
       shopController.buyItem(item);
       
@@ -77,7 +73,9 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
 
   // Buy CUSTOM ITEMS (user-created rewards) - Does NOT remove from shop
   void _buyCustomItem(CustomItem item) {
-    if (_userController.spendGolds(item.priceGold)) {
+    final userController = context.read<UserController>();
+
+    if (userController.spendGolds(item.priceGold)) {
       final shopController = context.read<ItemShopController>();
       shopController.purchaseCustomItem(item.id);
 

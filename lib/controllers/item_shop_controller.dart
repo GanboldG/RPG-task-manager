@@ -25,11 +25,14 @@ class ItemShopController extends ChangeNotifier{
   List<CustomItem> get customItems => List.unmodifiable(_customItems);
 
   ItemShopController(InventoryController inventoryController, CustomItemInventoryController customController){
-    shopManager = ShopManager();
-    _items = shopManager.generateShopItems();
     _inventoryController = inventoryController;
     _customInventoryController = customController;
+  }
 
+  // Called after login
+  void initialize(){
+    shopManager = ShopManager();
+    _items = shopManager.generateShopItems();
     loadCustomItems();
   }
 
