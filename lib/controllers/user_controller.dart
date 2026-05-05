@@ -106,7 +106,7 @@ class UserController extends ChangeNotifier{
   }
   
   // Unlock achievement
-  void unlockAchievement(int achievementId) {
+  void unlockAchievement(String achievementId) {
     if (user.unlockedAchievements.contains(achievementId)) {
       user.unlockedAchievements.add(achievementId);
 
@@ -116,7 +116,7 @@ class UserController extends ChangeNotifier{
   }
   
   // Add friend
-  void addFriend(int userId) {
+  void addFriend(String userId) {
     if (user.friends.contains(userId)) {
       user.friends.add(userId);
 
@@ -142,9 +142,15 @@ class UserController extends ChangeNotifier{
   }
 
   Future<void> updateUserImage(File tempImageFile) async{
+    // Delete the old image
+    if (user.avatarPath != null){
+      HelperFunctions.deleteImage(user.avatarPath!);
+    }
+
+    // Permanently save avatar
     final imagePath = await saveImagePermanently(tempImageFile); 
     if (imagePath != null){
-      user.avatarUrl = imagePath;
+      user.avatarPath = imagePath;
       notifyListeners();
       UserService().saveCurrentUserData();
     }
@@ -154,14 +160,14 @@ class UserController extends ChangeNotifier{
   Future<String?> saveImagePermanently(File tempImageFile) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
-      final customItemsDir = Directory('${appDir.path}/custom_items');
+      final userDir = Directory('${appDir.path}/user_avatar');
       
-      if (!await customItemsDir.exists()) {
-        await customItemsDir.create(recursive: true);
+      if (!await userDir.exists()) {
+        await userDir.create(recursive: true);
       }
       
-      final fileName = 'custom_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final savedPath = '${customItemsDir.path}/$fileName';
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedPath = '${userDir.path}/$fileName';
       await tempImageFile.copy(savedPath);
       
       return savedPath;

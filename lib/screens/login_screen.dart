@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/app_state.dart';
+import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
+import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/screens/create_user_screen.dart';
 import 'package:rpg_task_manager/services/firebase_authentication.dart';
+import 'package:rpg_task_manager/services/item_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -139,10 +142,12 @@ class LoginScreen extends StatelessWidget {
                               final user = await service.getFromFirestore();
                               if (user != null) {
                                 service.setCurrentUser(user);
-                                
+
+                                final customItems = await ItemService().getCustomItemsFromFirestore();
+                                context.read<ItemShopController>().populateCustomItemsList(customItems);
+
                                 // TODO: Also get all the task, custom item info to save locally
                                 service.saveCurrentUserData();
-
                                 appState.setLoggedIn();
                               }
                             }

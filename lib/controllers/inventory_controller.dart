@@ -33,7 +33,9 @@ class InventoryController extends ChangeNotifier{
     // Connect timer service to update items
     _timerService.onTick = _decrementAllActiveItems;
     // Start timer if there are active items
-    _checkAndStartTimer();
+    if (_activatedItems.isNotEmpty){
+      _checkAndStartTimer();
+    }
   }
 
   // ------------ADD-----------------

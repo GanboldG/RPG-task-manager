@@ -110,6 +110,11 @@ class ItemShopController extends ChangeNotifier{
     }
   }
 
+  void populateCustomItemsList(List<CustomItem> items){
+    // TODO Might overflow the max amount
+    _customItems.addAll(items);
+  }
+
   // Add a new custom item
   Future<void> addCustomItem({
     required String name,
@@ -227,8 +232,11 @@ class ItemShopController extends ChangeNotifier{
 
   // Refresh/load from storage
   Future<void> loadCustomItems() async {
-    _customItems = ItemService().getAllCustomItems();
-    notifyListeners();
+    // If not empty, we assume items were gotten from firestore instead
+    if (_customItems.isEmpty){
+      _customItems = ItemService().getAllCustomItems();
+      notifyListeners();
+    }
   }
 }
 

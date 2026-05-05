@@ -1,7 +1,13 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/services/cloudinary_service.dart';
 
 class ItemService {
   // Singleton instance
@@ -133,4 +139,118 @@ class ItemService {
   
   // Get custom item count
   int get customItemCount => _customShopItemsBox.length;
+
+
+  // ------------------------------- FIRESTORE methods ------------------------------------
+  Future<void> uploadCustomItemsToFirestore(List<CustomItem> items) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final uid = currentUser.uid;
+
+    try {
+      final collectionRef = FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .collection("custom_items");
+
+      // ---------------- DELETE ALL EXISTING ----------------
+      final existingSnapshot = await collectionRef.get();
+
+      final deleteBatch = FirebaseFirestore.instance.batch();
+
+      for (final doc in existingSnapshot.docs) {
+        deleteBatch.delete(doc.reference);
+      }
+
+      await deleteBatch.commit();
+
+      // ---------------- UPLOAD NEW ITEMS ----------------
+      final uploadBatch = FirebaseFirestore.instance.batch();
+
+      for (final item in items) {
+        // 1) Upload image if exists
+        if (item.imagePath != null) {
+          final imageUrls = await CloudinaryService
+              .uploadCustomItemImage(File(item.imagePath!));
+
+          if (imageUrls != null) {
+            item.imageUrl = imageUrls['url'];
+            item.imagePublicId = imageUrls['publicId'];
+          }
+        }
+
+        final docRef = collectionRef.doc(item.id);
+        uploadBatch.set(docRef, item.toMap());
+      }
+
+      await uploadBatch.commit();
+    } catch (e) {
+      print("(Debug) Exception $e while replacing custom items");
+    }
+  }
+
+
+  Future<List<CustomItem>> getCustomItemsFromFirestore() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return [];
+
+    try {
+      final uid = currentUser.uid;
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .collection("custom_items")
+          .get();
+
+      List<CustomItem> items = [];
+
+      for (final doc in snapshot.docs) {
+        final item = CustomItem.fromMap(doc.data());
+
+        if (item.imageUrl != null) {
+          final file = await CloudinaryService.downloadImageToFile(
+            item.imageUrl!,
+            "custom_item_${item.id}",
+          );
+
+          if (item.imagePath != null) {
+            await HelperFunctions.deleteImage(item.imagePath!);
+          }
+
+          final savedPath = await saveCustomItemImagePermanently(file);
+          item.imagePath = savedPath;
+        }
+
+        items.add(item);
+      }
+
+      return items;
+    } catch (e) {
+      print("(Debug) Exception $e while fetching custom items");
+      return [];
+    }
+  }
+
+  // Save image permanently from picked file
+  Future<String?> saveCustomItemImagePermanently(File tempImageFile) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final customItem = Directory('${appDir.path}/custom_items');
+      
+      if (!await customItem.exists()) {
+        await customItem.create(recursive: true);
+      }
+      
+      final fileName = 'custom_item_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedPath = '${customItem.path}/$fileName';
+      await tempImageFile.copy(savedPath);
+      
+      return savedPath;
+    } catch (e) {
+      print('Error saving image: $e');
+      return null;
+    }
+  }
 }

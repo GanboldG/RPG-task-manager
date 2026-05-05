@@ -1,11 +1,9 @@
 In progress:
-- Create static achievements in firestore, and only store the ids in user.achievements[] 
+- Create users/userid/tasks, users/userid/custom_items collections in firestore
 - Create a button that uploads tasks / user / custom items to firestore
-- Figure out how to upload images to firestore
-- Create limit for custom items, equipped custom items
-- Create achievements model
 
 To Do:
+- Add limit for tasks
 - Store the last 100 finished tasks locally
 - Add task limit of 30 
 - Remove abandoned tasks box
@@ -15,6 +13,7 @@ To Do:
 - Make shop items reset every 2 hours
 - Option to create / update profile
 - Add data such as total time, completed task, daily login streaks to user
+- Fix high quality items being cheaper than low quality
 - Add custom_shop size as User variable
 - Sort option on task list
 - Make items work
@@ -36,6 +35,8 @@ To Do:
 - ML classifier for task labels -> Google colab -> Firebase etc
 - Rework the GUI into something modern
 - Use real SHA fingerprints instead of the debug one
+- Logout button
+- In production is backend logic to delete images from cloudinary
 
 
 Finished:
@@ -44,10 +45,7 @@ Finished:
 - Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
 - Add rules to firestore
 - Connect Firebase
-
-
-
-Firestore structure:
-- Tasks: /user/userid/tasks
-- Owned Items: /user/userid/owned_items
-- Owned Items: /user/userid/equipped_items
+- Create limit for custom items, equipped custom items
+- Create achievements model
+- Create static achievements in firestore, and only store the ids in user.achievements[] 
+- Figure out how to upload images to firestore

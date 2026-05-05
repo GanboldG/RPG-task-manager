@@ -19,6 +19,7 @@ import 'package:rpg_task_manager/services/config_service.dart';
 import 'package:rpg_task_manager/services/hive_service.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
+import 'package:rpg_task_manager/storage/achievement_database.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';  
 import 'package:firebase_core/firebase_core.dart';
@@ -70,6 +71,8 @@ void main() async {
     customInventoryController,
   );
   
+  await AchievementDatabase.uploadToFirestore();
+
   runApp(
     MultiProvider(
       providers: [

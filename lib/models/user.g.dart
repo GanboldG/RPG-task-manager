@@ -22,7 +22,9 @@ class UserAdapter extends TypeAdapter<User> {
       email: fields[2] as String,
       phoneNumber: fields[3] as String?,
       dateOfBirth: fields[4] as DateTime?,
-      avatarUrl: fields[5] as String?,
+      avatarPath: fields[5] as String?,
+      avatarUrl: fields[25] as String?,
+      avatarPublicId: fields[26] as String?,
       bio: fields[6] as String?,
       experiencePoints: fields[7] as int,
       experienceThreshold: fields[17] as int,
@@ -33,8 +35,8 @@ class UserAdapter extends TypeAdapter<User> {
       equippedItems: (fields[15] as List?)?.cast<Item>(),
       ownedCustomItems: (fields[18] as List?)?.cast<OwnedCustomItem>(),
       activatedCustomItems: (fields[19] as List?)?.cast<OwnedCustomItem>(),
-      unlockedAchievements: (fields[16] as List?)?.cast<int>(),
-      friends: (fields[11] as List?)?.cast<int>(),
+      unlockedAchievements: (fields[16] as List?)?.cast<String>(),
+      friends: (fields[11] as List?)?.cast<String>(),
       createdAt: fields[12] as DateTime,
       lastActive: fields[13] as DateTime,
       maxEquippedItemAmount: fields[20] as int,
@@ -48,7 +50,7 @@ class UserAdapter extends TypeAdapter<User> {
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(25)
+      ..writeByte(27)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -60,7 +62,7 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(4)
       ..write(obj.dateOfBirth)
       ..writeByte(5)
-      ..write(obj.avatarUrl)
+      ..write(obj.avatarPath)
       ..writeByte(6)
       ..write(obj.bio)
       ..writeByte(7)
@@ -98,7 +100,11 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(23)
       ..write(obj.shopRerolls)
       ..writeByte(24)
-      ..write(obj.inventorySlot);
+      ..write(obj.inventorySlot)
+      ..writeByte(25)
+      ..write(obj.avatarUrl)
+      ..writeByte(26)
+      ..write(obj.avatarPublicId);
   }
 
   @override

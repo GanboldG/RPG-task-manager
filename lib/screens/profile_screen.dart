@@ -46,9 +46,9 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userController = context.read<UserController>();
+    final userController = context.watch<UserController>();
     final user = userController.user;
-
+    print("Building profile screen");
     return Center(
       child: Column(
         children: [
@@ -63,13 +63,14 @@ class _ProfileHeader extends StatelessWidget {
                   border: Border.all(color: const Color(0xFFB39DDB), width: 2),
                 ),
                 child: ClipOval(
-                  child: userController.user.avatarUrl == null
+                  child: userController.user.avatarPath == null
                     ? Image.asset(
                         "assets/images/profile.png",
                         fit: BoxFit.cover,
                       )
                     : Image.file(
-                        File(userController.user.avatarUrl!),
+                        File(userController.user.avatarPath!),
+                        key: ValueKey(user.avatarPath! + DateTime.now().toString()),
                         fit: BoxFit.cover,
                       ),
                 ),
@@ -82,6 +83,7 @@ class _ProfileHeader extends StatelessWidget {
                   onTap: () async {
                     final file = await pickImage();
                     if (file == null) return;
+                    print("Chosen image path: ${file.path}");
                     await userController.updateUserImage(File(file.path));
                   },
                   child: Container(

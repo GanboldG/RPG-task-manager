@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/cloudinary_service.dart';
 import 'package:rpg_task_manager/services/reward_service.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -20,7 +22,7 @@ class UserService {
   final GoogleSignIn googleSignIn = GoogleSignIn.instance;
   
   bool currentUserisNull(){
-    print("(Debug) Current user is null: ${_currentUser == null}}");
+    // print("(Debug) Current user is null: ${_currentUser == null}}");
     return _currentUser == null;
   }
 
@@ -76,8 +78,14 @@ class UserService {
 
 
   // ----------------FIRESTORE METHODS---------------------
+  // This downloads user avatar image every time it's called
   Future<User?> getFromFirestore() async {
+    if (fb.FirebaseAuth.instance.currentUser == null){
+      return null;
+    }
+
     try {
+      // 1) Get User data from firestore
       final uid = fb.FirebaseAuth.instance.currentUser!.uid;
 
       final doc = await FirebaseFirestore.instance
@@ -87,16 +95,79 @@ class UserService {
 
       if (!doc.exists) return null;
 
-      return User.fromMap(doc.data()!);
+      final User user = User.fromMap(doc.data()!);
+    
+      // 2) Download image from cloudinary
+      if (user.avatarUrl != null){
+        File userAvatarImg = await CloudinaryService.downloadImageToFile(user.avatarUrl!, "user_avatar");
+
+        // Delete the old user image (if exists)
+        if (user.avatarPath != null){
+          HelperFunctions.deleteImage(user.avatarPath!);
+        }
+        
+        String? userAvatarUrl = await saveUserAvatarPermanently(userAvatarImg);
+
+        // 3) Set user avatar local path
+        user.avatarPath = userAvatarUrl;
+      }
+
+      return user;
     } catch (e) {
       print("(Debug) Exception $e while getting user from firestore");
       return null;
     }
   }
 
+    // Save image permanently from picked file
+  Future<String?> saveUserAvatarPermanently(File tempImageFile) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final avatar = Directory('${appDir.path}/user_avatar');
+      
+      if (!await avatar.exists()) {
+        await avatar.create(recursive: true);
+      }
+      
+      final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedPath = '${avatar.path}/$fileName';
+      await tempImageFile.copy(savedPath);
+      
+      return savedPath;
+    } catch (e) {
+      print('Error saving image: $e');
+      return null;
+    }
+  }
+
 
   Future<void> uploadToFirestore(User user) async {
+    if (fb.FirebaseAuth.instance.currentUser == null){
+      return;
+    }
+
     try {
+      // 1) Upload image to cloudinary (if there is an image), and set imageUrl
+      if (user.avatarPath != null){
+        // returns 
+        // 'url': json['secure_url'],
+        // 'publicId': json['public_id'],
+        Map<String, dynamic>? imageUrls = await CloudinaryService.uploadUserAvatarImage(File(user.avatarPath!));
+
+        print("Cloudinary image Url: $imageUrls");
+        if (imageUrls != null){
+          // 1.5) Remove the old image, if exists
+          if (user.avatarUrl != null && user.avatarPublicId != null){
+            final deleted = await CloudinaryService.deleteImageByPublicId(user.avatarPublicId!);
+            print("(Cloudinary) Deleted old image: $deleted");
+          }
+
+          user.avatarUrl = imageUrls['url'];
+          user.avatarPublicId = imageUrls['publicId'];
+        }
+      }
+
+      // 2) Upload user to firestore
       final uid = fb.FirebaseAuth.instance.currentUser!.uid;
 
       await FirebaseFirestore.instance
