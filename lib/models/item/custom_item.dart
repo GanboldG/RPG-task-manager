@@ -8,31 +8,31 @@ class CustomItem {
   final String id;
   
   @HiveField(1)
-  final String name;
+  String name;
   
   @HiveField(2)
-  final String description;
+  String description;
   
   @HiveField(3)
-  final int priceGold;
+  int priceGold;
   
   @HiveField(4)
-  final DateTime createdAt;
+  DateTime createdAt;
   
   @HiveField(5)
-  final String? imagePath;
+  String? imagePath;
   
   @HiveField(6)
-  final int purchaseCount;
+  int purchaseCount;
 
   @HiveField(7)
-  final int durationMinutes;
+  int durationMinutes;
 
   @HiveField(8)
-  final String? imageUrl;
+  String? imageUrl;
 
   @HiveField(9)
-  final String? imagePublicId;
+  String? imagePublicId;
 
   CustomItem({
     required this.id,

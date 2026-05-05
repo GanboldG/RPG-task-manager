@@ -507,7 +507,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
           Row(children: [
             Expanded(child: _OutlineBtn(label: 'Cancel', color: kRed, onTap: () => Navigator.pop(context))),
             const SizedBox(width: 12),
-            Expanded(child: _SolidBtn(label: 'Create Item', onTap: _submit)),
+            Expanded(child: _SolidBtn(label: 'Create Reward', onTap: _submit)),
           ]),
           const SizedBox(height: 16),
         ]),

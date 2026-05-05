@@ -1,9 +1,9 @@
 In progress:
 - Create users/userid/tasks, users/userid/custom_items collections in firestore
 - Create a button that uploads tasks / user / custom items to firestore
-- Figure out how to upload images to firestore
 
 To Do:
+- Add limit for tasks
 - Store the last 100 finished tasks locally
 - Add task limit of 30 
 - Remove abandoned tasks box
@@ -13,6 +13,7 @@ To Do:
 - Make shop items reset every 2 hours
 - Option to create / update profile
 - Add data such as total time, completed task, daily login streaks to user
+- Fix high quality items being cheaper than low quality
 - Add custom_shop size as User variable
 - Sort option on task list
 - Make items work
@@ -47,3 +48,4 @@ Finished:
 - Create limit for custom items, equipped custom items
 - Create achievements model
 - Create static achievements in firestore, and only store the ids in user.achievements[] 
+- Figure out how to upload images to firestore

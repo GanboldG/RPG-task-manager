@@ -5,7 +5,7 @@ import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:rpg_task_manager/models/user.dart';
-import 'package:rpg_task_manager/services/cloudinary_service.dart';
+import 'package:rpg_task_manager/services/item_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text("Warning: This is debug screen! Will replace with actual settings screen in the future!!\nIf you pressed something here and broke the app, skill issue",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 5,
+                  fontSize: 15,
                   color: Colors.red,
                 )
             ),
@@ -68,23 +68,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () => _showBoxContents('active_tasks'),
           ),
           
-          const SizedBox(height: 12),
+          // const SizedBox(height: 12),
           
-          _buildSettingsButton(
-            icon: Icons.check_circle,
-            text: 'View Completed Tasks',
-            color: Colors.orange,
-            onPressed: () => _showBoxContents('completed_tasks'),
-          ),
+          // _buildSettingsButton(
+          //   icon: Icons.check_circle,
+          //   text: 'View Completed Tasks',
+          //   color: Colors.orange,
+          //   onPressed: () => _showBoxContents('completed_tasks'),
+          // ),
           
-          const SizedBox(height: 12),
+          // const SizedBox(height: 12),
           
-          _buildSettingsButton(
-            icon: Icons.delete_forever,
-            text: 'View Abandoned Tasks',
-            color: Colors.grey,
-            onPressed: () => _showBoxContents('abandoned_tasks'),
-          ),
+          // _buildSettingsButton(
+          //   icon: Icons.delete_forever,
+          //   text: 'View Abandoned Tasks',
+          //   color: Colors.grey,
+          //   onPressed: () => _showBoxContents('abandoned_tasks'),
+          // ),
           
           const SizedBox(height: 12),
           
@@ -128,38 +128,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
-          const SizedBox(height: 11),
+          // const SizedBox(height: 11),
 
-          _buildSettingsButton(
-            icon: Icons.check_circle,
-            text: 'Create User json',
-            color: const Color.fromARGB(255, 11, 255, 182),
-            onPressed: () async {
-              // Show loading dialog
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(child: CircularProgressIndicator()),
-              );
+          // _buildSettingsButton(
+          //   icon: Icons.check_circle,
+          //   text: 'Create User json',
+          //   color: const Color.fromARGB(255, 11, 255, 182),
+          //   onPressed: () async {
+          //     // Show loading dialog
+          //     showDialog(
+          //       context: context,
+          //       barrierDismissible: false,
+          //       builder: (context) => const Center(child: CircularProgressIndicator()),
+          //     );
               
-              try {
-                await UserService().downloadUserDateAsJson();
-                if (mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User data downloaded as json')),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error downloading User data as json $e')),
-                  );
-                }
-              }
-            },
-          ),
+          //     try {
+          //       await UserService().downloadUserDateAsJson();
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           const SnackBar(content: Text('User data downloaded as json')),
+          //         );
+          //       }
+          //     } catch (e) {
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           SnackBar(content: Text('Error downloading User data as json $e')),
+          //         );
+          //       }
+          //     }
+          //   },
+          // ),
 
           // Loading indicator
           if (_isLoading)
@@ -168,6 +168,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: CircularProgressIndicator(),
             ),
           
+          const SizedBox(height: 7),
+
           Text("Firebase",
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -175,7 +177,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             )
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 7),
 
           _buildSettingsButton(
             icon: Icons.check_circle,
@@ -208,12 +210,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
 
-          const SizedBox(height: 5),
+          const SizedBox(height: 12),
 
           _buildSettingsButton(
             icon: Icons.check_circle,
-            text: 'Delete old images from cloudinary',
-            color: const Color.fromARGB(255, 142, 144, 0),
+            text: 'Upload EVERY (User, tasks, custom items) data to Firestore',
+            color: const Color.fromARGB(255, 9, 92, 17),
             onPressed: () async {
               // Show loading dialog
               showDialog(
@@ -223,25 +225,61 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
               
               try {
-                await CloudinaryService.deleteImageByPublicId("user_avatars/bzfinddfvky85gvsyvyo");
-                await CloudinaryService.deleteImageByPublicId("user_avatars/wx65fco5va9gtjihsvh2");
+                // await UserService().uploadToFirestore(UserService().currentUser);
+                await ItemService().uploadCustomItemsToFirestore(ItemService().getAllCustomItems());
+                // await TaskService().upload...
 
                 if (mounted) {
                   Navigator.pop(context); // Close loading dialog
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Deleted image from cloudinary')),
+                    const SnackBar(content: Text('EVERYTHING uploaded to firestore')),
                   );
                 }
               } catch (e) {
                 if (mounted) {
                   Navigator.pop(context); // Close loading dialog
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error deleting image from cloudinary $e')),
+                    SnackBar(content: Text('Error uploading EVERYTHING to firestore $e')),
                   );
                 }
               }
             },
           ),
+
+          // const SizedBox(height: 5),
+
+          // _buildSettingsButton(
+          //   icon: Icons.check_circle,
+          //   text: 'Delete old images from cloudinary',
+          //   color: const Color.fromARGB(255, 142, 144, 0),
+          //   onPressed: () async {
+          //     // Show loading dialog
+          //     showDialog(
+          //       context: context,
+          //       barrierDismissible: false,
+          //       builder: (context) => const Center(child: CircularProgressIndicator()),
+          //     );
+              
+          //     try {
+          //       await CloudinaryService.deleteImageByPublicId("user_avatars/bzfinddfvky85gvsyvyo");
+          //       await CloudinaryService.deleteImageByPublicId("user_avatars/wx65fco5va9gtjihsvh2");
+
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           const SnackBar(content: Text('Deleted image from cloudinary')),
+          //         );
+          //       }
+          //     } catch (e) {
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           SnackBar(content: Text('Error deleting image from cloudinary $e')),
+          //         );
+          //       }
+          //     }
+          //   },
+          // ),
         ],
       ),
     );
