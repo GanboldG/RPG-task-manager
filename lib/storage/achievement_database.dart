@@ -64,22 +64,27 @@ class AchievementDatabase {
 
   // Only do it once after achivement list gets changed
   static Future<void> uploadToFirestore() async {
-    final firestore = FirebaseFirestore.instance;
+    try{
+      final firestore = FirebaseFirestore.instance;
 
-    final batch = firestore.batch();
+      final batch = firestore.batch();
 
-    for (final achievement in allAchievements) {
-      final docRef = firestore
-          .collection('achievements')
-          .doc(achievement.id);
+      for (final achievement in allAchievements) {
+        final docRef = firestore
+            .collection('achievements')
+            .doc(achievement.id);
 
-      batch.set(
-        docRef,
-        achievement.toMap(),
-        SetOptions(merge: true), // prevents overwriting unintended fields
-      );
+        batch.set(
+          docRef,
+          achievement.toMap(),
+          SetOptions(merge: true), // prevents overwriting unintended fields
+        );
+      }
+
+      await batch.commit();
+    } 
+    catch (e){
+      print("Exception $e during achievement push");
     }
-
-    await batch.commit();
   }
 }

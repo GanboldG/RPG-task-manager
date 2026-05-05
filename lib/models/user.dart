@@ -22,7 +22,7 @@ class User {
   DateTime? dateOfBirth;
   
   @HiveField(5)
-  String? avatarUrl;
+  String? avatarPath;
   
   @HiveField(6)
   String? bio;
@@ -83,13 +83,21 @@ class User {
   @HiveField(24)
   int inventorySlot;
 
+  @HiveField(25)
+  String? avatarUrl;
+
+  @HiveField(26)
+  String? avatarPublicId;
+
   User({
     required this.id,
     required this.fullName,
     required this.email,
     this.phoneNumber,
     this.dateOfBirth,
+    this.avatarPath,
     this.avatarUrl,
+    this.avatarPublicId,
     this.bio,
     this.experiencePoints = 0,
     this.experienceThreshold = 0,
@@ -121,7 +129,9 @@ class User {
     String? fullName,
     String? email,
     String? phoneNumber,
+    String? avatarPath,
     String? avatarUrl,
+    String? avatarPublicId,
     String? bio,
     String? themeMode,
     String? language,
@@ -134,7 +144,9 @@ class User {
       email: email ?? this.email,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       dateOfBirth: this.dateOfBirth,
+      avatarPath: avatarPath ?? this.avatarPath,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarPublicId: avatarPublicId ?? this.avatarPublicId,
       bio: bio ?? this.bio,
       experiencePoints: this.experiencePoints,
       experienceThreshold: this.experienceThreshold,
@@ -163,7 +175,9 @@ class User {
       'email': email,
       'phoneNumber': phoneNumber,
       'dateOfBirth': dateOfBirth,
+      'avatarPath': avatarPath,
       'avatarUrl': avatarUrl,
+      'avatarPublicId': avatarPublicId,
       'bio': bio,
       'experiencePoints': experiencePoints,
       'golds': golds,
@@ -202,7 +216,9 @@ class User {
       email: map['email'] ?? '',
       phoneNumber: map['phoneNumber'],
       dateOfBirth: map['dateOfBirth']?.toDate(),
+      avatarPath: map['avatarPath'],
       avatarUrl: map['avatarUrl'],
+      avatarPublicId: map['avatarPublicId'],
       bio: map['bio'],
 
       experiencePoints: map['experiencePoints'] ?? 0,

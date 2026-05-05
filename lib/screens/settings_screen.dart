@@ -5,6 +5,7 @@ import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/cloudinary_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -34,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Text("Warning: This is debug screen! Will replace with actual settings screen in the future!!\nIf you pressed something here and broke the app, skill issue",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 15,
+                  fontSize: 5,
                   color: Colors.red,
                 )
             ),
@@ -178,7 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _buildSettingsButton(
             icon: Icons.check_circle,
-            text: 'Sync To Firestore',
+            text: 'Upload User data to Firestore',
             color: const Color.fromARGB(255, 105, 0, 144),
             onPressed: () async {
               // Show loading dialog
@@ -187,6 +188,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 barrierDismissible: false,
                 builder: (context) => const Center(child: CircularProgressIndicator()),
               );
+              
+              try {
+                await UserService().uploadToFirestore(UserService().currentUser);
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User data uploaded to firestore')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error uploading user data to firestore $e')),
+                  );
+                }
+              }
+            },
+          ),
+
+          const SizedBox(height: 5),
+
+          _buildSettingsButton(
+            icon: Icons.check_circle,
+            text: 'Delete old images from cloudinary',
+            color: const Color.fromARGB(255, 142, 144, 0),
+            onPressed: () async {
+              // Show loading dialog
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+              
+              try {
+                await CloudinaryService.deleteImageByPublicId("user_avatars/bzfinddfvky85gvsyvyo");
+                await CloudinaryService.deleteImageByPublicId("user_avatars/wx65fco5va9gtjihsvh2");
+
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Deleted image from cloudinary')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error deleting image from cloudinary $e')),
+                  );
+                }
+              }
             },
           ),
         ],

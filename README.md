@@ -1,6 +1,4 @@
 In progress:
-- Create static achievements in firestore, and only store the ids in user.achievements[] 
-- Create achievements model
 - Create users/userid/tasks, users/userid/custom_items collections in firestore
 - Create a button that uploads tasks / user / custom items to firestore
 - Figure out how to upload images to firestore
@@ -36,6 +34,8 @@ To Do:
 - ML classifier for task labels -> Google colab -> Firebase etc
 - Rework the GUI into something modern
 - Use real SHA fingerprints instead of the debug one
+- Logout button
+- In production is backend logic to delete images from cloudinary
 
 
 Finished:
@@ -45,3 +45,5 @@ Finished:
 - Add rules to firestore
 - Connect Firebase
 - Create limit for custom items, equipped custom items
+- Create achievements model
+- Create static achievements in firestore, and only store the ids in user.achievements[] 
