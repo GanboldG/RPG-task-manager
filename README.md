@@ -1,9 +1,9 @@
 In progress:
 - Create static achievements in firestore, and only store the ids in user.achievements[] 
+- Create achievements model
+- Create users/userid/tasks, users/userid/custom_items collections in firestore
 - Create a button that uploads tasks / user / custom items to firestore
 - Figure out how to upload images to firestore
-- Create limit for custom items, equipped custom items
-- Create achievements model
 
 To Do:
 - Store the last 100 finished tasks locally
@@ -44,10 +44,4 @@ Finished:
 - Create login screen that pops up for the firs time users (Instead of creating static user model, create one using login data)
 - Add rules to firestore
 - Connect Firebase
-
-
-
-Firestore structure:
-- Tasks: /user/userid/tasks
-- Owned Items: /user/userid/owned_items
-- Owned Items: /user/userid/equipped_items
+- Create limit for custom items, equipped custom items

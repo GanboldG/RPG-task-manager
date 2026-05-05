@@ -1,37 +1,36 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'custom_item.dart';
+part of 'achievement.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class CustomItemAdapter extends TypeAdapter<CustomItem> {
+class AchievementAdapter extends TypeAdapter<Achievement> {
   @override
-  final int typeId = 16;
+  final int typeId = 15;
 
   @override
-  CustomItem read(BinaryReader reader) {
+  Achievement read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return CustomItem(
+    return Achievement(
       id: fields[0] as String,
       name: fields[1] as String,
-      durationMinutes: fields[7] as int,
       description: fields[2] as String,
-      priceGold: fields[3] as int,
-      createdAt: fields[4] as DateTime,
-      imagePath: fields[5] as String?,
-      purchaseCount: fields[6] as int,
+      imageUrl: fields[3] as String,
+      version: fields[4] as int,
+      reward: fields[5] as Reward?,
+      active: fields[6] as bool,
     );
   }
 
   @override
-  void write(BinaryWriter writer, CustomItem obj) {
+  void write(BinaryWriter writer, Achievement obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -39,15 +38,13 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
       ..writeByte(2)
       ..write(obj.description)
       ..writeByte(3)
-      ..write(obj.priceGold)
+      ..write(obj.imageUrl)
       ..writeByte(4)
-      ..write(obj.createdAt)
+      ..write(obj.version)
       ..writeByte(5)
-      ..write(obj.imagePath)
+      ..write(obj.reward)
       ..writeByte(6)
-      ..write(obj.purchaseCount)
-      ..writeByte(7)
-      ..write(obj.durationMinutes);
+      ..write(obj.active);
   }
 
   @override
@@ -56,7 +53,7 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CustomItemAdapter &&
+      other is AchievementAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

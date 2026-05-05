@@ -40,7 +40,7 @@ class User {
   int level;
   
   @HiveField(11)
-  List<int> friends; // User IDs
+  List<String> friends; // User IDs
 
   @HiveField(12)
   DateTime createdAt;
@@ -56,7 +56,7 @@ class User {
   List<Item> equippedItems; // slot: itemId (e.g., 'avatar_frame': 'gold_frame')
   
   @HiveField(16)
-  List<int> unlockedAchievements; // Achievement IDs
+  List<String> unlockedAchievements; // Achievement IDs
 
   @HiveField(17)
   int experienceThreshold;
@@ -100,9 +100,8 @@ class User {
     List<Item>? equippedItems,
     List<OwnedCustomItem>? ownedCustomItems,
     List<OwnedCustomItem>? activatedCustomItems,
-    List<int>? unlockedAchievements,
-    List<int>? badges,
-    List<int>? friends,
+    List<String>? unlockedAchievements,
+    List<String>? friends,
     required this.createdAt,
     required this.lastActive,
     required this.maxEquippedItemAmount,
@@ -211,7 +210,7 @@ class User {
       crystals: map['crystals'] ?? 0,
       level: map['level'] ?? 1,
 
-      friends: List<int>.from(map['friends'] ?? []),
+      friends: List<String>.from(map['friends'] ?? []),
 
       createdAt: map['createdAt'].toDate(),
       lastActive: map['lastActive'].toDate(),
@@ -225,7 +224,7 @@ class User {
           .toList(),
 
       unlockedAchievements:
-          List<int>.from(map['unlockedAchievements'] ?? []),
+          List<String>.from(map['unlockedAchievements'] ?? []),
 
       experienceThreshold: map['experienceThreshold'] ?? 0,
 

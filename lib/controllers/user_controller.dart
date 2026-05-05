@@ -106,7 +106,7 @@ class UserController extends ChangeNotifier{
   }
   
   // Unlock achievement
-  void unlockAchievement(int achievementId) {
+  void unlockAchievement(String achievementId) {
     if (user.unlockedAchievements.contains(achievementId)) {
       user.unlockedAchievements.add(achievementId);
 
@@ -116,7 +116,7 @@ class UserController extends ChangeNotifier{
   }
   
   // Add friend
-  void addFriend(int userId) {
+  void addFriend(String userId) {
     if (user.friends.contains(userId)) {
       user.friends.add(userId);
 

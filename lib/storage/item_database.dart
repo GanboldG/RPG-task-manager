@@ -47,9 +47,8 @@ class ItemDatabase {
     costMultPerLevel: 0.4
   );
 
-  // Pre-defined items - like a catalog
+  // Pre-defined items
   static final List<Item> allItems = [
-    // Common Items
     ItemFactory.createXpBoostItem(
       id: "1",
       name: 'Minor XP Potion',
