@@ -88,45 +88,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
           
           const SizedBox(height: 12),
           
-          Text("User",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-            )
-          ),
+          // Text("User",
+          //   style: TextStyle(
+          //     fontWeight: FontWeight.bold,
+          //     fontSize: 22,
+          //   )
+          // ),
 
-          const SizedBox(height: 11),
+          // const SizedBox(height: 11),
 
-          _buildSettingsButton(
-            icon: Icons.check_circle,
-            text: 'Save User Data locally (To Hive)',
-            color: const Color.fromARGB(255, 0, 157, 255),
-            onPressed: () async {
-              // Show loading dialog
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(child: CircularProgressIndicator()),
-              );
+          // _buildSettingsButton(
+          //   icon: Icons.check_circle,
+          //   text: 'Save User Data locally (To Hive)',
+          //   color: const Color.fromARGB(255, 0, 157, 255),
+          //   onPressed: () async {
+          //     // Show loading dialog
+          //     showDialog(
+          //       context: context,
+          //       barrierDismissible: false,
+          //       builder: (context) => const Center(child: CircularProgressIndicator()),
+          //     );
               
-              try {
-                await UserService().saveCurrentUserData();
-                if (mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User data saved successfully!')),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error saving data: $e')),
-                  );
-                }
-              }
-            },
-          ),
+          //     try {
+          //       await UserService().saveCurrentUserData();
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           const SnackBar(content: Text('User data saved successfully!')),
+          //         );
+          //       }
+          //     } catch (e) {
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           SnackBar(content: Text('Error saving data: $e')),
+          //         );
+          //       }
+          //     }
+          //   },
+          // ),
 
           // const SizedBox(height: 11),
 
@@ -179,38 +179,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 7),
 
-          _buildSettingsButton(
-            icon: Icons.check_circle,
-            text: 'Upload User data to Firestore',
-            color: const Color.fromARGB(255, 105, 0, 144),
-            onPressed: () async {
-              // Show loading dialog
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => const Center(child: CircularProgressIndicator()),
-              );
+          // _buildSettingsButton(
+          //   icon: Icons.check_circle,
+          //   text: 'Upload User data to Firestore',
+          //   color: const Color.fromARGB(255, 105, 0, 144),
+          //   onPressed: () async {
+          //     // Show loading dialog
+          //     showDialog(
+          //       context: context,
+          //       barrierDismissible: false,
+          //       builder: (context) => const Center(child: CircularProgressIndicator()),
+          //     );
               
-              try {
-                await UserService().uploadToFirestore(UserService().currentUser);
-                if (mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('User data uploaded to firestore')),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  Navigator.pop(context); // Close loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error uploading user data to firestore $e')),
-                  );
-                }
-              }
-            },
-          ),
+          //     try {
+          //       await UserService().uploadToFirestore(UserService().currentUser);
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           const SnackBar(content: Text('User data uploaded to firestore')),
+          //         );
+          //       }
+          //     } catch (e) {
+          //       if (mounted) {
+          //         Navigator.pop(context); // Close loading dialog
+          //         ScaffoldMessenger.of(context).showSnackBar(
+          //           SnackBar(content: Text('Error uploading user data to firestore $e')),
+          //         );
+          //       }
+          //     }
+          //   },
+          // ),
 
-          const SizedBox(height: 12),
+          // const SizedBox(height: 12),
 
           _buildSettingsButton(
             icon: Icons.check_circle,

@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'dart:math';
-
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class HelperFunctions{
   static void showMessage(BuildContext context, String message){
@@ -145,17 +143,9 @@ class HelperFunctions{
     }
   } 
 
-  // static Future<Uint8List?> compressFileToBytes(File file) async {
-  //   final inputBytes = await file.readAsBytes();
+  static Future<bool> hasInternet() async {
+    var result = await Connectivity().checkConnectivity();
 
-  //   final compressed = await FlutterImageCompress.compressWithList(
-  //     inputBytes,
-  //     quality: 70,
-  //     minWidth: 1024,
-  //     minHeight: 1024,
-  //     format: CompressFormat.jpeg,
-  //   );
-
-  //   return compressed;
-  // }
+    return result != ConnectivityResult.none;
+  }
 }

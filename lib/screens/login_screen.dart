@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
+import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/screens/create_user_screen.dart';
 import 'package:rpg_task_manager/services/firebase_authentication.dart';
 import 'package:rpg_task_manager/services/item_service.dart';
+import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -116,7 +118,12 @@ class LoginScreen extends StatelessWidget {
                           ),
 
                           onPressed: () async {
-                            final appState = context.read<AppState>(); // ✅ cache early
+                            // Cache controllers early (Before sync gaps)
+                            final appState = context.read<AppState>(); 
+                            final itemShopController = context.read<ItemShopController>();
+                            final taskController = context.read<TaskController>();
+
+
                             final uid = await FirebaseAuthentication().loginWithGoogle();
                             if (uid == null) return;
 
@@ -141,12 +148,17 @@ class LoginScreen extends StatelessWidget {
                             else {
                               final user = await service.getFromFirestore();
                               if (user != null) {
+                                // Download user
                                 service.setCurrentUser(user);
 
+                                // Download custom items
                                 final customItems = await ItemService().getCustomItemsFromFirestore();
-                                context.read<ItemShopController>().populateCustomItemsList(customItems);
+                                itemShopController.populateCustomItemsList(customItems);
 
-                                // TODO: Also get all the task, custom item info to save locally
+                                // Download tasks
+                                final tasks = await TaskService().getFromFirestore();
+                                taskController.populateTasks(tasks);
+
                                 service.saveCurrentUserData();
                                 appState.setLoggedIn();
                               }

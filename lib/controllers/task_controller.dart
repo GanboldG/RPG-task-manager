@@ -35,6 +35,13 @@ class TaskController extends ChangeNotifier {
     };
   }
 
+
+  // Populating from firebase
+  void populateTasks(List<Task> tasks){
+    _tasks = tasks;
+  }
+
+
   // --------------------ADD----------------------
   void addTask({  // Returns future, so the caller is aware it's async
     String name = "", 

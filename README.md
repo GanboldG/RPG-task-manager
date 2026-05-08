@@ -3,8 +3,10 @@ In progress:
 - Create a button that uploads tasks / user / custom items to firestore
 
 To Do:
-- Add limit for tasks
+- Add character limit for tasks / custom item fields
+- Add limit of 100 for tasks
 - Store the last 100 finished tasks locally
+- Clear hive boxes when logging out / logging in
 - Add task limit of 30 
 - Remove abandoned tasks box
 - Only store the last 10 completed tasks in hive only
@@ -14,6 +16,7 @@ To Do:
 - Option to create / update profile
 - Add data such as total time, completed task, daily login streaks to user
 - Fix high quality items being cheaper than low quality
+- Achievement screen
 - Add custom_shop size as User variable
 - Sort option on task list
 - Make items work

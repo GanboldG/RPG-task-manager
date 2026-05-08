@@ -76,37 +76,44 @@ class TaskService {
   Future<List<Task>> getFromFirestore() async {
     try {
       final snapshot = await FirebaseFirestore.instance
-                            .collection("users")
-                            .doc(UserService().currentUser.id)
-                            .collection("tasks")
-                            .get();
+          .collection('users')
+          .doc(UserService().currentUser.id)
+          .collection('tasks')
+          .doc('data')
+          .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Task.fromMap(data);
-      }).toList();
+      final data = snapshot.data();
+
+      if (data == null) return [];
+
+      final List<dynamic> rawTasks = data['tasks'];
+
+      return rawTasks
+          .map((taskMap) => Task.fromMap(taskMap))
+          .toList();
+
     } catch (e) {
       print("Exception $e while getting tasks from firestore");
       return [];
     }
   }
 
-
   Future<void> uploadToFirestore() async {
     try {
-      final batch = FirebaseFirestore.instance.batch();
+      // TODO: Keep max amount of tasks within 100-150 (Tasks: 100 / Daily, weekly: 50)
+      final tasks = getAllActiveTasks()
+          .map((task) => task.toMap())
+          .toList();
 
-      for (Task task in getAllActiveTasks()) {
-        final ref = FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(UserService().currentUser.id)
-                    .collection('tasks')
-                    .doc(task.id);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(UserService().currentUser.id)
+          .collection('tasks')
+          .doc('data')
+          .set({
+            'tasks': tasks,
+          });
 
-        batch.set(ref, task.toMap());
-      }
-
-      await batch.commit();
     } catch (e) {
       print("Exception $e while uploading tasks to firestore");
     }
