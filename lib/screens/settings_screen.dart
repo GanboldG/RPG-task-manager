@@ -31,17 +31,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const SizedBox(height: 10),
 
-          Padding(
-            padding: EdgeInsets.all(5),
-              child: Text("Warning: This is debug screen! Will replace with actual settings screen in the future!!\nIf you pressed something here and broke the app, skill issue",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.red,
-                )
-            ),
-          ),
-
           Text("Tasks",
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -62,31 +51,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
 
           // Reset the old boxes
-          _buildSettingsButton(
-            icon: Icons.delete_sweep,
-            text: 'Reset old boxes',
-            color: Colors.red,
-            onPressed: _resetOldBoxes,
-          ),
+          // _buildSettingsButton(
+          //   icon: Icons.delete_sweep,
+          //   text: 'Reset old boxes',
+          //   color: Colors.red,
+          //   onPressed: _resetOldBoxes,
+          // ),
           
-          const SizedBox(height: 12),
+          // const SizedBox(height: 12),
           
           // Individual Box Buttons
-          _buildSettingsButton(
-            icon: Icons.playlist_add_check,
-            text: 'View Active Tasks',
-            color: Colors.green,
-            onPressed: () => _showBoxContents('active_tasks'),
-          ),
+          // _buildSettingsButton(
+          //   icon: Icons.playlist_add_check,
+          //   text: 'View Active Tasks',
+          //   color: Colors.green,
+          //   onPressed: () => _showBoxContents('active_tasks'),
+          // ),
           
-          const SizedBox(height: 12),
+          // const SizedBox(height: 12),
 
-          _buildSettingsButton(
-            icon: Icons.playlist_add_check,
-            text: 'View Archived Tasks',
-            color: const Color.fromARGB(255, 36, 136, 40),
-            onPressed: () => _showBoxContents('archived_tasks'),
-          ),
+          // _buildSettingsButton(
+          //   icon: Icons.playlist_add_check,
+          //   text: 'View Archived Tasks',
+          //   color: const Color.fromARGB(255, 36, 136, 40),
+          //   onPressed: () => _showBoxContents('archived_tasks'),
+          // ),
           
           // _buildSettingsButton(
           //   icon: Icons.check_circle,
@@ -232,8 +221,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           _buildSettingsButton(
             icon: Icons.check_circle,
-            text: 'Upload EVERY (User, tasks, custom items) data to Firestore',
-            color: const Color.fromARGB(255, 9, 92, 17),
+            text: 'Sync data to firebase',
+            color: const Color.fromARGB(255, 24, 153, 159),
             onPressed: () async {
               // Show loading dialog
               showDialog(

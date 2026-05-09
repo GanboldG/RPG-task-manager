@@ -54,6 +54,14 @@ class HelperFunctions{
   }
 
 
+  // Converts seconds to hours with 0.0 decimal
+  static double secToHoursDecimal(int seconds) {
+    if (seconds <= 0) return 0.0;
+
+    return double.parse((seconds / 3600).toStringAsFixed(1));
+  }
+
+
   // Builds custom icons with neon effect
   static Widget buildNeonIcon(IconData icon, Color color, double size) {
     return Container(

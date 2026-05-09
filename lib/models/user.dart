@@ -89,6 +89,19 @@ class User {
   @HiveField(26)
   String? avatarPublicId;
 
+  // Statistics fields
+  @HiveField(27)
+  int secondsSpentOnTasks;
+
+  @HiveField(28)
+  int completedTaskAmount;
+
+  @HiveField(29)
+  int taskCompletionStreak;
+
+  @HiveField(30)
+  int dailyLoginStreak;
+
   User({
     required this.id,
     required this.fullName,
@@ -117,6 +130,10 @@ class User {
     required this.customShopSlot,
     required this.shopRerolls,
     required this.inventorySlot,
+    this.secondsSpentOnTasks = 0,
+    this.completedTaskAmount = 0,
+    this.taskCompletionStreak = 0,
+    this.dailyLoginStreak = 0,
   }) : ownedItems = ownedItems ?? [],
        equippedItems = equippedItems ?? [],
        activatedCustomItems = activatedCustomItems ?? [],
@@ -205,6 +222,10 @@ class User {
       'customShopSlot': customShopSlot,
       'inventorySlot': inventorySlot,
       'shopRerolls': shopRerolls,
+      "secondsSpentOnTasks": secondsSpentOnTasks,
+      "completedTaskAmount": completedTaskAmount ,
+      "taskCompletionStreak": taskCompletionStreak,
+      "dailyLoginStreak": dailyLoginStreak,
     };
   }
 
@@ -259,6 +280,10 @@ class User {
       customShopSlot: map['customShopSlot'] ?? 0,
       shopRerolls: map['shopRerolls'] ?? 0,
       inventorySlot: map['inventorySlot'] ?? 0,
+      secondsSpentOnTasks: map['secondsSpentOnTasks'] ?? 0,
+      completedTaskAmount: map['completedTaskAmount'] ?? 0,
+      taskCompletionStreak: map['taskCompletionStreak'] ?? 0,
+      dailyLoginStreak: map['dailyLoginStreak'] ?? 0
     );
   }
 }

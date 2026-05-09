@@ -5,10 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
-import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/screens/Statistics/Detailed_Statistics.dart';
-import 'package:rpg_task_manager/services/task_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 
 class ProfileScreen extends StatelessWidget {
@@ -178,7 +177,7 @@ class _StatsRow extends StatelessWidget {
       children: [
         Expanded(
           child: _StatBox(
-            value: '127h',
+            value: "${HelperFunctions.secToHoursDecimal(UserService().currentUser.secondsSpentOnTasks)}h",
             label: 'Total time',
             color: const Color(0xFF26C6DA),
           ),
@@ -186,17 +185,25 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _StatBox(
-            value: '284',
-            label: 'Task',
+            value: UserService().currentUser.completedTaskAmount.toString(),
+            label: 'Done Tasks',
             color: const Color(0xFF66BB6A),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _StatBox(
-            value: '42',
-            label: 'Streak',
+            value: UserService().currentUser.taskCompletionStreak.toString(),
+            label: 'Task Streak',
             color: const Color(0xFFFFA726),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatBox(
+            value: '? days',
+            label: 'Login Streak',
+            color: const Color.fromARGB(255, 255, 92, 11),
           ),
         ),
       ],
@@ -287,7 +294,7 @@ class _ViewStatsButton extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             const Text(
-              'View detailed statistics',
+              'View detailed statistics (Doesnt work)',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

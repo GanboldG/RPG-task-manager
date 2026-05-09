@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/user.dart';
@@ -133,6 +131,7 @@ class UserController extends ChangeNotifier{
     UserService().saveCurrentUserData();
   }
   
+
   // Update last active timestamp
   void updateLastActive() {
     user.lastActive = DateTime.now();
@@ -140,6 +139,34 @@ class UserController extends ChangeNotifier{
     notifyListeners();
     UserService().saveCurrentUserData();
   }
+
+
+  // ----------------- STATS ----------------------------
+
+  // Update task total time
+  void updateTaskTotalSeconds(int seconds){
+    user.secondsSpentOnTasks += seconds;
+    notifyListeners();
+  }
+
+
+  void updateCompletedTaskAmount(int amount){
+    user.completedTaskAmount += amount;
+    notifyListeners();
+  }
+
+
+  void updateTaskCompletionStreak(int amount){
+    user.taskCompletionStreak += amount;
+    notifyListeners();
+  }
+
+
+  void resetTaskCompletionStreak(){
+    user.taskCompletionStreak = 0;
+    notifyListeners();
+  }
+
 
   Future<void> updateUserImage(File tempImageFile) async{
     // Delete the old image

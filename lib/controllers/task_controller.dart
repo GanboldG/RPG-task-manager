@@ -22,6 +22,10 @@ class TaskController extends ChangeNotifier {
   List<Task> _archivedTasks = [];
   List<Task> get archivedTasks => _archivedTasks;
 
+  // Task local storage save interval
+  int timerCounter = 0;
+  final taskLocalSaveInterval = 60;
+
   TaskController(UserController userController){
     _userController = userController; 
   }
@@ -97,6 +101,9 @@ class TaskController extends ChangeNotifier {
       _tasks.remove(matchedTask);
 
       notifyListeners();
+      _userController.updateCompletedTaskAmount(1);
+      _userController.updateTaskCompletionStreak(1);
+
       return matchedTask.name;
     }
 
@@ -110,6 +117,7 @@ class TaskController extends ChangeNotifier {
 
     if (matchedTask != null){
       _userController.reduceReward(matchedTask.reward);
+      _userController.resetTaskCompletionStreak();
     }
 
     return deleteTask(id);
@@ -158,7 +166,7 @@ class TaskController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Called whenever "Pause" button's pressed, causing updated duration to be saved in Hive
+  // Called whenever "Pause" button's pressed or every 60 seconds
   void updateHiveTaskDoneDuration({
     required String taskId,
   }) async {
@@ -175,6 +183,16 @@ class TaskController extends ChangeNotifier {
     if (task != null) {
       task.doneDurationSec = doneSeconds;
       notifyListeners();
+
+      // Save every 60 seconds
+      timerCounter++;
+      if (timerCounter >= taskLocalSaveInterval){
+        timerCounter = 0;
+        updateHiveTaskDoneDuration(taskId: task.id);
+
+        // Save user's task total time field
+        _userController.updateTaskTotalSeconds(taskLocalSaveInterval);
+      }
     }
   }
 
