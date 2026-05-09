@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
@@ -8,6 +10,8 @@ import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/item_service.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
+import 'dart:io';
+import 'package:flutter/services.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -24,29 +28,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Debug Screen'),
+        title: const Text('Settings Screen'),
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Column(
         children: [
-          const SizedBox(height: 10),
-
-          Text("Tasks",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-            )
-          ),
-
-          const SizedBox(height: 10),
-
-          // Reset Data Button
-          _buildSettingsButton(
-            icon: Icons.delete_sweep,
-            text: 'Reset All local (Hive) data\n(Activate before changing a Hive field)',
-            color: Colors.red,
-            onPressed: _confirmResetData,
-          ),
           
           const SizedBox(height: 12),
 
@@ -92,8 +78,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           //   color: Colors.grey,
           //   onPressed: () => _showBoxContents('abandoned_tasks'),
           // ),
-          
-          const SizedBox(height: 12),
           
           // Text("User",
           //   style: TextStyle(
@@ -175,16 +159,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: CircularProgressIndicator(),
             ),
           
-          const SizedBox(height: 7),
+          // Text("Firebase",
+          //   style: TextStyle(
+          //     fontWeight: FontWeight.bold,
+          //     fontSize: 22,
+          //   )
+          // ),
 
-          Text("Firebase",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-            )
-          ),
-
-          const SizedBox(height: 7),
+          // const SizedBox(height: 7),
 
           // _buildSettingsButton(
           //   icon: Icons.check_circle,
@@ -251,6 +233,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 }
               }
             },
+          ),
+
+          const SizedBox(height: 12),
+          
+          // Reset Data Button
+          _buildSettingsButton(
+            icon: Icons.delete_sweep,
+            text: 'Logout',
+            color: Colors.red,
+            onPressed: _confirmResetData,
           ),
 
           // const SizedBox(height: 5),
@@ -683,6 +675,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _confirmResetData() {
+    final appState = context.read<AppState>();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -700,6 +693,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(context);
               await _resetAllData();
+              appState.setLoggedOut();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Reset', style: TextStyle(color: Colors.white)),
@@ -709,54 +703,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<void> _resetOldBoxes() async{
-      await Hive.close();
-      await Hive.deleteBoxFromDisk("archived_tasks");
-  }
+  // Future<void> _resetOldBoxes() async{
+  //     await Hive.close();
+  //     await Hive.deleteBoxFromDisk("archived_tasks");
+  // }
 
   Future<void> _resetAllData() async {
     setState(() => _isLoading = true);
-    
+
     try {
-      // Close all boxes first
       await Hive.close();
-      
-      // Delete each box from disk
-      for (String boxName in _taskBoxNames) {
-        await Hive.deleteBoxFromDisk(boxName);
+
+      for (final name in _taskBoxNames) {
+        await Hive.deleteBoxFromDisk(name);
       }
-      
-      // Reopen all boxes with proper typing
-      for (String boxName in _taskBoxNames) {
-        await Hive.openBox<Task>(boxName);
-      }
-      
-      // ADDITION
+
       _deleteNonTaskBoxes();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('All task data has been reset\nNow restart the app! (IMPORTANT)')),
+          const SnackBar(
+            content: Text('Data cleared. Restart app required.'),
+          ),
         );
-      }
-      
-      // Debug print to verify
-      final box = Hive.box<Task>('active_tasks');
-      debugPrint("${box.length} tasks in active_tasks");
-      final completeBox = Hive.box<Task>('completed_tasks');
-      debugPrint("${completeBox.length} tasks in completed_tasks");
-      
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error resetting data: $e')),
-        );
-        _showErrorDialog('Reset', e.toString());
       }
     } finally {
       setState(() => _isLoading = false);
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        SystemNavigator.pop(); // preferred for mobile
+      } else {
+        exit(0); // fallback (desktop / debug)
+      }
     }
   }
+
+  // Future<void> _resetAllData() async {
+  //   setState(() => _isLoading = true);
+    
+  //   try {
+  //     // Close all boxes first
+  //     await Hive.close();
+      
+  //     // Delete each box from disk
+  //     for (String boxName in _taskBoxNames) {
+  //       await Hive.deleteBoxFromDisk(boxName);
+  //     }
+      
+  //     // Reopen all boxes with proper typing
+  //     for (String boxName in _taskBoxNames) {
+  //       await Hive.openBox<Task>(boxName);
+  //     }
+      
+  //     // ADDITION
+  //     _deleteNonTaskBoxes();
+
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('All task data has been reset\nNow restart the app! (IMPORTANT)')),
+  //       );
+  //     }
+      
+  //     // Debug print to verify
+  //     final box = Hive.box<Task>('active_tasks');
+  //     debugPrint("${box.length} tasks in active_tasks");
+  //     final completeBox = Hive.box<Task>('completed_tasks');
+  //     debugPrint("${completeBox.length} tasks in completed_tasks");
+      
+  //   } catch (e) {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Error resetting data: $e')),
+  //       );
+  //       _showErrorDialog('Reset', e.toString());
+  //     }
+  //   } finally {
+  //     setState(() => _isLoading = false);
+  //   }
+  // }
 
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
@@ -768,9 +792,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await Hive.deleteBoxFromDisk("user");
       await Hive.deleteBoxFromDisk("shop_items");
       await Hive.deleteBoxFromDisk("custom_shop_items");
-      await Hive.openBox<User>('user');
-      await Hive.openBox<Item>('shop_items');
-      await Hive.openBox<CustomItem>('custom_shop_items');
+      // await Hive.openBox<User>('user');
+      // await Hive.openBox<Item>('shop_items');
+      // await Hive.openBox<CustomItem>('custom_shop_items');
     }catch(e){
       print("Exception $e when trying to delete hive boxes");
     }

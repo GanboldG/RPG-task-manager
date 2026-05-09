@@ -2,7 +2,6 @@ In progress:
 - Sort option on task list:
     - After sorting, the list key should be recalculated
     - "Sort by date, time left, closest deadline, alphabetical etc"
-- Add logout button
 
 To Do:
 - Make shop items reset every 2 hours
@@ -27,6 +26,7 @@ To Do:
 - Fix the jankiness in task creation
 - Show expanded item info when pressed from inventory
 - Add Daily / Weekly tasks
+- Make logout function actually work instead of shutting down the app
 - Add Daily login reward
 - Add lootboxes with animation
 - Figure out what to do with crystals
@@ -57,3 +57,4 @@ Finished:
 - Add custom_shop size as User variable
 - Store the last 100 finished tasks locally, and show on profile
 - Add simple user statistics overview functions
+- Add logout button

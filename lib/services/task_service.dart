@@ -11,8 +11,9 @@ class TaskService {
     return _instance;
   }
 
-  final Box<Task> activeBox = Hive.box<Task>('active_tasks');
-  final Box<Task> archivedBox = Hive.box<Task>('archived_tasks');
+  Box<Task> get activeBox => Hive.box<Task>('active_tasks');
+  Box<Task> get archivedBox  => Hive.box<Task>('archived_tasks');
+  // final Box<Task> archivedBox = Hive.box<Task>('archived_tasks');
   
 
   // ----------------HIVE METHODS---------------------
