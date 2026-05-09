@@ -19,6 +19,9 @@ class TaskController extends ChangeNotifier {
   List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
 
+  List<Task> _archivedTasks = [];
+  List<Task> get archivedTasks => _archivedTasks;
+
   TaskController(UserController userController){
     _userController = userController; 
   }
@@ -27,6 +30,7 @@ class TaskController extends ChangeNotifier {
   void initialize(){
     // Gets all task info from hive box (storage)
     _tasks = taskService.getAllActiveTasks();
+    _archivedTasks = taskService.getAllArchivedTasks();
 
     // Connects TimerService to TaskController
     // This callback is called every second by the timer
@@ -63,6 +67,7 @@ class TaskController extends ChangeNotifier {
       deadline: deadline,
       description: description,
       createdAt: DateTime.now(),
+      completedAt: null,
       reward: RewardService.calculateTaskReward(difficulty, HelperFunctions.minToSec(baseMinutes), UserService().currentUser.level),
       type: type,
     );
@@ -82,8 +87,13 @@ class TaskController extends ChangeNotifier {
         _timerService.stopTimer();
       }
       
+      matchedTask.isCompleted = true;
+      matchedTask.completedAt = DateTime.now();
+
       _userController.addReward(matchedTask.reward);
       taskService.completeTask(matchedTask.id);
+
+      _archivedTasks.add(matchedTask);
       _tasks.remove(matchedTask);
 
       notifyListeners();
@@ -190,5 +200,12 @@ class TaskController extends ChangeNotifier {
       tasks[i].orderId = i;
       await taskService.updateTask(tasks[i]);
     }
+  }
+
+
+  List<Task> getLastNArchivedTasks(int amount){
+    final tasks = _archivedTasks.reversed.toList();
+
+    return tasks.take(amount).toList();
   }
 }

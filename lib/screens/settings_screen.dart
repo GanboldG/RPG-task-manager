@@ -17,7 +17,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final List<String> _taskBoxNames = ["active_tasks", "completed_tasks", "abandoned_tasks"];
+  final List<String> _taskBoxNames = ["active_tasks", "archived_tasks"];
   bool _isLoading = false;
 
   @override
@@ -60,6 +60,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           
           const SizedBox(height: 12),
+
+          // Reset the old boxes
+          _buildSettingsButton(
+            icon: Icons.delete_sweep,
+            text: 'Reset old boxes',
+            color: Colors.red,
+            onPressed: _resetOldBoxes,
+          ),
+          
+          const SizedBox(height: 12),
           
           // Individual Box Buttons
           _buildSettingsButton(
@@ -69,7 +79,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: () => _showBoxContents('active_tasks'),
           ),
           
-          // const SizedBox(height: 12),
+          const SizedBox(height: 12),
+
+          _buildSettingsButton(
+            icon: Icons.playlist_add_check,
+            text: 'View Archived Tasks',
+            color: const Color.fromARGB(255, 36, 136, 40),
+            onPressed: () => _showBoxContents('archived_tasks'),
+          ),
           
           // _buildSettingsButton(
           //   icon: Icons.check_circle,
@@ -316,59 +333,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showDataOptionsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('View Hive Data'),
-        backgroundColor: Colors.white,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.playlist_add_check, color: Colors.green),
-              title: const Text('Active Tasks'),
-              onTap: () {
-                Navigator.pop(context);
-                _showBoxContents('active_tasks');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.check_circle, color: Colors.orange),
-              title: const Text('Completed Tasks'),
-              onTap: () {
-                Navigator.pop(context);
-                _showBoxContents('completed_tasks');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.grey),
-              title: const Text('Abandoned Tasks'),
-              onTap: () {
-                Navigator.pop(context);
-                _showBoxContents('abandoned_tasks');
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.all_inclusive, color: Colors.purple),
-              title: const Text('All Boxes Combined'),
-              onTap: () {
-                Navigator.pop(context);
-                _showAllBoxesContents();
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showDataOptionsDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: const Text('View Hive Data'),
+  //       backgroundColor: Colors.white,
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           ListTile(
+  //             leading: const Icon(Icons.playlist_add_check, color: Colors.green),
+  //             title: const Text('Active Tasks'),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               _showBoxContents('active_tasks');
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.check_circle, color: Colors.orange),
+  //             title: const Text('Completed Tasks'),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               _showBoxContents('completed_tasks');
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.delete_forever, color: Colors.grey),
+  //             title: const Text('Abandoned Tasks'),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               _showBoxContents('abandoned_tasks');
+  //             },
+  //           ),
+  //           const Divider(),
+  //           ListTile(
+  //             leading: const Icon(Icons.all_inclusive, color: Colors.purple),
+  //             title: const Text('All Boxes Combined'),
+  //             onTap: () {
+  //               Navigator.pop(context);
+  //               _showAllBoxesContents();
+  //             },
+  //           ),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Cancel'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Future<void> _showBoxContents(String boxName) async {
     setState(() => _isLoading = true);
@@ -394,38 +411,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _showAllBoxesContents() async {
-    setState(() => _isLoading = true);
+  // Future<void> _showAllBoxesContents() async {
+  //   setState(() => _isLoading = true);
     
-    try {
-      Map<String, List<Task>> allTasks = {};
-      int totalCount = 0;
+  //   try {
+  //     Map<String, List<Task>> allTasks = {};
+  //     int totalCount = 0;
       
-      for (String boxName in _taskBoxNames) {
-        if (!Hive.isBoxOpen(boxName)) {
-          await Hive.openBox<Task>(boxName);
-        }
-        final box = Hive.box<Task>(boxName);
-        final tasks = box.values.toList();
-        allTasks[boxName] = tasks;
-        totalCount += tasks.length;
-      }
+  //     for (String boxName in _taskBoxNames) {
+  //       if (!Hive.isBoxOpen(boxName)) {
+  //         await Hive.openBox<Task>(boxName);
+  //       }
+  //       final box = Hive.box<Task>(boxName);
+  //       final tasks = box.values.toList();
+  //       allTasks[boxName] = tasks;
+  //       totalCount += tasks.length;
+  //     }
       
-      if (mounted) {
-        if (totalCount == 0) {
-          _showEmptyDialog('All Boxes');
-        } else {
-          _showAllTasksDialog(allTasks);
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorDialog('All Boxes', e.toString());
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
+  //     if (mounted) {
+  //       if (totalCount == 0) {
+  //         _showEmptyDialog('All Boxes');
+  //       } else {
+  //         _showAllTasksDialog(allTasks);
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (mounted) {
+  //       _showErrorDialog('All Boxes', e.toString());
+  //     }
+  //   } finally {
+  //     setState(() => _isLoading = false);
+  //   }
+  // }
 
   void _showTasksDialog(String boxName, List<Task> tasks) {
     showDialog(
@@ -493,128 +510,127 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showAllTasksDialog(Map<String, List<Task>> allTasks) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          width: double.infinity,
-          height: MediaQuery.of(context).size.height * 0.85,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              const Text(
-                'All Tasks Summary',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildSummaryChip('Active', allTasks['active_tasks']?.length ?? 0, Colors.green),
-                  _buildSummaryChip('Completed', allTasks['completed_tasks']?.length ?? 0, Colors.orange),
-                  _buildSummaryChip('Abandoned', allTasks['abandoned_tasks']?.length ?? 0, Colors.red),
-                ],
-              ),
-              const Divider(),
-              Expanded(
-                child: DefaultTabController(
-                  length: 3,
-                  child: Column(
-                    children: [
-                      const TabBar(
-                        labelColor: Colors.black,
-                        tabs: [
-                          Tab(text: 'Active'),
-                          Tab(text: 'Completed'),
-                          Tab(text: 'Abandoned'),
-                        ],
-                      ),
-                      Expanded(
-                        child: TabBarView(
-                          children: [
-                            _buildTaskList(allTasks['active_tasks'] ?? []),
-                            _buildTaskList(allTasks['completed_tasks'] ?? []),
-                            _buildTaskList(allTasks['abandoned_tasks'] ?? []),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // void _showAllTasksDialog(Map<String, List<Task>> allTasks) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => Dialog(
+  //       child: Container(
+  //         width: double.infinity,
+  //         height: MediaQuery.of(context).size.height * 0.85,
+  //         padding: const EdgeInsets.all(16),
+  //         child: Column(
+  //           children: [
+  //             const Text(
+  //               'All Tasks Summary',
+  //               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  //             ),
+  //             const SizedBox(height: 8),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //               children: [
+  //                 _buildSummaryChip('Active', allTasks['active_tasks']?.length ?? 0, Colors.green),
+  //                 _buildSummaryChip('Completed', allTasks['completed_tasks']?.length ?? 0, Colors.orange),
+  //               ],
+  //             ),
+  //             const Divider(),
+  //             Expanded(
+  //               child: DefaultTabController(
+  //                 length: 3,
+  //                 child: Column(
+  //                   children: [
+  //                     const TabBar(
+  //                       labelColor: Colors.black,
+  //                       tabs: [
+  //                         Tab(text: 'Active'),
+  //                         Tab(text: 'Completed'),
+  //                         Tab(text: 'Abandoned'),
+  //                       ],
+  //                     ),
+  //                     Expanded(
+  //                       child: TabBarView(
+  //                         children: [
+  //                           _buildTaskList(allTasks['active_tasks'] ?? []),
+  //                           _buildTaskList(allTasks['completed_tasks'] ?? []),
+  //                           _buildTaskList(allTasks['abandoned_tasks'] ?? []),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //             TextButton(
+  //               onPressed: () => Navigator.pop(context),
+  //               child: const Text('Close'),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildTaskList(List<Task> tasks) {
-    if (tasks.isEmpty) {
-      return const Center(
-        child: Text('No tasks in this category'),
-      );
-    }
+  // Widget _buildTaskList(List<Task> tasks) {
+  //   if (tasks.isEmpty) {
+  //     return const Center(
+  //       child: Text('No tasks in this category'),
+  //     );
+  //   }
     
-    return ListView.builder(
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        final task = tasks[index];
-        return Card(
-          margin: const EdgeInsets.all(8),
-          child: ListTile(
-            title: Text(task.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('${task.difficulty} • ${task.type} • ${task.getBaseMinutes()} min'),
-            trailing: IconButton(
-              icon: const Icon(Icons.info_outline),
-              onPressed: () {
-                _showTaskDetailsDialog(task);
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
+  //   return ListView.builder(
+  //     itemCount: tasks.length,
+  //     itemBuilder: (context, index) {
+  //       final task = tasks[index];
+  //       return Card(
+  //         margin: const EdgeInsets.all(8),
+  //         child: ListTile(
+  //           title: Text(task.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+  //           subtitle: Text('${task.difficulty} • ${task.type} • ${task.getBaseMinutes()} min'),
+  //           trailing: IconButton(
+  //             icon: const Icon(Icons.info_outline),
+  //             onPressed: () {
+  //               _showTaskDetailsDialog(task);
+  //             },
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  void _showTaskDetailsDialog(Task task) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(task.name),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildInfoRow('ID', task.id.toString()),
-              const Divider(),
-              _buildInfoRow('Difficulty', task.difficulty.toString()),
-              _buildInfoRow('Type', task.type.toString()),
-              _buildInfoRow('Base Minutes', '${task.getBaseMinutes()}'),
-              _buildInfoRow('Description', task.description.isNotEmpty ? task.description : 'No description'),
-              _buildInfoRow('Deadline', task.deadline != null ? _formatDate(task.deadline!) : 'No deadline'),
-              _buildInfoRow('Created', _formatDate(task.createdAt)),
-              _buildInfoRow('Completed', task.isCompleted ? 'Yes' : 'No'),
-              if (task.completedAt != null)
-                _buildInfoRow('Completed At', _formatDate(task.completedAt!)),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showTaskDetailsDialog(Task task) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text(task.name),
+  //       content: SingleChildScrollView(
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             _buildInfoRow('ID', task.id.toString()),
+  //             const Divider(),
+  //             _buildInfoRow('Difficulty', task.difficulty.toString()),
+  //             _buildInfoRow('Type', task.type.toString()),
+  //             _buildInfoRow('Base Minutes', '${task.getBaseMinutes()}'),
+  //             _buildInfoRow('Description', task.description.isNotEmpty ? task.description : 'No description'),
+  //             _buildInfoRow('Deadline', task.deadline != null ? _formatDate(task.deadline!) : 'No deadline'),
+  //             _buildInfoRow('Created', _formatDate(task.createdAt)),
+  //             _buildInfoRow('Completed', task.isCompleted ? 'Yes' : 'No'),
+  //             if (task.completedAt != null)
+  //               _buildInfoRow('Completed At', _formatDate(task.completedAt!)),
+  //           ],
+  //         ),
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('Close'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
@@ -637,29 +653,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSummaryChip(String label, int count, Color color) {
-    return Chip(
-      label: Text('$label: $count'),
-      backgroundColor: color.withOpacity(0.1),
-      labelStyle: TextStyle(color: color, fontWeight: FontWeight.bold),
-    );
-  }
+  // Widget _buildSummaryChip(String label, int count, Color color) {
+  //   return Chip(
+  //     label: Text('$label: $count'),
+  //     backgroundColor: color.withOpacity(0.1),
+  //     labelStyle: TextStyle(color: color, fontWeight: FontWeight.bold),
+  //   );
+  // }
 
-  void _showEmptyDialog(String boxName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('$boxName is Empty'),
-        content: const Text('No tasks found in this box.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showEmptyDialog(String boxName) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('$boxName is Empty'),
+  //       content: const Text('No tasks found in this box.'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: const Text('OK'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _showErrorDialog(String boxName, String error) {
     showDialog(
@@ -702,6 +718,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _resetOldBoxes() async{
+      await Hive.close();
+      await Hive.deleteBoxFromDisk("archived_tasks");
   }
 
   Future<void> _resetAllData() async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
@@ -466,16 +467,37 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
             Flexible(
               flex: 2,
               child: Column(children: [
-                _Field(ctrl: _nameCtrl, hint: 'Name ("1 Hour Gaming" etc)'),
+                _Field(
+                  ctrl: _nameCtrl, 
+                  maxLength: 40,
+                  maxHeight: 1,
+                  hint: 'Name ("1 Hour Gaming" etc)'
+                ),
                 const SizedBox(height: 8),
                 Row(children: [
-                  Expanded(child: _Field(ctrl: _priceCtrl, hint: 'Price (Gold)', isNumber: true, onChanged: (_) => setState(() {}))),
+                  Expanded(
+                    child: _Field(
+                      ctrl: _priceCtrl, 
+                      maxLength: 7,
+                      maxHeight: 1,
+                      hint: 'Price (Gold)', 
+                      isNumber: true, 
+                      onChanged: (_) => setState(() {}))
+                    ),
                   const SizedBox(width: 6),
                   const Icon(Icons.monetization_on, color: kGold, size: 20),
                 ]),
                 const SizedBox(height: 8), // NEW: spacing
                 Row(children: [ // NEW: duration field row
-                  Expanded(child: _Field(ctrl: _durationCtrl, hint: 'Duration (minutes)', isNumber: true, onChanged: (_) => setState(() {}))),
+                  Expanded(
+                    child: _Field(
+                      ctrl: _durationCtrl, 
+                      maxLength: 9,
+                      maxHeight: 1,
+                      hint: 'Duration (minutes)', 
+                      isNumber: true, 
+                      onChanged: (_) => setState(() {}))
+                    ),
                   const SizedBox(width: 6),
                   const Icon(Icons.timer, color: kPurpleMid, size: 20),
                 ]),
@@ -494,6 +516,7 @@ class _AddCustomItemScreenState extends State<AddCustomItemScreen> {
             child: TextField(
               controller: _descCtrl,
               maxLines: null,
+              maxLength: 60,
               expands: true,
               style: const TextStyle(color: kTxt, fontSize: 13),
               decoration: const InputDecoration(
@@ -721,10 +744,13 @@ class _Field extends StatelessWidget {
   final String hint;
   final bool isNumber;
   final void Function(String)? onChanged;
+  final int maxLength, maxHeight;
   
   const _Field({
     required this.ctrl,
     required this.hint,
+    required this.maxLength,
+    required this.maxHeight,
     this.isNumber = false,
     this.onChanged,
   });
@@ -745,6 +771,13 @@ class _Field extends StatelessWidget {
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: kBorder)),
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: kPurple, width: 1.5)),
     ),
+    maxLength: !isNumber ? maxLength : null,
+    inputFormatters: isNumber
+      ? [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(maxLength),
+        ]
+      : [],
   );
 }
 

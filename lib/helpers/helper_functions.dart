@@ -2,16 +2,18 @@ import 'dart:io';
 import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
 
 class HelperFunctions{
-  static void showMessage(BuildContext context, String message){
+  static void showMessage(BuildContext context, String message, {int duration = 1}){
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        backgroundColor: AppColors.rarityEpic,
         content: Text(message,
                      style: TextStyle(
                       color: Colors.white,
                      )),
-        duration: Duration(seconds: 1),
+        duration: Duration(seconds: duration),
       ),
     );
   }

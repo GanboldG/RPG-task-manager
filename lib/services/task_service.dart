@@ -12,8 +12,7 @@ class TaskService {
   }
 
   final Box<Task> activeBox = Hive.box<Task>('active_tasks');
-  final Box<Task> completedBox = Hive.box<Task>('completed_tasks');
-  final Box<Task> abandonedBox = Hive.box<Task>('abandoned_tasks');
+  final Box<Task> archivedBox = Hive.box<Task>('archived_tasks');
   
 
   // ----------------HIVE METHODS---------------------
@@ -25,6 +24,7 @@ class TaskService {
     print("(HIVE) Locally saved ${tasks.length} tasks");
   }
 
+
   Future<String> addTask(Task task) async {
     // int newId = await TaskIdCounter.getNextId();
     // Add to box (key = task.id, value = task)
@@ -32,11 +32,13 @@ class TaskService {
     return task.id;
   }
 
+
   List<Task> getAllActiveTasks() {
     final tasks = activeBox.values.toList();
     tasks.sort((a, b) => (a.orderId ?? 0).compareTo(b.orderId ?? 0));
     return tasks;  // Returns all values sorted
   }
+
 
   Future<void> completeTask(String taskId) async {
     Task? task = activeBox.get(taskId);
@@ -47,35 +49,36 @@ class TaskService {
       task.completedAt = DateTime.now();
       
       // Move to completed box
-      await completedBox.put(taskId, task);
+      await archiveTask(task);
       await activeBox.delete(taskId);
     }
   }
+
 
   Future<void> updateTask(Task updatedTask) async {
     activeBox.put(updatedTask.id, updatedTask);
   }
 
-  Future<void> deleteTask(String taskId, {bool permanent = true}) async {
-    if (permanent) {
-      Task? task = activeBox.get(taskId);
-      if (task != null){
-        await abandonedBox.put(taskId, task);
-      }
-      else{
-        task = completedBox.get(taskId);
-        if (task != null){
-          await abandonedBox.put(taskId, task);
-        }
-      }
 
-      // Delete from wherever it is
-      await activeBox.delete(taskId);
-      await completedBox.delete(taskId);
-    } else {
-      // Soft delete - just remove from active
-      await activeBox.delete(taskId);
+  Future<void> deleteTask(String taskId, {bool permanent = true}) async {
+    await activeBox.delete(taskId);
+  }
+
+
+  // Manages the archive box, where only last 100 tasks can exist at most
+  Future<void> archiveTask(Task task) async {
+    if (archivedBox.length >= 100) {
+      // Oldest inserted key
+      final oldestKey = archivedBox.keyAt(0);
+      await archivedBox.delete(oldestKey);
     }
+    // Add new task
+    await archivedBox.put(task.id, task);
+  }
+
+
+  List<Task> getAllArchivedTasks() {
+    return archivedBox.values.toList().reversed.toList();
   }
 
 

@@ -13,8 +13,7 @@ import 'package:rpg_task_manager/models/user.dart';
 class HiveService{
   static Map<String, Type> boxes = {
     'active_tasks' : Task,
-    'completed_tasks' : Task,
-    'abandoned_tasks' : Task,
+    'archived_tasks' : Task,
     'user' : User,
     'shop_items' : Item,
     'custom_shop_items' : CustomItem
@@ -42,11 +41,8 @@ class HiveService{
     if (!Hive.isBoxOpen('active_tasks')) {
       await Hive.openBox<Task>('active_tasks');
     }
-    if (!Hive.isBoxOpen('completed_tasks')) {
-      await Hive.openBox<Task>('completed_tasks');
-    }
-    if (!Hive.isBoxOpen('abandoned_tasks')) {
-      await Hive.openBox<Task>('abandoned_tasks');
+    if (!Hive.isBoxOpen('archived_tasks')) {
+      await Hive.openBox<Task>('archived_tasks');
     }
     if (!Hive.isBoxOpen('user')) {
       await Hive.openBox<User>('user');

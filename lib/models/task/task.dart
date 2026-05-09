@@ -52,23 +52,29 @@ class Task {
   @HiveField(12)
   TaskType? type;
 
-  Task({required this.id, 
-        required this.orderId,
-        required this.name,
-        this.description = "",
-        this.isCompleted = false,
-        required this.difficulty,
-        required this.baseDurationSec,
-        this.doneDurationSec = 0,
-        DateTime? deadline,
-        required this.createdAt,
-        DateTime? completedAt,
-        required this.reward,
-        required this.type,
-  }) : deadline = deadline != null 
-      ? DateTime(deadline.year, deadline.month, deadline.day, deadline.hour, deadline.minute)
-      : null; // Removes seconds / milleseconds from deadline
-
+  Task({
+    required this.id,
+    required this.orderId,
+    required this.name,
+    this.description = "",
+    this.isCompleted = false,
+    required this.difficulty,
+    required this.baseDurationSec,
+    this.doneDurationSec = 0,
+    DateTime? deadline,
+    required this.createdAt,
+    this.completedAt,
+    required this.reward,
+    required this.type,
+  }) : deadline = deadline != null
+          ? DateTime(
+              deadline.year,
+              deadline.month,
+              deadline.day,
+              deadline.hour,
+              deadline.minute,
+            )
+          : null;
 
   // ------------------------Firestore / JSON save & load------------------------
 
@@ -189,5 +195,15 @@ class Task {
 
   int getRemainingSeconds(){
     return max(0, baseDurationSec - doneDurationSec);
+  }
+
+  int? getSecondsSinceCompletion() {
+    if (!isCompleted || completedAt == null){
+      return null;
+    }
+
+    return DateTime.now()
+        .difference(completedAt!)
+        .inSeconds;
   }
 }

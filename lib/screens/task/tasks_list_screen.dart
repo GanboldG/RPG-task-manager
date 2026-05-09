@@ -25,7 +25,7 @@ class _TaskScreenState extends State<TaskScreen>{
     // This screen is subscribed to TaskController. Whenever TaskController method
     // calls notifyListeners(), it rebuilds this GUI, very nice!
     final controller = context.watch<TaskController>();
-    final timerService = controller.timerService;
+    // final timerService = controller.timerService;
     final tasks = controller.tasks;
 
     return Scaffold(
@@ -36,7 +36,7 @@ class _TaskScreenState extends State<TaskScreen>{
             _buildLabel("Current Task:", 5),
             _buildChosenTask(context),
             SizedBox(height: 15),
-            _buildLabel("Tasks:", 0),
+            _buildLabel("Tasks (${tasks.length}/60):", 0),
             _buildTaskList(context),
           ],
         ),
@@ -218,7 +218,7 @@ class _TaskScreenState extends State<TaskScreen>{
             ),
             onPressed: () {
               // DEBUG to check if idCounter is working
-              HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString());
+              // HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString(), 1);
 
               setState(() {
                 if (isThisTaskRunning) {
@@ -344,9 +344,16 @@ class _TaskScreenState extends State<TaskScreen>{
 
   // Builds floating task add button
   Widget _buildAddButton(BuildContext context){
+    final taskCount = context.read<TaskController>().tasks.length;
+
     return FloatingActionButton(
       heroTag: "add_button_fab",
       onPressed: () async {
+        if (taskCount >= 60){
+          HelperFunctions.showMessage(context, "Task limit reached, complete or delete a task to add.", duration: 2);
+          return;
+        }
+
         final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => AddTaskScreen()),

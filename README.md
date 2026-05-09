@@ -1,28 +1,26 @@
 In progress:
-- Create users/userid/tasks, users/userid/custom_items collections in firestore
-- Create a button that uploads tasks / user / custom items to firestore
 
 To Do:
-- Add character limit for tasks / custom item fields
-- Add limit of 100 for tasks, 10 daily, 10 weekly = 120
-- Store the last 100 finished tasks locally
-- Clear hive boxes when logging out / logging in (Make logout method call "Reset every hive boxes")
-- Remove abandoned tasks box
-- Only store the last 10 completed tasks in hive only
+- Add statistics fields to user (total time, completed task, daily login streaks)
 - Update the statistics everytime task is deleted / completed etc
-- Shop Item stored locally with Hive, with timer that refreshes 
+- Show the statistics on profile in very fancy way
+- Achievement screen
+- Sort option on task list:
+    - After sorting, the list key should be recalculated
+    - "Sort by date, time left, closest deadline, alphabetical etc"
+- Add logout button
+
+- Clear hive boxes when logging out / logging in (Make logout method call "Reset every hive boxes")
+- Shop Item stored locally with Hive, with timer that refreshes s
 - Make shop items reset every 2 hours
 - Option to create / update profile
-- Add data such as total time, completed task, daily login streaks to user
-- Fix high quality items being cheaper than low quality
-- Achievement screen
-- Add custom_shop size as User variable
-- Sort option on task list
+- Custom item images loads after seconds (janky)
+- Make login not download images for 30 seconds
 - Make items work
 - Add SFX for everything
 - Make task service a singleton
+- Make it possible to download mapped data (tasks, stats) into json
 - Make the app not turn off with screen turn-off time
-- Make statistics screen work
 - Debug Screen for:
     - Changing config json files
 - Add reward collecting animation
@@ -32,7 +30,8 @@ To Do:
 - Add Daily login reward
 - Add lootboxes with animation
 - Figure out what to do with crystals
-- Add Achievements
+- Add deadline calculation (The faster you complete the more you get)
+- Full friends / leaderboard functionality
 - Add more item functionality
 - ML classifier for task labels -> Google colab -> Firebase etc
 - Rework the GUI into something modern
@@ -51,3 +50,9 @@ Finished:
 - Create achievements model
 - Create static achievements in firestore, and only store the ids in user.achievements[] 
 - Figure out how to upload images to firestore
+- Create users/userid/tasks, users/userid/custom_items collections in firestore
+- Create a button that uploads tasks / user / custom items to firestore
+- Add character limit for tasks / custom item fields
+- Add limit of 60 for tasks, 10 daily, 10 weekly = 120
+- Add custom_shop size as User variable
+- Store the last 100 finished tasks locally, and show on profile
