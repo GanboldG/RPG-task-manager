@@ -16,7 +16,7 @@ class TaskController extends ChangeNotifier {
   TaskService get taskService => TaskService();
 
   late UserController _userController;
-  late List<Task> _tasks;
+  List<Task> _tasks = [];
   List<Task> get tasks => _tasks;
 
   TaskController(UserController userController){
@@ -38,7 +38,9 @@ class TaskController extends ChangeNotifier {
 
   // Populating from firebase
   void populateTasks(List<Task> tasks){
-    _tasks = tasks;
+    _tasks.addAll(tasks);
+    TaskService().saveTasksLocally(tasks);
+    print("ADDED ALL TASK FROM FIREBASE TO MEMORY");
   }
 
 

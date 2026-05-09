@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:rpg_task_manager/services/user_service.dart';
 
 class TaskService {
 
@@ -17,6 +17,13 @@ class TaskService {
   
 
   // ----------------HIVE METHODS---------------------
+
+  Future<void> saveTasksLocally(List<Task> tasks) async {
+    for (Task task in tasks){
+      activeBox.put(task.id, task);
+    }
+    print("(HIVE) Locally saved ${tasks.length} tasks");
+  }
 
   Future<String> addTask(Task task) async {
     // int newId = await TaskIdCounter.getNextId();
@@ -77,7 +84,7 @@ class TaskService {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
-          .doc(UserService().currentUser.id)
+          .doc(FirebaseAuth.instance.currentUser!.uid)
           .collection('tasks')
           .doc('data')
           .get();
@@ -107,11 +114,11 @@ class TaskService {
 
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(UserService().currentUser.id)
+          .doc(FirebaseAuth.instance.currentUser!.uid)
           .collection('tasks')
           .doc('data')
           .set({
-            'tasks': tasks,
+            'tasks': tasks, 
           });
 
     } catch (e) {

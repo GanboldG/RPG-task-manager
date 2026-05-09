@@ -4,10 +4,9 @@ In progress:
 
 To Do:
 - Add character limit for tasks / custom item fields
-- Add limit of 100 for tasks
+- Add limit of 100 for tasks, 10 daily, 10 weekly = 120
 - Store the last 100 finished tasks locally
-- Clear hive boxes when logging out / logging in
-- Add task limit of 30 
+- Clear hive boxes when logging out / logging in (Make logout method call "Reset every hive boxes")
 - Remove abandoned tasks box
 - Only store the last 10 completed tasks in hive only
 - Update the statistics everytime task is deleted / completed etc

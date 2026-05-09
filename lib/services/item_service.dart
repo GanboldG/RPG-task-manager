@@ -8,6 +8,7 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/services/cloudinary_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class ItemService {
   // Singleton instance
@@ -213,7 +214,7 @@ class ItemService {
   //   }
   // }
 
-  Future<void> uploadCustomItemsToFirestore(List<CustomItem> items) async {
+  Future<void> uploadCustomItemsToFirestore() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
@@ -261,7 +262,7 @@ class ItemService {
       // ---------------- PREPARE NEW ITEMS ----------------
       List<Map<String, dynamic>> itemsMap = [];
 
-      for (final item in items) {
+      for (final item in getAllCustomItems()) {
         // Upload image if exists
         if (item.imagePath != null) {
           final imageUrls = await CloudinaryService.uploadCustomItemImage(File(item.imagePath!));

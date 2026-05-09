@@ -6,6 +6,7 @@ import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/item_service.dart';
+import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -225,9 +226,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
               
               try {
-                // await UserService().uploadToFirestore(UserService().currentUser);
-                await ItemService().uploadCustomItemsToFirestore(ItemService().getAllCustomItems());
-                // await TaskService().upload...
+                await UserService().uploadToFirestore(UserService().currentUser);
+                await ItemService().uploadCustomItemsToFirestore();
+                await TaskService().uploadToFirestore();
 
                 if (mounted) {
                   Navigator.pop(context); // Close loading dialog

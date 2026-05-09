@@ -158,6 +158,8 @@ class BootstrapScreen extends StatefulWidget {
 
 class _BootstrapScreenState extends State<BootstrapScreen> {
   bool hasUser = UserService().hasUser();
+      
+
 
   @override
   Widget build(BuildContext context) {
