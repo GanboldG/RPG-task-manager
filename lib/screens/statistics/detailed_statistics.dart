@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:rpg_task_manager/helpers/app_colors.dart';
-import 'package:rpg_task_manager/widgets/resource_bar.dart';
+import 'package:rpg_task_manager/services/task_service.dart';
 
 class DetailedStatisticsScreen extends StatefulWidget {
   const DetailedStatisticsScreen({super.key});
@@ -11,13 +10,208 @@ class DetailedStatisticsScreen extends StatefulWidget {
 }
 
 class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
-  int _selectedFilter = 0; // 0 = 7 days, 1 = Month, 2 = Lived
+  int _selectedFilter = 0; // 0 = Week, 1 = Month
 
-  final List<String> _filters = ['7 days', 'Month', 'Lived'];
-  final List<double> _dailyData = [1.0, 2.5, 1.5, 3.0, 2.0, 1.0, 4.5];
-  final List<String> _dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+  // Week mode: anchor = the Monday of the displayed week
+  DateTime _weekAnchor = _mondayOf(DateTime.now());
 
-  // ─── Bottom nav icon helper (same style as main.dart) ────────────────────
+  // Month mode: anchor = first day of the displayed month
+  DateTime _monthAnchor = DateTime(DateTime.now().year, DateTime.now().month, 1);
+
+  // Loaded bar data: list of (label, minutes)
+  List<_BarData> _bars = [];
+  bool _loading = false;
+
+  final List<String> _filters = ['Week', 'Month'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  // ── Date helpers ──────────────────────────────────────────────────────────
+
+  static DateTime _mondayOf(DateTime d) {
+    // weekday: 1=Mon, 7=Sun
+    return DateTime(d.year, d.month, d.day)
+        .subtract(Duration(days: d.weekday - 1));
+  }
+
+  static String _hiveKey(DateTime d) {
+    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+  }
+
+  static double _snapshotMinutes(DateTime day) {
+    final box = TaskService().taskSnapshotBox;
+    final snapshot = box.get(_hiveKey(day));
+    if (snapshot == null) return 0;
+    double total = 0;
+    for (final v in snapshot.taskMinutes.values) {
+      total += v;
+    }
+    return total;
+  }
+
+  // ── Load data based on current filter & anchor ───────────────────────────
+
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+
+    final bars = _selectedFilter == 0 ? _buildWeekBars() : _buildMonthBars();
+
+    setState(() {
+      _bars = bars;
+      _loading = false;
+    });
+  }
+
+  /// 7 bars: Mon–Sun of the anchored week
+  List<_BarData> _buildWeekBars() {
+    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return List.generate(7, (i) {
+      final day = _weekAnchor.add(Duration(days: i));
+      final minutes = _snapshotMinutes(day);
+      return _BarData(label: dayLabels[i], minutes: minutes, date: day);
+    });
+  }
+
+  /// Bars per calendar-week that overlaps the anchored month.
+  /// Each bar = one week chunk; label = "W1", "W2", etc.
+  List<_BarData> _buildMonthBars() {
+    final year = _monthAnchor.year;
+    final month = _monthAnchor.month;
+    final firstDay = DateTime(year, month, 1);
+    final lastDay = DateTime(year, month + 1, 0); // last day of month
+
+    // Walk day by day, group into week buckets (Mon–Sun)
+    final Map<DateTime, double> weekMinutes = {};
+
+    DateTime current = firstDay;
+
+    while (!current.isAfter(lastDay)) {
+      final monday = _mondayOf(current);
+      weekMinutes[monday] = (weekMinutes[monday] ?? 0) + _snapshotMinutes(current);
+      current = current.add(const Duration(days: 1));
+    }
+
+    // Sort by monday date, then build labels with actual day ranges clamped to the month
+    final sorted = weekMinutes.keys.toList()..sort();
+    return sorted.map((monday) {
+      final sunday = monday.add(const Duration(days: 6));
+      // Clamp to month boundaries
+      final rangeStart = monday.isBefore(firstDay) ? firstDay : monday;
+      final rangeEnd = sunday.isAfter(lastDay) ? lastDay : sunday;
+      final label = '${rangeStart.day}–${rangeEnd.day}';
+      return _BarData(
+        label: label,
+        minutes: weekMinutes[monday]!,
+        date: monday,
+      );
+    }).toList();
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  void _navigatePrev() {
+    setState(() {
+      if (_selectedFilter == 0) {
+        _weekAnchor = _weekAnchor.subtract(const Duration(days: 7));
+      } else {
+        _monthAnchor = DateTime(
+          _monthAnchor.month == 1 ? _monthAnchor.year - 1 : _monthAnchor.year,
+          _monthAnchor.month == 1 ? 12 : _monthAnchor.month - 1,
+          1,
+        );
+      }
+    });
+    _loadData();
+  }
+
+  void _navigateNext() {
+    final now = DateTime.now();
+    if (_selectedFilter == 0) {
+      final nextMonday = _weekAnchor.add(const Duration(days: 7));
+      if (nextMonday.isAfter(now)) return; // don't go to future
+      setState(() => _weekAnchor = nextMonday);
+    } else {
+      final nextMonth = DateTime(
+        _monthAnchor.month == 12 ? _monthAnchor.year + 1 : _monthAnchor.year,
+        _monthAnchor.month == 12 ? 1 : _monthAnchor.month + 1,
+        1,
+      );
+      if (nextMonth.isAfter(now)) return;
+      setState(() => _monthAnchor = nextMonth);
+    }
+    _loadData();
+  }
+
+  bool get _canGoNext {
+    final now = DateTime.now();
+    if (_selectedFilter == 0) {
+      return _weekAnchor.add(const Duration(days: 7)).isBefore(now);
+    } else {
+      final nextMonth = DateTime(
+        _monthAnchor.month == 12 ? _monthAnchor.year + 1 : _monthAnchor.year,
+        _monthAnchor.month == 12 ? 1 : _monthAnchor.month + 1,
+        1,
+      );
+      return nextMonth.isBefore(now);
+    }
+  }
+
+  String get _periodLabel {
+    if (_selectedFilter == 0) {
+      final sunday = _weekAnchor.add(const Duration(days: 6));
+      final sameMonth = _weekAnchor.month == sunday.month;
+      if (sameMonth) {
+        return '${_monthName(_weekAnchor.month)} ${_weekAnchor.day}–${sunday.day}';
+      } else {
+        return '${_weekAnchor.day} ${_monthName(_weekAnchor.month)} – ${sunday.day} ${_monthName(sunday.month)}';
+      }
+    } else {
+      return '${_monthName(_monthAnchor.month)} ${_monthAnchor.year}';
+    }
+  }
+
+  String _monthName(int m) {
+    const names = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return names[m];
+  }
+
+  // ── Summary helpers ───────────────────────────────────────────────────────
+
+  double get _totalMinutes => _bars.fold(0, (sum, b) => sum + b.minutes);
+
+  double get _averageMinutesPerDay {
+    if (_bars.isEmpty) return 0;
+    if (_selectedFilter == 0) {
+      // 7 days in a week
+      return _totalMinutes / 7;
+    } else {
+      // actual days in the month
+      final daysInMonth = DateTime(
+        _monthAnchor.year,
+        _monthAnchor.month + 1,
+        0,
+      ).day;
+      return _totalMinutes / daysInMonth;
+    }
+  }
+
+  static String _formatHM(double minutes) {
+    final h = minutes ~/ 60;
+    final m = (minutes % 60).round();
+    if (h == 0) return '${m}m';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}m';
+  }
+
+  // ── Nav icon ──────────────────────────────────────────────────────────────
+
   Widget _navIcon(String path, bool isSelected) {
     return Image.asset(
       path,
@@ -32,26 +226,21 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
     );
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
-      // ── Top: ResourceBar + back ─────────────────────────────────────────
       body: Column(
         children: [
-          // ResourceBar — main.dart-тай ижил хэвээр
-          ResourceBar(),
-
-          // Back button мөр
+          // ResourceBar(),
+          // Back bar
           Container(
             color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Row(
               children: [
-                // ──────────────────────────────────────────────────────────
-                // ICON: assets/icons/arrow_back.png
-                // Зүүн тийш харсан буцах сум
-                // ──────────────────────────────────────────────────────────
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Padding(
@@ -71,7 +260,7 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
                 ),
                 const SizedBox(width: 4),
                 const Text(
-                  'Detailed Statistics',
+                  'Statistics',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -81,36 +270,51 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
               ],
             ),
           ),
-
-          // ── Scrollable content ────────────────────────────────────────
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Summary Cards 2×2
-                  _SummaryGrid(),
-                  const SizedBox(height: 16),
-
-                  // Filter Tabs
+                  // Filter tabs
                   _FilterTabs(
                     filters: _filters,
                     selected: _selectedFilter,
-                    onTap: (i) => setState(() => _selectedFilter = i),
+                    onTap: (i) {
+                      setState(() => _selectedFilter = i);
+                      _loadData();
+                    },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
-                  // Bar Chart
-                  _BarChartCard(dailyData: _dailyData, dayLabels: _dayLabels),
-                  const SizedBox(height: 16),
+                  // Period navigator
+                  _PeriodNavigator(
+                    label: _periodLabel,
+                    onPrev: _navigatePrev,
+                    onNext: _canGoNext ? _navigateNext : null,
+                  ),
+                  const SizedBox(height: 14),
 
-                  // By Task Type
-                  _TaskTypeSection(),
-                  const SizedBox(height: 16),
+                  // Summary cards
+                  _SummaryRow(
+                    totalMinutes: _totalMinutes,
+                    avgMinutesPerDay: _averageMinutesPerDay,
+                    formatHM: _formatHM,
+                  ),
+                  const SizedBox(height: 14),
 
-                  // Average
-                  _AverageSection(),
+                  // Bar chart
+                  _loading
+                      ? const SizedBox(
+                          height: 180,
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      : _BarChartCard(
+                          bars: _bars,
+                          totalMinutes: _totalMinutes,
+                          periodLabel: _periodLabel,
+                          formatHM: _formatHM,
+                        ),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -118,151 +322,55 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
           ),
         ],
       ),
-
-      // ── Bottom nav — Profile tab highlighted ───────────────────────────
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 2, // Profile tab
-        onTap: (i) {
-          if (i == 2) return; // Already on Profile stack
-          // Буцаж HomePage руу очиж тухайн tab-г нээнэ
-          Navigator.popUntil(context, (route) => route.isFirst);
-          // HomePage-н index-г сольж чадахгүй тул pop хийгээд дуусна
-          // Хэрэв бүрэн tab switch хэрэгтэй бол HomePage-д callback дамжуулна
-        },
-        backgroundColor: AppColors.primary,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.black,
-        items: [
-          BottomNavigationBarItem(
-            icon: _navIcon('assets/icons/nav_tasks.png', false),
-            label: 'Tasks',
-          ),
-          BottomNavigationBarItem(
-            icon: _navIcon('assets/icons/nav_shop.png', false),
-            label: 'Shop',
-          ),
-          BottomNavigationBarItem(
-            icon: _navIcon('assets/icons/nav_profile.png', true),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: _navIcon('assets/icons/nav_settings.png', false),
-            label: 'Settings',
-          ),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   type: BottomNavigationBarType.fixed,
+      //   currentIndex: 2,
+      //   onTap: (i) {
+      //     if (i == 2) return;
+      //     Navigator.popUntil(context, (route) => route.isFirst);
+      //   },
+      //   backgroundColor: AppColors.primary,
+      //   selectedItemColor: Colors.white,
+      //   unselectedItemColor: Colors.black,
+      //   items: [
+      //     BottomNavigationBarItem(
+      //       icon: _navIcon('assets/icons/nav_tasks.png', false),
+      //       label: 'Tasks',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: _navIcon('assets/icons/nav_shop.png', false),
+      //       label: 'Shop',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: _navIcon('assets/icons/nav_profile.png', true),
+      //       label: 'Profile',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: _navIcon('assets/icons/nav_settings.png', false),
+      //       label: 'Settings',
+      //     ),
+      //   ],
+      // ),
     );
   }
 }
 
-// ─── Summary Grid ─────────────────────────────────────────────────────────────
-class _SummaryGrid extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _SummaryCard(
-                title: 'Total time',
-                value: '127.4h',
-                subtitle: 'Total active',
-                valueColor: const Color(0xFF26C6DA),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _SummaryCard(
-                title: 'Today',
-                value: '3.2h',
-                subtitle: 'Average daily 4.1h',
-                valueColor: const Color(0xFFAB47BC),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _SummaryCard(
-                title: 'Accomplished',
-                value: '284',
-                subtitle: 'Total Challenge',
-                valueColor: const Color(0xFF66BB6A),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _SummaryCard(
-                title: 'Success %',
-                value: '91%',
-                subtitle: 'Deadline',
-                valueColor: const Color(0xFFFFA726),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
+// ─── Data model ───────────────────────────────────────────────────────────────
 
-class _SummaryCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String subtitle;
-  final Color valueColor;
+class _BarData {
+  final String label;
+  final double minutes;
+  final DateTime date;
 
-  const _SummaryCard({
-    required this.title,
-    required this.value,
-    required this.subtitle,
-    required this.valueColor,
+  const _BarData({
+    required this.label,
+    required this.minutes,
+    required this.date,
   });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: valueColor,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ─── Filter Tabs ──────────────────────────────────────────────────────────────
+
 class _FilterTabs extends StatelessWidget {
   final List<String> filters;
   final int selected;
@@ -283,7 +391,7 @@ class _FilterTabs extends StatelessWidget {
           onTap: () => onTap(i),
           child: Container(
             margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFF7E57C2) : Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -311,198 +419,108 @@ class _FilterTabs extends StatelessWidget {
   }
 }
 
-// ─── Bar Chart Card ───────────────────────────────────────────────────────────
-class _BarChartCard extends StatelessWidget {
-  final List<double> dailyData;
-  final List<String> dayLabels;
+// ─── Period Navigator ─────────────────────────────────────────────────────────
 
-  const _BarChartCard({required this.dailyData, required this.dayLabels});
-
-  @override
-  Widget build(BuildContext context) {
-    final double maxVal = dailyData.reduce((a, b) => a > b ? a : b);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Daily Clock',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                'Average 4.1h',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF7E57C2),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 120,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(dailyData.length, (i) {
-                final double barHeight = (dailyData[i] / maxVal) * 100;
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      width: 28,
-                      height: barHeight,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF9575CD),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      dayLabels[i],
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Task Type Section ────────────────────────────────────────────────────────
-class _TaskTypeSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    const int total = 142 + 89 + 41 + 12;
-
-    final List<Map<String, dynamic>> types = [
-      {'label': 'Small', 'count': 142, 'color': const Color(0xFF26C6DA)},
-      {'label': 'Medium', 'count': 89, 'color': const Color(0xFF66BB6A)},
-      {'label': 'Big', 'count': 41, 'color': const Color(0xFFFFA726)},
-      {'label': 'Mythic', 'count': 12, 'color': const Color(0xFFEF5350)},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'By Task Type:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 14),
-          ...types.map(
-            (t) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _TaskTypeRow(
-                label: t['label'],
-                count: t['count'],
-                color: t['color'],
-                progress: t['count'] / total,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TaskTypeRow extends StatelessWidget {
+class _PeriodNavigator extends StatelessWidget {
   final String label;
-  final int count;
-  final Color color;
-  final double progress;
+  final VoidCallback onPrev;
+  final VoidCallback? onNext; // null = disabled
 
-  const _TaskTypeRow({
+  const _PeriodNavigator({
     required this.label,
-    required this.count,
-    required this.color,
-    required this.progress,
+    required this.onPrev,
+    required this.onNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _NavButton(icon: Icons.chevron_left, onTap: onPrev),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        _NavButton(
+          icon: Icons.chevron_right,
+          onTap: onNext,
+        ),
+      ],
+    );
+  }
+}
+
+class _NavButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _NavButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool enabled = onTap != null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: enabled ? Colors.white : Colors.white.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            if (enabled)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+          ],
+        ),
+        child: Icon(
+          icon,
+          size: 22,
+          color: enabled ? Colors.black87 : Colors.grey.shade400,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Summary Row ──────────────────────────────────────────────────────────────
+
+class _SummaryRow extends StatelessWidget {
+  final double totalMinutes;
+  final double avgMinutesPerDay;
+  final String Function(double) formatHM;
+
+  const _SummaryRow({
+    required this.totalMinutes,
+    required this.avgMinutesPerDay,
+    required this.formatHM,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        SizedBox(
-          width: 52,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
+        Expanded(
+          child: _SummaryCard(
+            title: 'Total time',
+            value: formatHM(totalMinutes),
+            valueColor: const Color(0xFF7E57C2),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 10,
-              backgroundColor: const Color(0xFFEEEEEE),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          '$count',
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+          child: _SummaryCard(
+            title: 'Daily average',
+            value: formatHM(avgMinutesPerDay),
+            valueColor: const Color(0xFF26C6DA),
           ),
         ),
       ],
@@ -510,55 +528,15 @@ class _TaskTypeRow extends StatelessWidget {
   }
 }
 
-// ─── Average Section ──────────────────────────────────────────────────────────
-class _AverageSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Average',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _AverageCard(
-                period: '7 days',
-                value: '28.7h',
-                color: const Color(0xFF7E57C2),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _AverageCard(
-                period: 'of the month',
-                value: '123.4h',
-                color: const Color(0xFF7E57C2),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _AverageCard extends StatelessWidget {
-  final String period;
+class _SummaryCard extends StatelessWidget {
+  final String title;
   final String value;
-  final Color color;
+  final Color valueColor;
 
-  const _AverageCard({
-    required this.period,
+  const _SummaryCard({
+    required this.title,
     required this.value,
-    required this.color,
+    required this.valueColor,
   });
 
   @override
@@ -580,20 +558,203 @@ class _AverageCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            period,
+            title,
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: valueColor,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+// ─── Bar Chart Card ───────────────────────────────────────────────────────────
+
+class _BarChartCard extends StatelessWidget {
+  final List<_BarData> bars;
+  final double totalMinutes;
+  final String periodLabel;
+  final String Function(double) formatHM;
+
+  const _BarChartCard({
+    required this.bars,
+    required this.totalMinutes,
+    required this.periodLabel,
+    required this.formatHM,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final double maxVal = bars.isEmpty
+        ? 1
+        : bars.map((b) => b.minutes).reduce((a, b) => a > b ? a : b);
+    final double effectiveMax = maxVal == 0 ? 1 : maxVal;
+
+    // Y-axis labels: 0, half, max — in hours
+    final double topHours = effectiveMax / 60;
+    final double midHours = topHours / 2;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Time spent',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                totalMinutes == 0 ? 'No data' : formatHM(totalMinutes),
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF7E57C2),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (bars.isEmpty || totalMinutes == 0)
+            const SizedBox(
+              height: 140,
+              child: Center(
+                child: Text(
+                  'No time tracked in this period',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: 160,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Y-axis labels
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _shortHours(topHours),
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                      Text(
+                        _shortHours(midHours),
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                      const Text(
+                        '0',
+                        style: TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 6),
+                  // Bars
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: bars.map((bar) {
+                        final double heightFraction = bar.minutes / effectiveMax;
+                        final bool isToday = _isToday(bar.date);
+
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                // Value label on top of bar (only if > 0)
+                                if (bar.minutes > 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 3),
+                                    child: Text(
+                                      formatHM(bar.minutes),
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        color: isToday
+                                            ? const Color(0xFF7E57C2)
+                                            : Colors.grey,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                // Bar itself
+                                AnimatedContainer(
+                                  duration: const Duration(milliseconds: 400),
+                                  curve: Curves.easeOut,
+                                  height: heightFraction * 110,
+                                  decoration: BoxDecoration(
+                                    color: isToday
+                                        ? const Color(0xFF7E57C2)
+                                        : const Color(0xFFB39DDB),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  bar.label,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isToday
+                                        ? const Color(0xFF7E57C2)
+                                        : Colors.grey,
+                                    fontWeight: isToday
+                                        ? FontWeight.w700
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  bool _isToday(DateTime d) {
+    final now = DateTime.now();
+    return d.year == now.year && d.month == now.month && d.day == now.day;
+  }
+
+  // "4.5h" or "30m" compact label for y-axis
+  String _shortHours(double hours) {
+    if (hours < 1) return '${(hours * 60).round()}m';
+    return '${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)}h';
   }
 }

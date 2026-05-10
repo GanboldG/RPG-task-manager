@@ -7,6 +7,7 @@ import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/screens/Statistics/Detailed_Statistics.dart';
+import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 
@@ -16,6 +17,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = context.watch<UserController>();
+    final taskController = context.watch<TaskController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
@@ -31,12 +33,156 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _StatsRow(),
               const SizedBox(height: 12),
-              _ViewStatsButton(),
+              _MiniWeekChart(),
               const SizedBox(height: 20),
+              _ViewStatsButton(),
+              const SizedBox(height: 30),
               _TaskHistorySection(),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MiniWeekChart extends StatelessWidget {
+  static DateTime _mondayOf(DateTime d) =>
+      DateTime(d.year, d.month, d.day).subtract(Duration(days: d.weekday - 1));
+
+  static String _hiveKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  static double _minutesForDay(DateTime day) {
+    final snapshot = TaskService().taskSnapshotBox.get(_hiveKey(day));
+    if (snapshot == null) return 0;
+    return snapshot.taskMinutes.values.fold(0, (sum, v) => sum + v);
+  }
+
+  static String _formatHM(double minutes) {
+    final h = minutes ~/ 60;
+    final m = (minutes % 60).round();
+    if (h == 0) return '${m}m';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monday = _mondayOf(DateTime.now());
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    final data = List.generate(7, (i) {
+      final day = monday.add(Duration(days: i));
+      return (day: day, minutes: _minutesForDay(day), label: labels[i]);
+    });
+
+    final maxVal = data.map((d) => d.minutes).reduce((a, b) => a > b ? a : b);
+    final effectiveMax = maxVal == 0 ? 1.0 : maxVal;
+    final today = DateTime.now();
+    final total = data.fold(0.0, (sum, d) => sum + d.minutes);
+    final avg = total / 7;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'This week',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                'Avg ${_formatHM(avg)}/day',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF7E57C2),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 100,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: data.map((d) {
+                final isToday = d.day.day == today.day &&
+                    d.day.month == today.month &&
+                    d.day.year == today.year;
+                final heightFraction = d.minutes / effectiveMax;
+
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (d.minutes > 0)
+                          Text(
+                            _formatHM(d.minutes),
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: isToday
+                                  ? const Color(0xFF7E57C2)
+                                  : Colors.grey,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        const SizedBox(height: 2),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                          height: heightFraction * 48,
+                          decoration: BoxDecoration(
+                            color: isToday
+                                ? const Color(0xFF7E57C2)
+                                : const Color(0xFFB39DDB),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          d.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isToday
+                                ? const Color(0xFF7E57C2)
+                                : Colors.grey,
+                            fontWeight: isToday
+                                ? FontWeight.w700
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -294,7 +440,7 @@ class _ViewStatsButton extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             const Text(
-              'View detailed statistics (Doesnt work)',
+              'View detailed statistics',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

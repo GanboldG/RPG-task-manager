@@ -1,15 +1,7 @@
 In progress:
+- Fix item generation bug where OP items are cheaper
 - Make shop items reset every 2 hours
 - Achievement screen
-- Add detailed statistics:
-    - TaskSnapshot model to store:
-        - Day 1: [
-            taskId: duration in minutes
-            taskId: duration in minutes
-        ]
-    - Store TaskSnapshot in hive
-    - Store TaskSnapshot / ArchivedTasks in firestore (users/userId/archived_tasks/archived_tasks1)
-    - 
 - Make it possible to download mapped data (tasks, stats) into json
 - Make it possible to load tasks from json file
 
@@ -22,7 +14,6 @@ To Do:
 - Make login not download images for 30 seconds
 - Make items work
 - Add SFX for everything
-- Fix item generation bug where OP items are cheaper
 - Make shop reroll work
 - Make the app not turn off with screen turn-off time
 - Debug Screen for:
@@ -63,3 +54,4 @@ Finished:
 - Add simple user statistics overview functions
 - Add logout button
 - Sort option on task list
+- Add detailed statistics
