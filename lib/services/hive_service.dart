@@ -7,6 +7,7 @@ import 'package:rpg_task_manager/models/item/item_effect.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/models/reward.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
+import 'package:rpg_task_manager/models/task/task_snapshot.dart';
 import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/models/user.dart';
 
@@ -36,6 +37,7 @@ class HiveService{
     Hive.registerAdapter(ItemAdapter());
     Hive.registerAdapter(ItemEffectAdapter());
     Hive.registerAdapter(EffectTypeAdapter());
+    Hive.registerAdapter(TaskSnapshotAdapter());
 
     // Open boxes (or creates boxes on disk)
     if (!Hive.isBoxOpen('active_tasks')) {
@@ -53,7 +55,12 @@ class HiveService{
     if (!Hive.isBoxOpen('custom_shop_items')) {
       await Hive.openBox<CustomItem>('custom_shop_items');
     }
+    if (!Hive.isBoxOpen('task_snapshots')) {
+      await Hive.openBox<TaskSnapshot>('task_snapshots');
+      print("HIVE Task Snapshot initialized");
+    }
 
     initialized = true;
+    print("HIVE initialized");
   }
 }

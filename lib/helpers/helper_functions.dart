@@ -158,4 +158,10 @@ class HelperFunctions{
 
     return result != ConnectivityResult.none;
   }
+
+
+  // Helper to create from DateTime
+  static String formatYearMonthDay(DateTime date){
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
 }

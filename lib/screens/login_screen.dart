@@ -236,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       // DOWNLOAD TASKS
                                       final taskDownloadStopwatch = Stopwatch()..start();
 
-                                      final tasks = await TaskService().getFromFirestore();
+                                      final tasks = await TaskService().getActiveTasksFromFirestore();
 
                                       taskDownloadStopwatch.stop();
 
@@ -252,6 +252,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                       print("populateTasks took: ${populateTaskStopwatch.elapsedMilliseconds} ms");
 
+                                      // DOWNLOAD ARCHIVED TASKS
+                                      final taskArchiveStopwatch = Stopwatch()..start();
+                                      await TaskService().getArchivedTasksFromFirestore();
+                                      taskArchiveStopwatch.stop();
+                                      print("TaskService.getArchivedTasksFromFirestore took: ${taskArchiveStopwatch.elapsedMilliseconds} ms");
+
+                                      // DOWNLOAD TASK SNAPSHOTS
+                                      final taskSnapshotStopwatch = Stopwatch()..start();
+                                      await TaskService().getTaskSnapshotsFromFirestore();
+                                      taskSnapshotStopwatch.stop();
+                                      print("TaskService.getTaskSnapshotsFromFirestore took: ${taskSnapshotStopwatch.elapsedMilliseconds} ms");
+                                      
                                       // SAVE LOCAL
                                       final saveStopwatch = Stopwatch()..start();
 

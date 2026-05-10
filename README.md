@@ -1,24 +1,29 @@
 In progress:
-- Sort option on task list:
-    - After sorting, the list key should be recalculated
-    - "Sort by date, time left, closest deadline, alphabetical etc"
-
-To Do:
 - Make shop items reset every 2 hours
 - Achievement screen
-- Clear hive boxes when logging out / logging in (Make logout method call "Reset every hive boxes")
--  Add detailed statistics:
-    - Store tasks locally
-    - Store task snapshots and time snapshots in firebase to keep statistics
-    - Detailed stats screen
-    - Show the statistics on profile in very fancy way
+- Add detailed statistics:
+    - TaskSnapshot model to store:
+        - Day 1: [
+            taskId: duration in minutes
+            taskId: duration in minutes
+        ]
+    - Store TaskSnapshot in hive
+    - Store TaskSnapshot / ArchivedTasks in firestore (users/userId/archived_tasks/archived_tasks1)
+    - 
 - Make it possible to download mapped data (tasks, stats) into json
-- Shop Item stored locally with Hive, with timer that refreshes s
+- Make it possible to load tasks from json file
+
+To Do:
+- Clear hive boxes when logging out / logging in (Make logout method call "Reset every hive boxes")
+- Shop Item stored locally with Hive, with timer that refreshes
 - Option to create / update profile
-- Custom item images loads after seconds (janky)
+- Make app work in the background, with full noification control
+- Fix custom item images loading every seconds (janky)
 - Make login not download images for 30 seconds
 - Make items work
 - Add SFX for everything
+- Fix item generation bug where OP items are cheaper
+- Make shop reroll work
 - Make the app not turn off with screen turn-off time
 - Debug Screen for:
     - Changing config json files
@@ -34,7 +39,6 @@ To Do:
 - Full friends / leaderboard functionality
 - Add more item functionality
 - ML classifier for task labels -> Google colab -> Firebase etc
-- Rework the GUI into something modern
 - Use real SHA fingerprints instead of the debug one
 - In production is backend logic to delete images from cloudinary
 - Make achievements work
@@ -58,3 +62,4 @@ Finished:
 - Store the last 100 finished tasks locally, and show on profile
 - Add simple user statistics overview functions
 - Add logout button
+- Sort option on task list

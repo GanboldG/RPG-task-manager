@@ -70,6 +70,7 @@ class TaskController extends ChangeNotifier {
     _userController = userController; 
   }
 
+
   // Calls after login happens
   void initialize(){
     // Gets all task info from hive box (storage)
@@ -241,6 +242,7 @@ class TaskController extends ChangeNotifier {
       if (timerCounter >= taskLocalSaveInterval){
         timerCounter = 0;
         updateHiveTaskDoneDuration(taskId: task.id);
+        updateTaskSnapshots(task.id, taskLocalSaveInterval / 60);
 
         // Save user's task total time field
         _userController.updateTaskTotalSeconds(taskLocalSaveInterval);
@@ -289,5 +291,11 @@ class TaskController extends ChangeNotifier {
     final tasks = _archivedTasks.reversed.toList();
 
     return tasks.take(amount).toList();
+  }
+
+
+  // -------------------------TASK SNAPSHOTS---------------------------- 
+  void updateTaskSnapshots(String taskId, double addingMinutes) async{
+    await TaskService().updateTaskSnapshots(taskId, addingMinutes);
   }
 }

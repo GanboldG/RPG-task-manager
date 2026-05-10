@@ -37,6 +37,7 @@ void main() async {
   // await Hive.deleteBoxFromDisk("custom_shop_items");
   // await Hive.deleteBoxFromDisk("archived_tasks");
   // await Hive.deleteBoxFromDisk("active_tasks");
+  // await Hive.deleteBoxFromDisk("task_snapshots");
 
   // Initialize Hive for data storage
   await HiveService.initializeHive();
