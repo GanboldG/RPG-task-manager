@@ -1,8 +1,8 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/services/item_service.dart';
@@ -110,9 +110,14 @@ class ItemShopController extends ChangeNotifier{
     }
   }
 
+  // Populate from firebase
   void populateCustomItemsList(List<CustomItem> items){
-    // TODO Might overflow the max amount
-    _customItems.addAll(items);
+    for (CustomItem item in items){
+      _customItems.add(item);
+      if (_customItems.length >= UserService().currentUser.customShopSlot){
+        break;
+      }
+    }
   }
 
   // Add a new custom item
@@ -173,9 +178,9 @@ class ItemShopController extends ChangeNotifier{
     if (item != null) {
       // Delete the image file if it exists
       if (item.imagePath != null) {
-        await _deleteImageFile(item.imagePath!);
+        await HelperFunctions.deleteImage(item.imagePath!);
+        // await _deleteImageFile(item.imagePath!);
       }
-      
       _customItems.removeWhere((i) => i.id == itemId);
 
       await ItemService().deleteCustomItem(itemId);
@@ -183,38 +188,15 @@ class ItemShopController extends ChangeNotifier{
     }
   }
 
-  // Delete all images created from custom items
-  Future<void> deleteAllCustomItemImages() async {
-    for (final item in _customItems) {
-      if (item.imagePath != null) {
-        await _deleteImageFile(item.imagePath!);
-      }
-    }
-    debugPrint('All custom item images deleted from device storage');
-  }
-
-  // Delete a single image file
-  Future<void> _deleteImageFile(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-        debugPrint('Deleted image: $path');
-      }
-    } catch (e) {
-      debugPrint('Error deleting image $path: $e');
-    }
-  }
-
   // Delete the entire custom items directory
-  Future<void> deleteAllCustomItemsAndImages() async {
-    // First delete all image files
-    await deleteAllCustomItemImages();
-    
-    // Clear the list
+  Future<void> deleteAllCustomItems() async {
+
+    // Delete every items and images from storage
+    await ItemService().deleteAllCustomItems(_customItems);
+
+     // Clear the list
     _customItems.clear();
 
-    await ItemService().deleteAllCustomItems();
     notifyListeners();
     
     // Delete the directory if empty

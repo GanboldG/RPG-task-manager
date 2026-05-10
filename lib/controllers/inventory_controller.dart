@@ -40,6 +40,10 @@ class InventoryController extends ChangeNotifier{
 
   // ------------ADD-----------------
   void addItem(Item item){
+    if (inventoryIsFull()){
+      return;
+    }
+    
     _inventoryItems.add(item);
 
     notifyListeners();
@@ -80,7 +84,9 @@ class InventoryController extends ChangeNotifier{
     notifyListeners();
   }
 
-
+  bool inventoryIsFull(){
+    return _inventoryItems.length >= UserService().currentUser.inventorySlot;
+  }
 
   // ---------------TIMER RELATED METHODS-----------------
    void _decrementAllActiveItems() {

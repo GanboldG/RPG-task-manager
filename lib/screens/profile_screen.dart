@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/screens/Statistics/Detailed_Statistics.dart';
+import 'package:rpg_task_manager/services/task_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 
 class ProfileScreen extends StatelessWidget {
@@ -13,6 +17,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userController = context.watch<UserController>();
+    final taskController = context.watch<TaskController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
@@ -28,15 +33,156 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _StatsRow(),
               const SizedBox(height: 12),
-              _ViewStatsButton(),
+              _MiniWeekChart(),
               const SizedBox(height: 20),
-              // _AchievementSection(),
-              // const SizedBox(height: 16),
-              // _StreakCard(),
-              // const SizedBox(height: 20),
+              _ViewStatsButton(),
+              const SizedBox(height: 30),
+              _TaskHistorySection(),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MiniWeekChart extends StatelessWidget {
+  static DateTime _mondayOf(DateTime d) =>
+      DateTime(d.year, d.month, d.day).subtract(Duration(days: d.weekday - 1));
+
+  static String _hiveKey(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  static double _minutesForDay(DateTime day) {
+    final snapshot = TaskService().taskSnapshotBox.get(_hiveKey(day));
+    if (snapshot == null) return 0;
+    return snapshot.taskMinutes.values.fold(0, (sum, v) => sum + v);
+  }
+
+  static String _formatHM(double minutes) {
+    final h = minutes ~/ 60;
+    final m = (minutes % 60).round();
+    if (h == 0) return '${m}m';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monday = _mondayOf(DateTime.now());
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    final data = List.generate(7, (i) {
+      final day = monday.add(Duration(days: i));
+      return (day: day, minutes: _minutesForDay(day), label: labels[i]);
+    });
+
+    final maxVal = data.map((d) => d.minutes).reduce((a, b) => a > b ? a : b);
+    final effectiveMax = maxVal == 0 ? 1.0 : maxVal;
+    final today = DateTime.now();
+    final total = data.fold(0.0, (sum, d) => sum + d.minutes);
+    final avg = total / 7;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'This week',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                'Avg ${_formatHM(avg)}/day',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF7E57C2),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 100,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: data.map((d) {
+                final isToday = d.day.day == today.day &&
+                    d.day.month == today.month &&
+                    d.day.year == today.year;
+                final heightFraction = d.minutes / effectiveMax;
+
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (d.minutes > 0)
+                          Text(
+                            _formatHM(d.minutes),
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: isToday
+                                  ? const Color(0xFF7E57C2)
+                                  : Colors.grey,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        const SizedBox(height: 2),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                          height: heightFraction * 48,
+                          decoration: BoxDecoration(
+                            color: isToday
+                                ? const Color(0xFF7E57C2)
+                                : const Color(0xFFB39DDB),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          d.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: isToday
+                                ? const Color(0xFF7E57C2)
+                                : Colors.grey,
+                            fontWeight: isToday
+                                ? FontWeight.w700
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -177,7 +323,7 @@ class _StatsRow extends StatelessWidget {
       children: [
         Expanded(
           child: _StatBox(
-            value: '127h',
+            value: "${HelperFunctions.secToHoursDecimal(UserService().currentUser.secondsSpentOnTasks)}h",
             label: 'Total time',
             color: const Color(0xFF26C6DA),
           ),
@@ -185,17 +331,25 @@ class _StatsRow extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _StatBox(
-            value: '284',
-            label: 'Task',
+            value: UserService().currentUser.completedTaskAmount.toString(),
+            label: 'Done Tasks',
             color: const Color(0xFF66BB6A),
           ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: _StatBox(
-            value: '42',
-            label: 'Streak',
+            value: UserService().currentUser.taskCompletionStreak.toString(),
+            label: 'Task Streak',
             color: const Color(0xFFFFA726),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _StatBox(
+            value: '? days',
+            label: 'Login Streak',
+            color: const Color.fromARGB(255, 255, 92, 11),
           ),
         ),
       ],
@@ -310,195 +464,214 @@ class _ViewStatsButton extends StatelessWidget {
   }
 }
 
-class _AchievementSection extends StatelessWidget {
+class _TaskHistorySection extends StatelessWidget {
+  const _TaskHistorySection();
+
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> achievements = [
-      {
-        'label': 'Lv1',
-
-        'iconPath': 'assets/icons/lv1.png',
-        'bgColor': const Color(0xFFFFF9C4),
-        'borderColor': const Color(0xFFF9A825),
-      },
-      {
-        'label': 'Lv2',
-
-        'iconPath': 'assets/icons/lv2.png',
-        'bgColor': const Color(0xFFEDE7F6),
-        'borderColor': const Color(0xFF7E57C2),
-      },
-      {
-        'label': 'Lv3',
-
-        'iconPath': 'assets/icons/lv3.png',
-        'bgColor': const Color(0xFFEDE7F6),
-        'borderColor': const Color(0xFF9C27B0),
-      },
-      {
-        'label': 'Lv4',
-
-        'iconPath': 'assets/icons/lv4.png',
-        'bgColor': const Color(0xFFE8F5E9),
-        'borderColor': const Color(0xFF43A047),
-      },
-      {
-        'label': 'Lv5',
-
-        'iconPath': 'assets/icons/lv5.png',
-        'bgColor': const Color(0xFFFFF9C4),
-        'borderColor': const Color(0xFFFB8C00),
-      },
-    ];
+    final taskController = context.watch<TaskController>();
+    final recentTasks = taskController.getLastNArchivedTasks(3);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Outstanding Achievement',
+          "Recent Tasks History",
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF7E57C2),
           ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: achievements
-              .map(
-                (a) => _AchievementBox(
-                  label: a['label'],
-                  iconPath: a['iconPath'],
-                  bgColor: a['bgColor'],
-                  borderColor: a['borderColor'],
+
+        const SizedBox(height: 12),
+
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              ...recentTasks.map(
+                (task) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _TaskHistoryTile(
+                    title: task.name,
+                    time: "${HelperFunctions.formatDuration(task.getSecondsSinceCompletion() ?? 0).toString()} ago",
+                    xp: task.reward.xp.toString(),
+                    gold: task.reward.gold.toString()
+                  ),
                 ),
-              )
-              .toList(),
+              ),
+
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FullTaskHistoryScreen(),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF4F0FB),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      "View Full History",
+                      style: TextStyle(
+                        color: Color(0xFF7E57C2),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 }
 
-class _AchievementBox extends StatelessWidget {
-  final String label;
-  final String iconPath;
-  final Color bgColor;
-  final Color borderColor;
+class _TaskHistoryTile extends StatelessWidget {
+  final String title;
+  final String time;
+  final String xp;
+  final String gold;
 
-  const _AchievementBox({
-    required this.label,
-    required this.iconPath,
-    required this.bgColor,
-    required this.borderColor,
+  const _TaskHistoryTile({
+    required this.title,
+    required this.time,
+    required this.xp,
+    required this.gold,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 58,
-      height: 64,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: borderColor, width: 2),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      return Row(
         children: [
-          Image.asset(
-            iconPath,
-            width: 28,
-            height: 28,
-            errorBuilder: (_, __, ___) => SizedBox(
-              width: 28,
-              height: 28,
-              child: Placeholder(color: borderColor),
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE7F6),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.check_circle_outline,
+              color: Color(0xFF7E57C2),
             ),
           ),
-          const SizedBox(height: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              color: borderColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-class _StreakCard extends StatelessWidget {
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+
+                const SizedBox(height: 3),
+
+                Text(
+                  time,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Column(
+            children:[
+              Text(
+                "$xp XP",
+                style: const TextStyle(
+                  color: const Color(0xFF26C6DA),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                "$gold GOLD",
+                style: const TextStyle(
+                  color: const Color(0xFFFFA726),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ]
+          )
+        ],
+      );
+  }}
+
+class FullTaskHistoryScreen extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    final taskController = context.watch<TaskController>();
+    final tasksData = taskController.archivedTasks;
+
+    final tasks = List.generate(
+      tasksData.length,
+      (index) => {
+        "title": "#${index + 1}: ${tasksData[index].name}",
+        "time": "${HelperFunctions.formatDuration(tasksData[index].getSecondsSinceCompletion() ?? 0)} ago",
+        "xp": "${tasksData[index].reward.xp}",
+        "gold": "${tasksData[index].reward.gold}",
+      },
+    );
+    
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF2F2F2),
+      appBar: AppBar(
+        title: const Text("Task History"),
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
-      child: Row(
-        children: [
-          Image.asset(
-            'assets/icons/fire.png',
-            width: 36,
-            height: 36,
-            errorBuilder: (_, __, ___) => const SizedBox(
-              width: 36,
-              height: 36,
-              child: Placeholder(color: Color(0xFFFF7043)),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: tasks.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        itemBuilder: (context, index) {
+          final task = tasks[index];
+
+          return Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 255, 255, 255),
+              borderRadius: BorderRadius.circular(14),
             ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                '42 Day',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(205, 127, 50, 1),
-                ),
-              ),
-              Text(
-                'Daily login streak',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const SizedBox(height: 2),
-              const Text(
-                'Bronze',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromRGBO(205, 127, 50, 1),
-                ),
-              ),
-              const Text(
-                '58 day silver',
-                style: TextStyle(fontSize: 11, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
+            child: _TaskHistoryTile(
+              title: task["title"]!,
+              time: task["time"]!,
+              xp: task["xp"]!,
+              gold: task["gold"]!
+            ),
+          );
+        },
       ),
     );
   }

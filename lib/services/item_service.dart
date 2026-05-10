@@ -8,6 +8,7 @@ import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/services/cloudinary_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
 
 class ItemService {
   // Singleton instance
@@ -109,29 +110,52 @@ class ItemService {
     await _customShopItemsBox.put(updatedCustomItem.id, updatedCustomItem);
   }
   
-  // Delete Custom Item
+
+  // Delete Custom Item from storage / cloudinary
   Future<void> deleteCustomItem(String id) async {
     final item = _customShopItemsBox.get(id);
     
     // If the item has an image, you might want to delete it from disk
-    if (item != null && item.imagePath != null) {
-      await HelperFunctions.deleteImage(item.imagePath!);
+    if (item != null) {
+      if (item.imagePath != null){
+        await HelperFunctions.deleteImage(item.imagePath!);
+      }
+      deleteImageFromCloudinary(item);
     }
     
     await _customShopItemsBox.delete(id);
   }
 
-  
-  // Delete multiple custom items
-  Future<void> deleteCustomItems(List<String> ids) async {
-    await _customShopItemsBox.deleteAll(ids);
-  }
-  
+
   // Delete all custom items
-  Future<void> deleteAllCustomItems() async {
+  Future<void> deleteAllCustomItems(List<CustomItem> customItems) async {
+    for (CustomItem item in customItems){
+      if (item.imagePath != null){
+        HelperFunctions.deleteImage(item.imagePath!);
+      }
+      deleteImageFromCloudinary(item);
+    }
+
     await _customShopItemsBox.clear();
   }
   
+  // Delete custom items image from cloudinary 
+  Future<void> deleteImageFromCloudinary(CustomItem item) async{
+    // Skips attempt at deleting if offline
+    if (!await HelperFunctions.hasInternet()){
+      return;
+    }
+
+    try{
+      if (item.imagePublicId != null){
+        final deleted = await CloudinaryService.deleteImageByPublicId(item.imagePublicId!);
+        print("(Cloudinary) Deleted old image: $deleted");
+      }
+    } catch (e){
+      print("Exception $e when trying to delete image from Cloudinary");
+    }
+  }
+
   // Check if custom item exists
   bool customItemExists(String id) {
     return _customShopItemsBox.containsKey(id);
@@ -142,37 +166,106 @@ class ItemService {
 
 
   // ------------------------------- FIRESTORE methods ------------------------------------
-  Future<void> uploadCustomItemsToFirestore(List<CustomItem> items) async {
+  // Future<void> uploadCustomItemsToFirestore(List<CustomItem> items) async {
+  //   final currentUser = FirebaseAuth.instance.currentUser;
+  //   if (currentUser == null) return;
+
+  //   final uid = currentUser.uid;
+
+  //   try {
+  //     final collectionRef = FirebaseFirestore.instance
+  //         .collection("users")
+  //         .doc(uid)
+  //         .collection("custom_items");
+
+  //     // ---------------- DELETE ALL EXISTING ----------------
+  //     final existingSnapshot = await collectionRef.get();
+
+  //     final deleteBatch = FirebaseFirestore.instance.batch();
+
+  //     for (final doc in existingSnapshot.docs) {
+  //       deleteBatch.delete(doc.reference);
+  //     }
+
+  //     await deleteBatch.commit();
+
+  //     // ---------------- UPLOAD NEW ITEMS ----------------
+  //     final uploadBatch = FirebaseFirestore.instance.batch();
+
+  //     for (final item in items) {
+  //       // 1) Upload image if exists
+  //       if (item.imagePath != null) {
+  //         final imageUrls = await CloudinaryService
+  //             .uploadCustomItemImage(File(item.imagePath!));
+
+  //         if (imageUrls != null) {
+  //           item.imageUrl = imageUrls['url'];
+  //           item.imagePublicId = imageUrls['publicId'];
+  //         }
+  //       }
+
+  //       final docRef = collectionRef.doc(item.id);
+  //       uploadBatch.set(docRef, item.toMap());
+  //     }
+
+  //     await uploadBatch.commit();
+  //   } catch (e) {
+  //     print("(Debug) Exception $e while replacing custom items");
+  //   }
+  // }
+
+  Future<void> uploadCustomItemsToFirestore() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return;
 
     final uid = currentUser.uid;
 
     try {
-      final collectionRef = FirebaseFirestore.instance
+      final docRef = FirebaseFirestore.instance
           .collection("users")
           .doc(uid)
-          .collection("custom_items");
+          .collection("custom_items")
+          .doc("data");
 
-      // ---------------- DELETE ALL EXISTING ----------------
-      final existingSnapshot = await collectionRef.get();
+      // ---------------- READ EXISTING ITEMS ----------------
+      final existingSnapshot = await docRef.get();
 
-      final deleteBatch = FirebaseFirestore.instance.batch();
+      if (existingSnapshot.exists) {
+        final data = existingSnapshot.data();
 
-      for (final doc in existingSnapshot.docs) {
-        deleteBatch.delete(doc.reference);
+        if (data != null && data["items"] != null) {
+          final rawItems = data["items"] as List<dynamic>;
+
+          for (final raw in rawItems) {
+            final oldItem = CustomItem.fromMap(
+              Map<String, dynamic>.from(raw),
+            );
+
+            // Delete old Cloudinary image
+            if (oldItem.imagePublicId != null) {
+              try {
+                final deleted = await CloudinaryService.deleteImageByPublicId(oldItem.imagePublicId!);
+
+                print(
+                  "(Cloudinary) Deleted old custom item image from cloudinary: $deleted",
+                );
+              } catch (e) {
+                print(
+                  "(Cloudinary) Failed deleting old custom item image from cloudinary: $e",
+                );
+              }
+            }
+          }
+        }
       }
 
-      await deleteBatch.commit();
+      // ---------------- PREPARE NEW ITEMS ----------------
+      List<Map<String, dynamic>> itemsMap = [];
 
-      // ---------------- UPLOAD NEW ITEMS ----------------
-      final uploadBatch = FirebaseFirestore.instance.batch();
-
-      for (final item in items) {
-        // 1) Upload image if exists
+      for (final item in getAllCustomItems()) {
+        // Upload image if exists
         if (item.imagePath != null) {
-          final imageUrls = await CloudinaryService
-              .uploadCustomItemImage(File(item.imagePath!));
+          final imageUrls = await CloudinaryService.uploadCustomItemImage(File(item.imagePath!));
 
           if (imageUrls != null) {
             item.imageUrl = imageUrls['url'];
@@ -180,16 +273,18 @@ class ItemService {
           }
         }
 
-        final docRef = collectionRef.doc(item.id);
-        uploadBatch.set(docRef, item.toMap());
+        itemsMap.add(item.toMap());
       }
 
-      await uploadBatch.commit();
+      // ---------------- OVERWRITE DOCUMENT ----------------
+      await docRef.set({
+        "items": itemsMap,
+      });
+
     } catch (e) {
       print("(Debug) Exception $e while replacing custom items");
     }
   }
-
 
   Future<List<CustomItem>> getCustomItemsFromFirestore() async {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -202,12 +297,20 @@ class ItemService {
           .collection("users")
           .doc(uid)
           .collection("custom_items")
+          .doc("data")
           .get();
+
+      final data = snapshot.data();
+      if (data == null) return [];
+
+      final rawItems = data["items"] as List<dynamic>?;
+
+      if (rawItems == null) return [];
 
       List<CustomItem> items = [];
 
-      for (final doc in snapshot.docs) {
-        final item = CustomItem.fromMap(doc.data());
+      for (final raw in rawItems) {
+        final item = CustomItem.fromMap(Map<String, dynamic>.from(raw));
 
         if (item.imageUrl != null) {
           final file = await CloudinaryService.downloadImageToFile(
@@ -215,11 +318,14 @@ class ItemService {
             "custom_item_${item.id}",
           );
 
+          // Delete previous local image
           if (item.imagePath != null) {
             await HelperFunctions.deleteImage(item.imagePath!);
           }
 
-          final savedPath = await saveCustomItemImagePermanently(file);
+          final savedPath =
+              await saveCustomItemImagePermanently(file);
+
           item.imagePath = savedPath;
         }
 

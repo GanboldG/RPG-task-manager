@@ -1,19 +1,19 @@
 import 'dart:io';
 import 'dart:math';
-
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
 
 class HelperFunctions{
-  static void showMessage(BuildContext context, String message){
+  static void showMessage(BuildContext context, String message, {int duration = 1}){
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        backgroundColor: AppColors.rarityEpic,
         content: Text(message,
                      style: TextStyle(
                       color: Colors.white,
                      )),
-        duration: Duration(seconds: 1),
+        duration: Duration(seconds: duration),
       ),
     );
   }
@@ -51,6 +51,14 @@ class HelperFunctions{
 
   static int minToSec(double minutes){
     return (minutes * 60).round();
+  }
+
+
+  // Converts seconds to hours with 0.0 decimal
+  static double secToHoursDecimal(int seconds) {
+    if (seconds <= 0) return 0.0;
+
+    return double.parse((seconds / 3600).toStringAsFixed(1));
   }
 
 
@@ -145,17 +153,15 @@ class HelperFunctions{
     }
   } 
 
-  // static Future<Uint8List?> compressFileToBytes(File file) async {
-  //   final inputBytes = await file.readAsBytes();
+  static Future<bool> hasInternet() async {
+    var result = await Connectivity().checkConnectivity();
 
-  //   final compressed = await FlutterImageCompress.compressWithList(
-  //     inputBytes,
-  //     quality: 70,
-  //     minWidth: 1024,
-  //     minHeight: 1024,
-  //     format: CompressFormat.jpeg,
-  //   );
+    return result != ConnectivityResult.none;
+  }
 
-  //   return compressed;
-  // }
+
+  // Helper to create from DateTime
+  static String formatYearMonthDay(DateTime date){
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
 }

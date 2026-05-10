@@ -35,6 +35,9 @@ void main() async {
   // await Hive.deleteBoxFromDisk("user");
   // await Hive.deleteBoxFromDisk("shop_items");
   // await Hive.deleteBoxFromDisk("custom_shop_items");
+  // await Hive.deleteBoxFromDisk("archived_tasks");
+  // await Hive.deleteBoxFromDisk("active_tasks");
+  // await Hive.deleteBoxFromDisk("task_snapshots");
 
   // Initialize Hive for data storage
   await HiveService.initializeHive();
@@ -157,11 +160,11 @@ class BootstrapScreen extends StatefulWidget {
 }
 
 class _BootstrapScreenState extends State<BootstrapScreen> {
-  bool hasUser = UserService().hasUser();
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+    final hasUser = UserService().hasUser();
 
     final canEnterApp =
         hasUser ||

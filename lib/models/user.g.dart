@@ -44,13 +44,17 @@ class UserAdapter extends TypeAdapter<User> {
       customShopSlot: fields[22] as int,
       shopRerolls: fields[23] as int,
       inventorySlot: fields[24] as int,
+      secondsSpentOnTasks: fields[27] as int,
+      completedTaskAmount: fields[28] as int,
+      taskCompletionStreak: fields[29] as int,
+      dailyLoginStreak: fields[30] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, User obj) {
     writer
-      ..writeByte(27)
+      ..writeByte(31)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -104,7 +108,15 @@ class UserAdapter extends TypeAdapter<User> {
       ..writeByte(25)
       ..write(obj.avatarUrl)
       ..writeByte(26)
-      ..write(obj.avatarPublicId);
+      ..write(obj.avatarPublicId)
+      ..writeByte(27)
+      ..write(obj.secondsSpentOnTasks)
+      ..writeByte(28)
+      ..write(obj.completedTaskAmount)
+      ..writeByte(29)
+      ..write(obj.taskCompletionStreak)
+      ..writeByte(30)
+      ..write(obj.dailyLoginStreak);
   }
 
   @override

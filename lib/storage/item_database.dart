@@ -271,6 +271,7 @@ class ShopManager {
     return shopItems;
   }
   
+  ItemRarity getItemRarity() => _getItemRarity();
 
   ItemRarity _getItemRarity(){
     Map<ItemRarity, double> rarities = 

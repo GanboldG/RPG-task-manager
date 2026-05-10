@@ -30,8 +30,9 @@ class UserService {
     return _currentUser!;
   }
 
-  void setCurrentUser(User user){
+  void setCurrentUser(User user) async {
     _currentUser = user;
+    await saveCurrentUserData();
   }
   
   //----------------Hive Stuff---------------

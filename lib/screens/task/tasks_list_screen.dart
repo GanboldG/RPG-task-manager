@@ -25,7 +25,7 @@ class _TaskScreenState extends State<TaskScreen>{
     // This screen is subscribed to TaskController. Whenever TaskController method
     // calls notifyListeners(), it rebuilds this GUI, very nice!
     final controller = context.watch<TaskController>();
-    final timerService = controller.timerService;
+    // final timerService = controller.timerService;
     final tasks = controller.tasks;
 
     return Scaffold(
@@ -36,7 +36,13 @@ class _TaskScreenState extends State<TaskScreen>{
             _buildLabel("Current Task:", 5),
             _buildChosenTask(context),
             SizedBox(height: 15),
-            _buildLabel("Tasks:", 0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildLabel("Tasks (${tasks.length}/60):", 0),
+                _buildSortButton(context),
+              ],
+            ),
             _buildTaskList(context),
           ],
         ),
@@ -218,7 +224,7 @@ class _TaskScreenState extends State<TaskScreen>{
             ),
             onPressed: () {
               // DEBUG to check if idCounter is working
-              HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString());
+              // HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString(), 1);
 
               setState(() {
                 if (isThisTaskRunning) {
@@ -317,36 +323,90 @@ class _TaskScreenState extends State<TaskScreen>{
             for (int i = 0; i < tasks.length; i++)
               _buildTaskTile(i),
           ],
-          onReorder: (oldIndex, newIndex){
+          onReorder: (oldIndex, newIndex) {
             setState(() {
-              if (newIndex > oldIndex){newIndex--;}
-              final item = tasks.removeAt(oldIndex);
-              tasks.insert(newIndex, item);
-
+              controller.reorderTasks(oldIndex, newIndex); // mutates _tasks directly
               controller.updateTaskOrderId();
-              
-              // IMPORTANT: After reordering, check if the active task is no longer first
-              // If the active task was moved from position 0, stop its timer
+
               final timerService = controller.timerService;
-              if (timerService.activeTask != null && tasks.isNotEmpty) {
-                // If the active task is not the first task anymore, stop its timer
-                if (timerService.activeTask!.id != tasks[0].id) {
+              if (timerService.activeTask != null && controller.tasks.isNotEmpty) {
+                if (timerService.activeTask!.id != controller.tasks[0].id) {
                   timerService.stopTimer();
                   HelperFunctions.showMessage(context, "Task reordered - Timer stopped");
                 }
               }
             });
-          },  
+          },
         ),
       )
     );
   }
 
+  Widget _buildSortButton(BuildContext context) {
+    final controller = context.watch<TaskController>(); // watch, not read
+
+    final labels = {
+      TaskSortOrder.manual:             "Manual",
+      TaskSortOrder.newest:             "Newest first",
+      TaskSortOrder.oldest:             "Oldest first",
+      TaskSortOrder.closestDeadline:    "Closest deadline",
+      TaskSortOrder.closestToCompletion:"Closest to done",
+    };
+
+    return PopupMenuButton<TaskSortOrder>(
+      color: AppColors.primary,
+      onSelected: (order) => controller.setSortOrder(order),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.sort, color: AppColors.textSecondary, size: 18),
+          SizedBox(width: 4),
+          Text(
+            labels[controller.sortOrder]!,
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: AppFonts.sizeMedium,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 18),
+        ],
+      ),
+      itemBuilder: (_) => [
+        _sortMenuItem(TaskSortOrder.manual,               Icons.drag_handle, "Manual"),
+        _sortMenuItem(TaskSortOrder.newest,               Icons.fiber_new,   "Newest first"),
+        _sortMenuItem(TaskSortOrder.oldest,               Icons.history,     "Oldest first"),
+        _sortMenuItem(TaskSortOrder.closestDeadline,      Icons.timer,       "Closest deadline"),
+        _sortMenuItem(TaskSortOrder.closestToCompletion,  Icons.percent,     "Closest to done"),
+      ],
+    );
+  }
+
+  PopupMenuItem<TaskSortOrder> _sortMenuItem(TaskSortOrder value, IconData icon, String label) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.textSecondary, size: 20),
+          SizedBox(width: 10),
+          Text(label, style: TextStyle(color: AppColors.textSecondary)),
+        ],
+      ),
+    );
+  }
+
   // Builds floating task add button
   Widget _buildAddButton(BuildContext context){
+    final taskCount = context.read<TaskController>().tasks.length;
+
     return FloatingActionButton(
       heroTag: "add_button_fab",
       onPressed: () async {
+        if (taskCount >= 60){
+          HelperFunctions.showMessage(context, "Task limit reached, complete or delete a task to add.", duration: 2);
+          return;
+        }
+
         final result = await Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => AddTaskScreen()),

@@ -18,4 +18,10 @@ class AppState extends ChangeNotifier {
     _isOffline = false;
     notifyListeners();
   }
+
+  void setLoggedOut() {
+    _isLoggedIn = false;
+    _isOffline = false;
+    notifyListeners();
+  }
 }

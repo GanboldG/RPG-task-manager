@@ -150,6 +150,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Widget _buildNameField() {
     return TextFormField(
       controller: _nameController,
+      maxLength: 30,
       decoration: InputDecoration(
         labelText: "Task Name",
         hintText: "Enter task name",
@@ -450,6 +451,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         TextFormField(
           initialValue: _description,
           maxLines: 3,
+          maxLength: 60,
           decoration: InputDecoration(
             hintText: "Enter task description",
             border: OutlineInputBorder(
