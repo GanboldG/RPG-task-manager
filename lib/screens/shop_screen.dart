@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
@@ -12,6 +14,7 @@ import 'package:rpg_task_manager/models/item/item.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
 import 'package:rpg_task_manager/services/audio_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
+import 'package:rpg_task_manager/storage/item_database.dart';
 
 // ─── Color Palette ────────────────────────────────────────────────────────────
 const kBg        = Color.fromARGB(255, 246, 232, 255);
@@ -48,6 +51,8 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
     _tab.dispose(); 
     super.dispose(); 
   }
+
+  void _openLootBox() => openLootbox(context);
 
   // Buy REAL items (XP/Gold boosts)
   void _buyShopItem(Item item) {
@@ -139,7 +144,7 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
           child: TabBarView(
             controller: _tab,
             children: [
-              _TokenShopTab(onBuy: _buyShopItem),
+              _TokenShopTab(onBuy: _buyShopItem, onOpenLootbox: _openLootBox),
               _CustomItemShopTab(onBuyCustomItem: _buyCustomItem),
             ],
           ),
@@ -149,10 +154,13 @@ class _ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateM
   }
 }
 
+
 // ─── ITEM SHOP TAB (Unchanged) ───────────────────────────────────────────────────
 class _TokenShopTab extends StatelessWidget {
   final void Function(Item item) onBuy;
-  const _TokenShopTab({required this.onBuy});
+  final VoidCallback onOpenLootbox;
+
+  const _TokenShopTab({required this.onBuy, required this.onOpenLootbox});
 
   @override
   Widget build(BuildContext context){
@@ -168,6 +176,8 @@ class _TokenShopTab extends StatelessWidget {
               width: double.infinity,
             )
           ),
+
+          LootboxButton(onTap: onOpenLootbox),
 
           Expanded(
             child: ListView.separated(
@@ -834,3 +844,505 @@ class _OutlineBtn extends StatelessWidget {
     child: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
   );
 }
+
+
+// GAMBLING
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+const _kLootboxCost = 100;
+const _kCardWidth = 110.0;
+const _kCardHeight = 140.0;
+const _kCardGap = 10.0;
+const _kRollDuration = Duration(milliseconds: 7000); // was 4500
+const _kWinnerIndex = 60; // was 32, need more cards to scroll through
+const _kStripItems = 72;  // was 40, must be > _kWinnerIndex + buffer
+ 
+// ─── Lootbox Button — drop this in _TokenShopTab between banner & ListView ───
+class LootboxButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const LootboxButton({super.key, required this.onTap});
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color.fromARGB(255, 176, 166, 59), Color.fromARGB(255, 206, 203, 21)],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.black),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF7C3AED).withOpacity(0.4),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'GAMBLING',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  Text(
+                    ' 100 Gold per roll',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(width: 10),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+ 
+// ─── Open lootbox — call this from _ShopScreenState ──────────────────────────
+void openLootbox(BuildContext context) {
+  final userController = context.read<UserController>();
+ 
+  if (!userController.spendGolds(_kLootboxCost)) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text('Not enough gold! Need 100 💰'),
+      backgroundColor: Color(0xFFB91C1C),
+      duration: Duration(seconds: 2),
+    ));
+    return;
+  }
+ 
+  // Build a pool of ~40 randomized items; winner is at _kWinnerIndex
+  final shopController = context.read<ItemShopController>();
+  final rng = Random();
+ 
+  List<Item> strip = List.generate(_kStripItems, (i) {
+    final original = ItemDatabase.allItems[rng.nextInt(ItemDatabase.allItems.length)];
+    final rarity = shopController.shopManager.getItemRarity();
+    return ItemDatabase.randomizeItem(original, 1, rarity);
+  });
+ 
+  // Replace winner slot with a fresh roll (so it's truly random)
+  final winnerOriginal = ItemDatabase.allItems[rng.nextInt(ItemDatabase.allItems.length)];
+  final winnerRarity = shopController.shopManager.getItemRarity();
+  final winner = ItemDatabase.randomizeItem(winnerOriginal, 1, winnerRarity);
+  strip[_kWinnerIndex] = winner;
+ 
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => _LootboxDialog(
+      strip: strip,
+      winner: winner,
+      onClaim: (item) {
+        context.read<InventoryController>().addItem(item);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${item.name} added to inventory!'),
+          backgroundColor: const Color(0xFF6D28D9),
+          duration: const Duration(seconds: 2),
+        ));
+      },
+    ),
+  );
+}
+ 
+// ─── Dialog ───────────────────────────────────────────────────────────────────
+class _LootboxDialog extends StatefulWidget {
+  final List<Item> strip;
+  final Item winner;
+  final void Function(Item) onClaim;
+ 
+  const _LootboxDialog({
+    required this.strip,
+    required this.winner,
+    required this.onClaim,
+  });
+ 
+  @override
+  State<_LootboxDialog> createState() => _LootboxDialogState();
+}
+ 
+class _RollCurve extends Curve {
+  const _RollCurve();
+
+  @override
+  double transformInternal(double t) {
+    // Slow start (stall), accelerate to middle, slow end
+    // Uses a sine-based ease with a heavier slow-in
+    return (1 - cos(t * pi)) / 2;
+  }
+}
+
+class _LootboxDialogState extends State<_LootboxDialog>
+    with SingleTickerProviderStateMixin {
+  late final ScrollController _scrollCtrl;
+  late final AnimationController _animCtrl;
+  late final Animation<double> _scrollAnim;
+ 
+  bool _done = false;
+ 
+  // The center of the viewport is the "selector" line.
+  // We want item at _kWinnerIndex to stop under it.
+  // Each card = _kCardWidth + _kCardGap. We offset by half viewport width
+  // to center the card.
+  static const double _itemStep = _kCardWidth + _kCardGap;
+ 
+  @override
+  void initState() {
+    super.initState();
+    _scrollCtrl = ScrollController();
+ 
+    _animCtrl = AnimationController(vsync: this, duration: _kRollDuration);
+ 
+    // Delay 1 frame so scroll controller has its viewport attached
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startRoll());
+  }
+ 
+  void _startRoll() {
+    AudioService().playSfx("assets/audio/gambling.mp3");
+    final viewportWidth = _scrollCtrl.position.viewportDimension;
+    final centerOffset = viewportWidth / 2 - _kCardWidth / 2;
+ 
+    // Target scroll: winner card center is at viewport center
+    final targetScroll = _kWinnerIndex * _itemStep - centerOffset;
+ 
+    _scrollAnim = Tween<double>(
+      begin: 0,
+      end: targetScroll,
+    ).animate(CurvedAnimation(
+        parent: _animCtrl,
+        curve: const _RollCurve(),
+      ));
+ 
+    _scrollAnim.addListener(() {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.jumpTo(_scrollAnim.value.clamp(
+          0,
+          _scrollCtrl.position.maxScrollExtent,
+        ));
+      }
+    });
+ 
+    _animCtrl.forward().then((_) {
+      if (mounted) setState(() => _done = true);
+    });
+  }
+ 
+  @override
+  void dispose() {
+    _animCtrl.dispose();
+    _scrollCtrl.dispose();
+    super.dispose();
+  }
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF1A0A2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 40),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title
+            const Text(
+              'GOLD GOLD GOLD',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 20),
+ 
+            // Strip container
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                // The scrolling strip
+                SizedBox(
+                  height: _kCardHeight,
+                  child: ListView.separated(
+                    controller: _scrollCtrl,
+                    scrollDirection: Axis.horizontal,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    itemCount: widget.strip.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: _kCardGap),
+                    itemBuilder: (_, i) => _StripCard(item: widget.strip[i]),
+                  ),
+                ),
+ 
+                // Center selector lines (left & right edges of winner slot)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Left marker
+                      Container(
+                        width: 3,
+                        height: _kCardHeight + 12,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFBBF24),
+                          borderRadius: BorderRadius.circular(2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFBBF24).withOpacity(0.8),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: _kCardWidth - 6),
+                      // Right marker
+                      Container(
+                        width: 3,
+                        height: _kCardHeight + 12,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFBBF24),
+                          borderRadius: BorderRadius.circular(2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFBBF24).withOpacity(0.8),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+ 
+                // Edge fades
+                Positioned(
+                  left: 0,
+                  child: Container(
+                    width: 60,
+                    height: _kCardHeight,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF1A0A2E),
+                          const Color(0xFF1A0A2E).withOpacity(0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  child: Container(
+                    width: 60,
+                    height: _kCardHeight,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFF1A0A2E).withOpacity(0),
+                          const Color(0xFF1A0A2E),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+ 
+            const SizedBox(height: 20),
+ 
+            // Winner reveal / claim
+            if (_done) ...[
+              _WinnerReveal(item: widget.winner),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.grey),
+                        foregroundColor: Colors.grey,
+                      ),
+                      child: const Text('Discard'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        widget.onClaim(widget.winner);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF7C3AED),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Claim!'),
+                    ),
+                  ),
+                ],
+              ),
+            ] else
+              const SizedBox(
+                height: 48,
+                child: Center(
+                  child: Text(
+                    'Rolling...',
+                    style: TextStyle(color: Color(0xFFD8B4FE), fontSize: 13),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+ 
+// ─── Single card in the strip ─────────────────────────────────────────────────
+class _StripCard extends StatelessWidget {
+  final Item item;
+  const _StripCard({required this.item});
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: _kCardWidth,
+      height: _kCardHeight,
+      decoration: BoxDecoration(
+        color: item.rarity.color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: item.rarity.color, width: 1.5),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            item.imageUrl,
+            width: 56,
+            height: 56,
+            errorBuilder: (_, __, ___) => Icon(
+              Icons.auto_awesome,
+              color: item.rarity.color,
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            item.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            item.rarity.name.toUpperCase(),
+            style: TextStyle(
+              color: item.rarity.color,
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+ 
+// ─── Winner reveal shown after roll ──────────────────────────────────────────
+class _WinnerReveal extends StatelessWidget {
+  final Item item;
+  const _WinnerReveal({required this.item});
+ 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: item.rarity.color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: item.rarity.color, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Image.asset(
+            item.imageUrl,
+            width: 52,
+            height: 52,
+            errorBuilder: (_, __, ___) => Icon(
+              Icons.auto_awesome,
+              color: item.rarity.color,
+              size: 42,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  item.rarity.name.toUpperCase(),
+                  style: TextStyle(
+                    color: item.rarity.color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  item.generateDescription(),
+                  style: const TextStyle(
+                    color: Color(0xFFD8B4FE),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+ 
