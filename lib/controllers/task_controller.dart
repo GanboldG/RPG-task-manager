@@ -9,6 +9,14 @@ import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/timer/task_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
+enum TaskSortOrder {
+  manual,
+  newest,
+  oldest,
+  closestDeadline,
+  closestToCompletion,
+}
+
 class TaskController extends ChangeNotifier {
   final TimerService _timerService = TimerService();
   TimerService get timerService => _timerService;
@@ -17,7 +25,7 @@ class TaskController extends ChangeNotifier {
 
   late UserController _userController;
   List<Task> _tasks = [];
-  List<Task> get tasks => _tasks;
+  //  List<Task> get tasks => _tasks;
 
   List<Task> _archivedTasks = [];
   List<Task> get archivedTasks => _archivedTasks;
@@ -25,6 +33,38 @@ class TaskController extends ChangeNotifier {
   // Task local storage save interval
   int timerCounter = 0;
   final taskLocalSaveInterval = 60;
+
+  // Sort fields
+  TaskSortOrder _sortOrder = TaskSortOrder.manual;
+  TaskSortOrder get sortOrder => _sortOrder;
+
+  List<Task> get tasks {
+    final sorted = List<Task>.from(_tasks);
+    switch (_sortOrder) {
+      case TaskSortOrder.manual:
+        sorted.sort((a, b) {
+          if (a.orderId == null && b.orderId == null) return 0;
+          if (a.orderId == null) return 1;
+          if (b.orderId == null) return -1;
+          return a.orderId!.compareTo(b.orderId!);
+        });
+      case TaskSortOrder.newest:
+        sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case TaskSortOrder.oldest:
+        sorted.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      case TaskSortOrder.closestDeadline:
+        sorted.sort((a, b) {
+          if (a.deadline == null && b.deadline == null) return 0;
+          if (a.deadline == null) return 1;
+          if (b.deadline == null) return -1;
+          return a.deadline!.compareTo(b.deadline!);
+        });
+      case TaskSortOrder.closestToCompletion:
+        sorted.sort((a, b) => b.progress.compareTo(a.progress));
+    }
+    return sorted;
+  }
+
 
   TaskController(UserController userController){
     _userController = userController; 
@@ -49,6 +89,13 @@ class TaskController extends ChangeNotifier {
     _tasks.addAll(tasks);
     TaskService().saveTasksLocally(tasks);
     print("ADDED ALL TASK FROM FIREBASE TO MEMORY");
+  }
+
+
+  // --------------------SORT----------------------
+  void setSortOrder(TaskSortOrder order) {
+    _sortOrder = order;
+    notifyListeners();
   }
 
 
@@ -82,6 +129,7 @@ class TaskController extends ChangeNotifier {
     notifyListeners();
   }
 
+
   // --------------------FINISH----------------------
   String finishTask(String id) {
     Task? matchedTask = _findTaskByID(id);
@@ -109,6 +157,7 @@ class TaskController extends ChangeNotifier {
 
     return "Something went wrong";
   }
+
 
   // --------------------ABANDON----------------------
   String abandonTask(String id){
@@ -143,6 +192,7 @@ class TaskController extends ChangeNotifier {
     return "Something went wrong";
   }
 
+
   // --------------------UPDATE----------------------
   void updateTask({    
     required String id,
@@ -166,6 +216,7 @@ class TaskController extends ChangeNotifier {
     notifyListeners();
   }
 
+
   // Called whenever "Pause" button's pressed or every 60 seconds
   void updateHiveTaskDoneDuration({
     required String taskId,
@@ -176,6 +227,7 @@ class TaskController extends ChangeNotifier {
       await taskService.updateTask(task);
     }
   }
+
 
   // This gets called every second by the timer
   void updateTaskProgress(String taskId, int doneSeconds) {
@@ -207,17 +259,29 @@ class TaskController extends ChangeNotifier {
   
   void reorderTasks(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) newIndex--;
+    
+    // Sync _tasks to current sorted order first
+    final currentSorted = tasks; // getter returns sorted copy
+    _tasks = List.from(currentSorted);
+    
+    // Now do the swap on the synced list
     final item = _tasks.removeAt(oldIndex);
     _tasks.insert(newIndex, item);
+    
     notifyListeners();
   }
 
   // Needed for storing the task order in files
   void updateTaskOrderId() async {
-    for (int i = 0; i < tasks.length; i++){
-      tasks[i].orderId = i;
-      await taskService.updateTask(tasks[i]);
+    for (int i = 0; i < _tasks.length; i++){
+      _tasks[i].orderId = i;
+      await taskService.updateTask(_tasks[i]);
     }
+
+    if (_sortOrder != TaskSortOrder.manual){
+      _sortOrder = TaskSortOrder.manual;
+    }
+    // notifyListeners();
   }
 
 
