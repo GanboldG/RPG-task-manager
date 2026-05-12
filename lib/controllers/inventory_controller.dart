@@ -16,7 +16,15 @@ class InventoryController extends ChangeNotifier{
   late List<Item> _activatedItems;
   List<Item> get activatedItems => _activatedItems;
 
-  InventoryController(this._timerService){
+  // TimerCounter is counting every item duration tick
+  int timerCounter = 0;
+  // Save user inventory items info locally on every this seconds
+  int userSaveInterval = 30;
+
+  InventoryController(this._timerService);
+
+  // Called after login happens
+  void initialize(){
     _user = UserService().currentUser;
     _inventoryItems = _user.ownedItems;
     _activatedItems = _user.equippedItems;
@@ -25,24 +33,35 @@ class InventoryController extends ChangeNotifier{
     // Connect timer service to update items
     _timerService.onTick = _decrementAllActiveItems;
     // Start timer if there are active items
-    _checkAndStartTimer();
+    if (_activatedItems.isNotEmpty){
+      _checkAndStartTimer();
+    }
   }
 
   // ------------ADD-----------------
   void addItem(Item item){
+    if (inventoryIsFull()){
+      return;
+    }
+    
     _inventoryItems.add(item);
 
     notifyListeners();
+    UserService().saveCurrentUserData();
   }
 
   // ---------------ACTIVATE----------------
   void equipItem(Item item) {
+    debugPrint("${item.generateDescription()} ${item.getFormattedBaseDuration()}");
+
     if (_user.ownedItems.contains(item)) {
       if (_user.equippedItems.length < _user.maxEquippedItemAmount){
         _user.equippedItems.add(item);
         _user.ownedItems.remove(item);
         item.isActivated = true;
+
         notifyListeners();
+        UserService().saveCurrentUserData();
 
         // Try to start the timer
         _checkAndStartTimer();
@@ -56,11 +75,17 @@ class InventoryController extends ChangeNotifier{
     _activatedItems.remove(item);
 
     notifyListeners();
+    UserService().saveCurrentUserData();
   }
 
   // ---------------SELL-----------------
   void sellItem(Item item){
+    // No functions for now
     notifyListeners();
+  }
+
+  bool inventoryIsFull(){
+    return _inventoryItems.length >= UserService().currentUser.inventorySlot;
   }
 
   // ---------------TIMER RELATED METHODS-----------------
@@ -84,6 +109,12 @@ class InventoryController extends ChangeNotifier{
     }
     
     if (hasChanges) {
+      timerCounter++;
+      if (timerCounter > userSaveInterval){
+        timerCounter = 0;
+        UserService().saveCurrentUserData();
+      }
+
       notifyListeners();
     }
     
@@ -96,6 +127,13 @@ class InventoryController extends ChangeNotifier{
     if (_activatedItems.isEmpty) {
       _timerService.stopGlobalTimer();
     }
+  }
+
+  bool checkInventoryLimitReached(){
+    if (_inventoryItems.length >= _user.inventorySlot){
+      return true;
+    }
+    return false;
   }
   
 

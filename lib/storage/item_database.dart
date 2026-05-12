@@ -1,19 +1,24 @@
 import 'dart:math';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
-import 'package:rpg_task_manager/models/configs/item_config.dart';
+import 'package:rpg_task_manager/models/configs/item_rarity_config.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/models/item/item_effect.dart';
 import 'package:rpg_task_manager/models/item/item_rarity.dart';
+import 'package:rpg_task_manager/models/user.dart';
+import 'package:rpg_task_manager/services/config_service.dart';
+import 'package:rpg_task_manager/services/user_service.dart';
+import 'package:rpg_task_manager/models/item/effect_type.dart';
 
 // ==================== 1. ITEM DATABASE (Hardcoded Items) ====================
 class ItemDatabase {
-  static final ItemConfig _itemConfig = ItemConfig(
+  static final ItemRarityConfig _itemConfig = ItemRarityConfig(
     durationMultipliers: {  // Applied last
       ItemRarity.common: 0,
       ItemRarity.uncommon: 0.2,
       ItemRarity.rare: 0.6,
       ItemRarity.epic: 1.4,
       ItemRarity.legendary: 2,
-      ItemRarity.mythic: 5
+      ItemRarity.mythic: 3
     },
     durationMultPerLevel: { // Applied per user level
       ItemRarity.common: 0,
@@ -42,9 +47,8 @@ class ItemDatabase {
     costMultPerLevel: 0.4
   );
 
-  // Pre-defined items - like a catalog
+  // Pre-defined items
   static final List<Item> allItems = [
-    // Common Items
     ItemFactory.createXpBoostItem(
       id: "1",
       name: 'Minor XP Potion',
@@ -88,7 +92,58 @@ class ItemDatabase {
       priceCrystal: 10,
       imageUrl: 'assets/images/items/crystal_shard.png',
       isPermanent: false,
-      thresholdLevel: 5,
+      thresholdLevel: 0,
+      rarity: ItemRarity.common,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
+    ),
+    
+    ItemFactory.createGoldBoostItem(
+      id: "4",
+      name: 'Money Seed',
+      goldBoostPercent: 0.01,
+      durationSeconds: 1000,
+      priceGold: 30,
+      priceCrystal: 0,
+      imageUrl: 'assets/images/items/money_seed.png',
+      isPermanent: false,
+      thresholdLevel: 0,
+      rarity: ItemRarity.common,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
+    ),
+
+    ItemFactory.createXpBoostItem(
+      id: "5",
+      name: 'Suspicious Cocktail',
+      xpBoostPercent: 0.10,
+      durationSeconds: 900,
+      priceGold: 80,
+      priceCrystal: 0,
+      imageUrl: 'assets/images/items/suspicious_cocktail.png',
+      isPermanent: false,
+      thresholdLevel: 0,
+      rarity: ItemRarity.common,    
+      level: 1,
+      isActivated: false,
+      acquiredDate: DateTime.now(),
+      itemConfig: _itemConfig,
+    ),
+
+    ItemFactory.createCrystalChanceItem(
+      id: "6",
+      name: 'Protector',
+      crystalDropChance: 0.2,
+      durationSeconds: 1200,
+      priceGold: 90,
+      priceCrystal: 0,
+      imageUrl: 'assets/images/items/protector.png',
+      isPermanent: false,
+      thresholdLevel: 0,
       rarity: ItemRarity.common,    
       level: 1,
       isActivated: false,
@@ -110,6 +165,8 @@ class ItemDatabase {
   
   // Clone an item with randomized values
   static Item randomizeItem(Item original, int userLevel, ItemRarity rarity) {
+    final config = ConfigService.itemRarityConfig;
+
     // 1. Generate new unique ID
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -117,8 +174,8 @@ class ItemDatabase {
     final ItemRarity newRarity = rarity;
 
     // 3. Calculate new duration
-    final double durationMult = original.itemConfig.durationMultipliers[rarity] ?? 0;
-    final double durMultLvl = original.itemConfig.durationMultPerLevel[rarity] ?? 0;
+    final double durationMult = config.durationMultipliers[rarity] ?? 0;
+    final double durMultLvl = config.durationMultPerLevel[rarity] ?? 0;
 
     final int minDuration = (original.durationSeconds + userLevel * durMultLvl).round();
     final int maxDuration = (minDuration * (1 + durationMult)).round();
@@ -126,8 +183,8 @@ class ItemDatabase {
     final int newDurationMin = (newDurationSec / 60).round();
 
     // 4. Calculate new effect value
-    final double effectMult = original.itemConfig.effectMultipliers[rarity] ?? 0;
-    final double effectMultLvl = original.itemConfig.effectMultPerLevel[rarity] ?? 0;
+    final double effectMult = config.effectMultipliers[rarity] ?? 0;
+    final double effectMultLvl = config.effectMultPerLevel[rarity] ?? 0;
 
     List<ItemEffect> newEffects = [];
 
@@ -144,7 +201,7 @@ class ItemDatabase {
     }
 
     // 5. Calculate new cost
-    final costMultPerlevel = original.itemConfig.costMultPerLevel;
+    final costMultPerlevel = config.costMultPerLevel;
     final int minCost = original.priceGold;
     final int maxCost = (minCost * (1 + costMultPerlevel * userLevel)).round();
     final int newCost = HelperFunctions.randomInt(minCost, maxCost);
@@ -157,6 +214,7 @@ class ItemDatabase {
       imageUrl: original.imageUrl,
       isPermanent: newDurationMin == 0,
       durationSeconds: newDurationSec,
+      remainingSeconds: newDurationSec,
       priceGold: newCost,
       priceCrystal: original.priceCrystal,
       thresholdLevel: original.thresholdLevel,
@@ -165,7 +223,6 @@ class ItemDatabase {
       level: original.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
-      itemConfig: original.itemConfig
     );
   }
   
@@ -195,15 +252,17 @@ class ShopManager {
   final Random _random = Random();
   
   // Generate shop items
-  List<Item> generateShopItems(int userLevel, int shopSize) {
+  List<Item> generateShopItems() {
+    final User user = UserService().currentUser;
+
     List<Item> shopItems = [];
     
-    for (int i = 0; i < shopSize; i++) {
+    for (int i = 0; i < user.shopSlot; i++) {
       // 1. Get a random item
       final originalItem = ItemDatabase.allItems[_random.nextInt(ItemDatabase.allItems.length)];
       
       // 2. Clone and randomize values
-      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, userLevel, _getItemRarity());
+      Item randomizedItem = ItemDatabase.randomizeItem(originalItem, user.level, _getItemRarity());
 
       // 3. Generate shop item
       shopItems.add(randomizedItem);
@@ -212,6 +271,7 @@ class ShopManager {
     return shopItems;
   }
   
+  ItemRarity getItemRarity() => _getItemRarity();
 
   ItemRarity _getItemRarity(){
     Map<ItemRarity, double> rarities = 

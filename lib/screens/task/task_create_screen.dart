@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/helpers/app_fonts.dart';
@@ -10,9 +11,9 @@ import 'package:rpg_task_manager/models/task/task.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Task? taskToEdit; // If provided, we're editing
-  
+
   const AddTaskScreen({super.key, this.taskToEdit});
-  
+
   bool get isEditing => taskToEdit != null;
 
   @override
@@ -22,26 +23,29 @@ class AddTaskScreen extends StatefulWidget {
 class _AddTaskScreenState extends State<AddTaskScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController = TextEditingController();
-  late final TextEditingController _minutesController = TextEditingController();
+  int _selectedDays = 0;
+  int _selectedHours = 0;
+  int _selectedMinutes = 30;
+  int _selectedSeconds = 0;
   late Difficulty _selectedDifficulty;
   late TaskType _selectedTaskType;
   late double _baseMinutes;
   DateTime? _selectedDeadline;
   String _description = "";
-  
+
   // Focus node for time field
   final FocusNode _timeFocusNode = FocusNode();
-  
+
   // Expandable tile state
   bool _isExpanded = false;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Add focus listener
     _timeFocusNode.addListener(_onFocusChange);
-    
+
     // Populate fields if editing
     if (widget.isEditing) {
       _nameController.text = widget.taskToEdit!.name;
@@ -55,21 +59,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       _selectedTaskType = TaskType.learning;
       _baseMinutes = 30;
     }
-    
-    // Set initial text field value
-    _minutesController.text = _baseMinutes.toString();
+
+    // Set initial dropdown values
+    final int totalMins = _baseMinutes.toInt();
+    _selectedDays = totalMins ~/ 1440;
+    _selectedHours = (totalMins % 1440) ~/ 60;
+    _selectedMinutes = totalMins % 60;
+    _selectedSeconds = 0;
   }
 
   @override
   void dispose() {
     // Remove focus listener
     _timeFocusNode.removeListener(_onFocusChange);
-    
+
     // Dispose controllers and focus node
     _nameController.dispose();
-    _minutesController.dispose();
+
     _timeFocusNode.dispose();
-    
+
     super.dispose();
   }
 
@@ -81,29 +89,28 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   void _validateAndUpdateMinutes() {
-    final double? minutes = double.tryParse(_minutesController.text);
-    
-    if (minutes != null && minutes >= 1 && minutes <= 3000) {
-      if (_baseMinutes != minutes) {
-        setState(() {
-          _baseMinutes = minutes;
-        });
-      }
+    final double total =
+        _selectedDays * 1440 +
+        _selectedHours * 60 +
+        _selectedMinutes +
+        _selectedSeconds / 60.0;
+    if (total < 1) {
+      HelperFunctions.showMessage(
+        context,
+        "Task duration cannot be less than a minute",
+      );
+      return;
     }
-    else if (minutes != null && minutes > 3000) {
-      setState(() {
-        _baseMinutes = 3000;
-        _minutesController.text = '3000';
-        HelperFunctions.showMessage(context, "Task duration cannot be more than 3000 minutes");
-      });
+    if (total > 3000) {
+      HelperFunctions.showMessage(
+        context,
+        "Task duration cannot be more than 3000 minutes",
+      );
+      return;
     }
-    else if (minutes != null && minutes < 1) {
-      setState(() {
-        _baseMinutes = 1;
-        _minutesController.text = '1';
-        HelperFunctions.showMessage(context, "Task duration cannot be less than a minute");
-      });
-    }
+    setState(() {
+      _baseMinutes = total;
+    });
   }
 
   @override
@@ -114,14 +121,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         title: Text(
           widget.isEditing ? "Edit Task" : "Add New Task",
           style: TextStyle(
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: AppColors.primary,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.close, color: AppColors.textSecondary),
+          icon: Icon(
+            Icons.close,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -150,14 +160,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Widget _buildNameField() {
     return TextFormField(
       controller: _nameController,
+      maxLength: 30,
       decoration: InputDecoration(
         labelText: "Task Name",
         hintText: "Enter task name",
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
-        fillColor: AppColors.primary.withOpacity(0.05),
+        fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
@@ -177,7 +186,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           style: TextStyle(
             fontSize: AppFonts.sizeMedium,
             fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 10),
@@ -195,10 +204,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   margin: EdgeInsets.symmetric(horizontal: 4),
                   padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.secondary
+                          : Theme.of(context).colorScheme.primary,
                       width: 1.5,
                     ),
                   ),
@@ -212,9 +225,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       Text(
                         _getTaskTypeName(type),
                         style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.secondary,
                           fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -237,7 +254,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           style: TextStyle(
             fontSize: AppFonts.sizeMedium,
             fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 10),
@@ -255,10 +272,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   margin: EdgeInsets.symmetric(horizontal: 4),
                   padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? AppColors.textSecondary : AppColors.primary,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.secondary
+                          : Theme.of(context).colorScheme.primary,
                       width: 1.5,
                     ),
                   ),
@@ -272,9 +293,13 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       Text(
                         _getDifficultyName(difficulty),
                         style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
+                          color: isSelected
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.secondary,
                           fontSize: 11,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -288,41 +313,99 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     );
   }
 
+  Widget _buildDropdown(
+    String label,
+    int value,
+    int maxValue,
+    int step,
+    ValueChanged<int?> onChanged,
+  ) {
+    final items = <int>[];
+    for (int i = 0; i <= maxValue; i += step) items.add(i);
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.4),
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButton<int>(
+              value: value,
+              isExpanded: true,
+              underline: const SizedBox(),
+              alignment: Alignment.center,
+              items: items
+                  .map(
+                    (v) => DropdownMenuItem(
+                      value: v,
+                      child: Center(
+                        child: Text('$v', style: const TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTimeField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Time Required (minutes)",
+          "Time Required",
           style: TextStyle(
             fontSize: AppFonts.sizeMedium,
             fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(
-              flex: 2,
-              child: TextField(
-                focusNode: _timeFocusNode,
-                controller: _minutesController,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  suffixText: "min",
-                  suffixStyle: const TextStyle(fontSize: 12),
-                ),
-                onEditingComplete: () {
-                  _validateAndUpdateMinutes();
-                  _timeFocusNode.unfocus();
-                },
-              ),
-            ),
+            _buildDropdown("Өдөр", _selectedDays, 9, 1, (v) {
+              setState(() {
+                _selectedDays = v!;
+              });
+              _validateAndUpdateMinutes();
+            }),
+            const SizedBox(width: 6),
+            _buildDropdown("Цаг", _selectedHours, 23, 1, (v) {
+              setState(() {
+                _selectedHours = v!;
+              });
+              _validateAndUpdateMinutes();
+            }),
+            const SizedBox(width: 6),
+            _buildDropdown("Мин", _selectedMinutes, 59, 1, (v) {
+              setState(() {
+                _selectedMinutes = v!;
+              });
+              _validateAndUpdateMinutes();
+            }),
+            const SizedBox(width: 6),
+            _buildDropdown("Сек", _selectedSeconds, 59, 5, (v) {
+              setState(() {
+                _selectedSeconds = v!;
+              });
+              _validateAndUpdateMinutes();
+            }),
           ],
         ),
       ],
@@ -345,7 +428,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         ),
         trailing: Icon(
           _isExpanded ? Icons.expand_less : Icons.expand_more,
-          color: AppColors.textSecondary,
+          color: Theme.of(context).colorScheme.secondary,
         ),
         onExpansionChanged: (bool expanded) {
           setState(() {
@@ -372,7 +455,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           style: TextStyle(
             fontSize: AppFonts.sizeMedium,
             fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 10),
@@ -407,13 +490,16 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.primary),
+              border: Border.all(color: Theme.of(context).colorScheme.primary),
               borderRadius: BorderRadius.circular(12),
-              color: AppColors.primary.withOpacity(0.05),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today, color: AppColors.textSecondary),
+                Icon(
+                  Icons.calendar_today,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -421,11 +507,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         ? "${_selectedDeadline!.year}-${_selectedDeadline!.month}-${_selectedDeadline!.day} ${_selectedDeadline!.hour}:${_selectedDeadline!.minute.toString().padLeft(2, '0')}"
                         : "No deadline set",
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
               ],
             ),
           ),
@@ -443,20 +533,19 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           style: TextStyle(
             fontSize: AppFonts.sizeMedium,
             fontWeight: FontWeight.bold,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
         const SizedBox(height: 10),
         TextFormField(
           initialValue: _description,
           maxLines: 3,
+          maxLength: 60,
           decoration: InputDecoration(
             hintText: "Enter task description",
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             filled: true,
-            fillColor: AppColors.primary.withOpacity(0.05),
+            fillColor: Theme.of(context).colorScheme.primary.withOpacity(0.05),
           ),
           onChanged: (value) {
             _description = value;
@@ -468,17 +557,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Widget _buildSubmitButton() {
     final controller = context.read<TaskController>();
-    
+
     return ElevatedButton(
       onPressed: () {
         // Force validation of time field before saving
         _validateAndUpdateMinutes();
-        
+
         // Also unfocus to commit any pending changes
         if (_timeFocusNode.hasFocus) {
           _timeFocusNode.unfocus();
         }
-        
+
         if (_formKey.currentState!.validate()) {
           if (widget.isEditing) {
             // Update existing task
@@ -507,11 +596,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       },
       style: ElevatedButton.styleFrom(
         foregroundColor: AppColors.background,
-        backgroundColor: AppColors.textSecondary,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
         padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: Text(
         widget.isEditing ? "Save Changes" : "Add Task",

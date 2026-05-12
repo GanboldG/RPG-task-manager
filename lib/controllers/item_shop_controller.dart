@@ -1,10 +1,11 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
+import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/item/custom_item.dart';
 import 'package:rpg_task_manager/models/item/item.dart';
+import 'package:rpg_task_manager/services/item_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/storage/item_database.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,18 +26,29 @@ class ItemShopController extends ChangeNotifier{
   List<CustomItem> get customItems => List.unmodifiable(_customItems);
 
   ItemShopController(InventoryController inventoryController, CustomItemInventoryController customController){
-    shopManager = ShopManager();
-    _items = shopManager.generateShopItems(UserService().currentUser.level, shopSize);
     _inventoryController = inventoryController;
     _customInventoryController = customController;
   }
 
+  // Called after login
+  void initialize(){
+    shopManager = ShopManager();
+    _items = shopManager.generateShopItems();
+    loadCustomItems();
+  }
+
   // ------------BUY-----------------
-  void buyItem(Item item){
+  String buyItem(Item item){
+    if (_inventoryController.checkInventoryLimitReached()){
+      return "Inventory limit (${UserService().currentUser.inventorySlot}) reached";
+    }
+
     if (_items.remove(item)){
       _inventoryController.addItem(item);
       notifyListeners();
     }
+
+    return "";
   }
 
   // ---------------DELETE-----------------
@@ -49,23 +61,11 @@ class ItemShopController extends ChangeNotifier{
 
   // ------------REFRESH SHOP-----------------
   void refreshShop(){
-    _items = shopManager.generateShopItems(UserService().currentUser.level, shopSize);
+    _items = shopManager.generateShopItems();
     notifyListeners();
   }
 
   // -----------------------------CUSTOM ITEMS-------------------------------
-
-  // Load custom items from Hive/storage (to be implemented with Hive later)
-  Future<void> _loadCustomItems() async {
-    // TODO: Implement Hive loading
-    // For now, keep empty list
-    notifyListeners();
-  }
-
-  // Save custom items to Hive (to be implemented)
-  Future<void> _saveCustomItems() async {
-    // TODO: Implement Hive saving
-  }
 
   // Get most popular custom items (purchased at least once, top 2)
   List<CustomItem> get bestSellers {
@@ -110,6 +110,16 @@ class ItemShopController extends ChangeNotifier{
     }
   }
 
+  // Populate from firebase
+  void populateCustomItemsList(List<CustomItem> items){
+    for (CustomItem item in items){
+      _customItems.add(item);
+      if (_customItems.length >= UserService().currentUser.customShopSlot){
+        break;
+      }
+    }
+  }
+
   // Add a new custom item
   Future<void> addCustomItem({
     required String name,
@@ -135,7 +145,8 @@ class ItemShopController extends ChangeNotifier{
     );
     
     _customItems.add(newItem);
-    await _saveCustomItems();
+
+    await ItemService().addCustomItem(newItem);
     notifyListeners();
   }
 
@@ -167,46 +178,25 @@ class ItemShopController extends ChangeNotifier{
     if (item != null) {
       // Delete the image file if it exists
       if (item.imagePath != null) {
-        await _deleteImageFile(item.imagePath!);
+        await HelperFunctions.deleteImage(item.imagePath!);
+        // await _deleteImageFile(item.imagePath!);
       }
-      
       _customItems.removeWhere((i) => i.id == itemId);
-      await _saveCustomItems();
+
+      await ItemService().deleteCustomItem(itemId);
       notifyListeners();
     }
   }
 
-  // Delete all images created from custom items
-  Future<void> deleteAllCustomItemImages() async {
-    for (final item in _customItems) {
-      if (item.imagePath != null) {
-        await _deleteImageFile(item.imagePath!);
-      }
-    }
-    debugPrint('All custom item images deleted from device storage');
-  }
-
-  // Delete a single image file
-  Future<void> _deleteImageFile(String path) async {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
-        debugPrint('Deleted image: $path');
-      }
-    } catch (e) {
-      debugPrint('Error deleting image $path: $e');
-    }
-  }
-
   // Delete the entire custom items directory
-  Future<void> deleteAllCustomItemsAndImages() async {
-    // First delete all image files
-    await deleteAllCustomItemImages();
-    
-    // Clear the list
+  Future<void> deleteAllCustomItems() async {
+
+    // Delete every items and images from storage
+    await ItemService().deleteAllCustomItems(_customItems);
+
+     // Clear the list
     _customItems.clear();
-    await _saveCustomItems();
+
     notifyListeners();
     
     // Delete the directory if empty
@@ -222,17 +212,13 @@ class ItemShopController extends ChangeNotifier{
     }
   }
 
-  // Clear all custom items (without deleting images - useful for testing)
-  void clearAllCustomItems() {
-    _customItems.clear();
-    _saveCustomItems();
-    notifyListeners();
-  }
-
   // Refresh/load from storage
-  Future<void> refreshCustomItems() async {
-    await _loadCustomItems();
-    notifyListeners();
+  Future<void> loadCustomItems() async {
+    // If not empty, we assume items were gotten from firestore instead
+    if (_customItems.isEmpty){
+      _customItems = ItemService().getAllCustomItems();
+      notifyListeners();
+    }
   }
 }
 

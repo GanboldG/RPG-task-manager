@@ -4,21 +4,20 @@ import "package:rpg_task_manager/controllers/user_controller.dart";
 import "package:rpg_task_manager/helpers/app_colors.dart";
 import "package:rpg_task_manager/helpers/helper_functions.dart";
 
-class ResourceBar extends StatefulWidget{
+class ResourceBar extends StatefulWidget {
   const ResourceBar({super.key});
 
   @override
   State<ResourceBar> createState() => _ResourceBarState();
 }
 
-
-class _ResourceBarState extends State<ResourceBar>{
+class _ResourceBarState extends State<ResourceBar> {
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     final controller = context.watch<UserController>();
 
     return Container(
-      color: AppColors.rewardBar,
+      color: Theme.of(context).colorScheme.primary,
       height: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -48,7 +47,7 @@ class _ResourceBarState extends State<ResourceBar>{
               ),
 
               Text(controller.getExperienceString()),
-            ]
+            ],
           ),
 
           Row(
@@ -62,7 +61,7 @@ class _ResourceBarState extends State<ResourceBar>{
               ),
 
               Text("${controller.user.golds}"),
-            ]
+            ],
           ),
 
           Row(
@@ -76,10 +75,10 @@ class _ResourceBarState extends State<ResourceBar>{
               ),
 
               Text("${controller.user.crystals}"),
-            ]
-          )
-        ]
-      )
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

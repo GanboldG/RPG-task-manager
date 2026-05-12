@@ -2,31 +2,37 @@ import 'package:hive/hive.dart';
 
 part 'custom_item.g.dart';
 
-@HiveType(typeId: 3)
+@HiveType(typeId: 16)
 class CustomItem {
   @HiveField(0)
   final String id;
   
   @HiveField(1)
-  final String name;
+  String name;
   
   @HiveField(2)
-  final String description;
+  String description;
   
   @HiveField(3)
-  final int priceGold;
+  int priceGold;
   
   @HiveField(4)
-  final DateTime createdAt;
+  DateTime createdAt;
   
   @HiveField(5)
-  final String? imagePath;
+  String? imagePath;
   
   @HiveField(6)
-  final int purchaseCount;
+  int purchaseCount;
 
   @HiveField(7)
-  final int durationMinutes;
+  int durationMinutes;
+
+  @HiveField(8)
+  String? imageUrl;
+
+  @HiveField(9)
+  String? imagePublicId;
 
   CustomItem({
     required this.id,
@@ -37,7 +43,43 @@ class CustomItem {
     required this.createdAt,
     this.imagePath,
     this.purchaseCount = 0,
+    this.imagePublicId,
+    this.imageUrl
   });
+
+  // ================= FIRESTORE TO MAP =================
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'priceGold': priceGold,
+      'createdAt': createdAt,
+      'imagePath': imagePath,
+      'purchaseCount': purchaseCount,
+      'durationMinutes': durationMinutes,
+      'imageUrl': imageUrl,
+      'imagePublicId': imagePublicId,
+    };
+  }
+
+  // ================= FIRESTORE FROM MAP =================
+  factory CustomItem.fromMap(Map<String, dynamic> map) {
+    return CustomItem(
+      id: map['id'] ?? '',
+      name: map['name'] ?? '',
+      description: map['description'] ?? '',
+      priceGold: map['priceGold'] ?? 0,
+      createdAt: map['createdAt']?.toDate(),
+      imagePath: map['imagePath'],
+      purchaseCount: map['purchaseCount'] ?? 0,
+      durationMinutes: map['durationMinutes'] ?? 0,
+      imagePublicId: map['imagePublicId'] ?? '',
+      imageUrl: map['imageUrl'] ?? '',
+    );
+  }
+
+
   // Helper to check if item is new (created within last 7 days)
   bool get isNew {
     final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));

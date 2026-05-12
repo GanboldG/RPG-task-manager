@@ -8,7 +8,7 @@ part of 'custom_item.dart';
 
 class CustomItemAdapter extends TypeAdapter<CustomItem> {
   @override
-  final int typeId = 3;
+  final int typeId = 16;
 
   @override
   CustomItem read(BinaryReader reader) {
@@ -25,13 +25,15 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
       createdAt: fields[4] as DateTime,
       imagePath: fields[5] as String?,
       purchaseCount: fields[6] as int,
+      imagePublicId: fields[9] as String?,
+      imageUrl: fields[8] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CustomItem obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +49,11 @@ class CustomItemAdapter extends TypeAdapter<CustomItem> {
       ..writeByte(6)
       ..write(obj.purchaseCount)
       ..writeByte(7)
-      ..write(obj.durationMinutes);
+      ..write(obj.durationMinutes)
+      ..writeByte(8)
+      ..write(obj.imageUrl)
+      ..writeByte(9)
+      ..write(obj.imagePublicId);
   }
 
   @override

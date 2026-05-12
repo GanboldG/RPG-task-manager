@@ -1,56 +1,49 @@
+import 'dart:io';
 import 'dart:math';
-
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:rpg_task_manager/helpers/app_colors.dart';
 
-class HelperFunctions{
-  static void showMessage(BuildContext context, String message){
+class HelperFunctions {
+  static void showMessage(
+    BuildContext context,
+    String message, {
+    int duration = 1,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message,
-                     style: TextStyle(
-                      color: Colors.white,
-                     )),
-        duration: Duration(seconds: 1),
+        backgroundColor: AppColors.rarityEpic,
+        content: Text(message, style: TextStyle(color: Colors.white)),
+        duration: Duration(seconds: duration),
       ),
     );
   }
-
 
   static String formatDateTimeToString(DateTime? dateTime) {
     if (dateTime == null) return '';
     return 'Deadline: ${dateTime.year}-${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  
-
   // Helper method to format duration
   static String formatDuration(int totalSeconds) {
-    if (totalSeconds <= 0) return '0s';
-    
+    if (totalSeconds <= 0) return '0m';
     final hours = totalSeconds ~/ 3600;
     final minutes = (totalSeconds % 3600) ~/ 60;
-    final seconds = totalSeconds % 60;
-    
-    final List<String> parts = [];
-    
-    if (hours > 0) {
-      parts.add('${hours}h');
-    }
-    if (minutes > 0) {
-      parts.add('${minutes}m');
-    }
-    if (seconds > 0 || parts.isEmpty) {
-      parts.add('${seconds}s');
-    }
-    
-    return parts.join(' ');
+    if (hours > 0) return '${hours}h ${minutes}m';
+    if (minutes > 0) return '${minutes}m';
+    return '1m';
   }
 
-  static int minToSec(double minutes){
+  static int minToSec(double minutes) {
     return (minutes * 60).round();
   }
 
+  // Converts seconds to hours with 0.0 decimal
+  static double secToHoursDecimal(int seconds) {
+    if (seconds <= 0) return 0.0;
+
+    return double.parse((seconds / 3600).toStringAsFixed(1));
+  }
 
   // Builds custom icons with neon effect
   static Widget buildNeonIcon(IconData icon, Color color, double size) {
@@ -70,14 +63,9 @@ class HelperFunctions{
           ),
         ],
       ),
-      child: Icon(
-        icon,
-        color: color,
-        size: size,
-      ),
+      child: Icon(icon, color: color, size: size),
     );
   }
-
 
   // Builds outlined icon
   static Widget buildOutlinedIcon({
@@ -86,21 +74,13 @@ class HelperFunctions{
     required Color outlineColor,
     double size = 24,
     double outlineWidth = 2,
-    }) {
+  }) {
     return Stack(
       children: [
         // Outline (background icon)
-        Icon(
-          icon,
-          size: size + outlineWidth,
-          color: outlineColor,
-        ),
+        Icon(icon, size: size + outlineWidth, color: outlineColor),
         // Main icon
-        Icon(
-          icon,
-          size: size,
-          color: color,
-        ),
+        Icon(icon, size: size, color: color),
       ],
     );
   }
@@ -108,16 +88,16 @@ class HelperFunctions{
   // Formats int into 1.2k , 13M etc
   static String formatNumberSuffix(int number) {
     if (number < 1000) return number.toString();
-    
+
     const suffixes = ['', 'K', 'M', 'B', 'T'];
     int suffixIndex = 0;
     double num = number.toDouble();
-    
+
     while (num >= 1000 && suffixIndex < suffixes.length - 1) {
       num /= 1000;
       suffixIndex++;
     }
-    
+
     return '${num.toStringAsFixed(1)}${suffixes[suffixIndex]}';
   }
 
@@ -129,5 +109,25 @@ class HelperFunctions{
   static double randomDouble(double min, double max) {
     final random = Random();
     return min + random.nextDouble() * (max - min);
+  }
+
+  static Future<void> deleteImage(String path) async {
+    if (path.isNotEmpty) {
+      final imageFile = File(path);
+      if (await imageFile.exists()) {
+        await imageFile.delete();
+      }
+    }
+  }
+
+  static Future<bool> hasInternet() async {
+    var result = await Connectivity().checkConnectivity();
+
+    return result != ConnectivityResult.none;
+  }
+
+  // Helper to create from DateTime
+  static String formatYearMonthDay(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 }

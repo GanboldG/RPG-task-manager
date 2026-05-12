@@ -52,23 +52,70 @@ class Task {
   @HiveField(12)
   TaskType? type;
 
-  Task({required this.id, 
-        required this.orderId,
-        required this.name,
-        this.description = "",
-        this.isCompleted = false,
-        required this.difficulty,
-        required this.baseDurationSec,
-        this.doneDurationSec = 0,
-        DateTime? deadline,
-        required this.createdAt,
-        DateTime? completedAt,
-        required this.reward,
-        required this.type,
-  }) : deadline = deadline != null 
-      ? DateTime(deadline.year, deadline.month, deadline.day, deadline.hour, deadline.minute)
-      : null; // Removes seconds / milleseconds from deadline
+  Task({
+    required this.id,
+    required this.orderId,
+    required this.name,
+    this.description = "",
+    this.isCompleted = false,
+    required this.difficulty,
+    required this.baseDurationSec,
+    this.doneDurationSec = 0,
+    DateTime? deadline,
+    required this.createdAt,
+    this.completedAt,
+    required this.reward,
+    required this.type,
+  }) : deadline = deadline != null
+          ? DateTime(
+              deadline.year,
+              deadline.month,
+              deadline.day,
+              deadline.hour,
+              deadline.minute,
+            )
+          : null;
 
+  // ------------------------Firestore / JSON save & load------------------------
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'isCompleted': isCompleted,
+      'difficulty': difficulty.toMap(),
+      'baseDurationSec': baseDurationSec,
+      'doneDurationSec': doneDurationSec,
+      'deadline': deadline,
+      'createdAt': createdAt,
+      'completedAt': completedAt,
+      'reward': reward.toMap(),
+      'orderId': orderId,
+      'type': type?.name, // enum example
+    };
+  }
+
+
+  factory Task.fromMap(Map<String, dynamic> map) {
+    return Task(
+      id: map['id'],
+      name: map['name'],
+      description: map['description'],
+      isCompleted: map['isCompleted'],
+      difficulty: Difficulty.fromMap(map['difficulty']),
+      baseDurationSec: map['baseDurationSec'],
+      doneDurationSec: map['doneDurationSec'],
+      deadline: map['deadline']?.toDate(),
+      createdAt: map['createdAt'].toDate(),
+      completedAt: map['completedAt']?.toDate(),
+      reward: Reward.fromMap(map['reward']),
+      orderId: map['orderId'],
+      type: map['type'] != null
+          ? TaskType.values.firstWhere((e) => e.name == map['type'])
+          : null,
+    );
+  }
 
   // -----------------Helper methods related to DateTime-------------------
 
@@ -148,5 +195,15 @@ class Task {
 
   int getRemainingSeconds(){
     return max(0, baseDurationSec - doneDurationSec);
+  }
+
+  int? getSecondsSinceCompletion() {
+    if (!isCompleted || completedAt == null){
+      return null;
+    }
+
+    return DateTime.now()
+        .difference(completedAt!)
+        .inSeconds;
   }
 }

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1031787785825",
+    "project_id": "rpg-task-manager-420",
+    "storage_bucket": "rpg-task-manager-420.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1031787785825:android:27b093e12401fae80d8420",
+        "android_client_info": {
+          "package_name": "com.example.rpg_task_manager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1031787785825-humo36b4kdl01u06nce2lmkdpiiholeu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.rpg_task_manager",
+            "certificate_hash": "e660a9179c52ce1c04ecf2001c502d07f514a6a0"
+          }
+        },
+        {
+          "client_id": "1031787785825-f71rk8if9896vnogi0sfljjl3cmkmsle.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDJ2S-iJOn6aKv0NruNT8s-mO5c19-VzVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1031787785825-f71rk8if9896vnogi0sfljjl3cmkmsle.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
