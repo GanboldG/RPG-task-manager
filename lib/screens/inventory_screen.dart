@@ -12,20 +12,23 @@ import 'package:rpg_task_manager/models/user.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
 // ─── Color Palette (matching your shop screen) ───────────────────────────────
-const kBg        = Color(0xFFF9F9F9);
-const kCard      = Color.fromARGB(255, 225, 180, 254);
-const kCardAlt   = Color.fromARGB(255, 171, 155, 179);
-const kBorder    = Color.fromARGB(255, 0, 0, 0);
-const kPurple    = Color(0xFF7C3AED);
-const kPurpleMid = Color(0xFF6D28D9);
-const kGold      = Color(0xFFB45309);
-const kGreen     = Color(0xFF15803D);
-const kRed       = Color(0xFFB91C1C);
-const kBlue      = Color(0xFF1D4ED8);
-const kTxt       = Color(0xFF000000);
-const kTxtSub    = Color(0xFF4B5563);
-const kOrange    = Color(0xFFEA580C);
-const kYellow    = Color(0xFFD97706);
+Color kBg(BuildContext ctx) => Theme.of(ctx).scaffoldBackgroundColor;
+Color kCard(BuildContext ctx) => Theme.of(ctx).colorScheme.primary;
+Color kCardAlt(BuildContext ctx) =>
+    Theme.of(ctx).colorScheme.primary.withOpacity(0.6);
+Color kBorder(BuildContext ctx) =>
+    Theme.of(ctx).colorScheme.onSurface.withOpacity(0.2);
+Color kPurple(BuildContext ctx) => Theme.of(ctx).colorScheme.secondary;
+Color kPurpleMid(BuildContext ctx) => Theme.of(ctx).colorScheme.secondary;
+const kGold = Color(0xFFB45309);
+const kGreen = Color(0xFF15803D);
+const kRed = Color(0xFFB91C1C);
+const kBlue = Color(0xFF1D4ED8);
+Color kTxt(BuildContext ctx) => Theme.of(ctx).colorScheme.onSurface;
+Color kTxtSub(BuildContext ctx) =>
+    Theme.of(ctx).colorScheme.onSurface.withOpacity(0.6);
+const kOrange = Color(0xFFEA580C);
+const kYellow = Color(0xFFD97706);
 
 // ─── Sort Options for Real Items ────────────────────────────────────────────
 enum SortOption {
@@ -63,9 +66,10 @@ class InventoryScreen extends StatefulWidget {
   State<InventoryScreen> createState() => _InventoryScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProviderStateMixin {
+class _InventoryScreenState extends State<InventoryScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  
+
   // Real items state
   final TextEditingController _searchController = TextEditingController();
   SortOption _currentSort = SortOption.levelDesc;
@@ -93,8 +97,12 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   // ─── REAL ITEMS METHODS (UNCHANGED) ───────────────────────────────────────
   List<Item> getFilteredAndSortedItems(List<Item> items) {
     if (_searchQuery.isNotEmpty) {
-      items = items.where((item) =>
-          item.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+      items = items
+          .where(
+            (item) =>
+                item.name.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
+          .toList();
     }
 
     switch (_currentSort) {
@@ -123,7 +131,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   void _showItemOptions(Item item) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: kCard,
+      backgroundColor: kCard(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -134,41 +142,43 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              margin: EdgeInsets.only(top: 12, bottom: 16),
               decoration: BoxDecoration(
-                color: kBorder,
+                color: kBorder(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.sell, color: kGold),
-              title: const Text('Sell', style: TextStyle(color: kTxt)),
+              leading: Icon(Icons.sell, color: kGold),
+              title: Text('Sell', style: TextStyle(color: kTxt(context))),
               onTap: () {
                 Navigator.pop(context);
                 // TODO: Implement sell function
               },
             ),
-            const Divider(color: kBorder, height: 0),
+            Divider(color: kBorder(context), height: 0),
             ListTile(
-              leading: const Icon(Icons.delete, color: kRed),
-              title: const Text('Delete', style: TextStyle(color: kTxt)),
+              leading: Icon(Icons.delete, color: kRed),
+              title: Text('Delete', style: TextStyle(color: kTxt(context))),
               onTap: () {
                 Navigator.pop(context);
                 // TODO: Implement delete function
               },
             ),
-            if (!item.isActivated)
-              const Divider(color: kBorder, height: 0),
+            if (!item.isActivated) Divider(color: kBorder(context), height: 0),
             if (!item.isActivated)
               ListTile(
-                leading: const Icon(Icons.play_arrow, color: kGreen),
-                title: const Text('Use / Activate', style: TextStyle(color: kTxt)),
+                leading: Icon(Icons.play_arrow, color: kGreen),
+                title: Text(
+                  'Use / Activate',
+                  style: TextStyle(color: kTxt(context)),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   context.read<InventoryController>().equipItem(item);
                 },
               ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
           ],
         ),
       ),
@@ -178,7 +188,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   void _showRealItemSortOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: kCard,
+      backgroundColor: kCard(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -189,41 +199,54 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              margin: EdgeInsets.only(top: 12, bottom: 16),
               decoration: BoxDecoration(
-                color: kBorder,
+                color: kBorder(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'Sort by',
-                style: TextStyle(color: kTxt, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: kTxt(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            ...SortOption.values.map((option) => Column(
-              children: [
-                ListTile(
-                  title: Text(
-                    option.label,
-                    style: TextStyle(
-                      color: _currentSort == option ? kPurple : kTxt,
-                      fontWeight: _currentSort == option ? FontWeight.bold : FontWeight.normal,
+            SizedBox(height: 8),
+            ...SortOption.values.map(
+              (option) => Column(
+                children: [
+                  ListTile(
+                    title: Text(
+                      option.label,
+                      style: TextStyle(
+                        color: _currentSort == option
+                            ? kPurple(context)
+                            : kTxt(context),
+                        fontWeight: _currentSort == option
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
                     ),
+                    trailing: _currentSort == option
+                        ? Icon(Icons.check, color: kPurple(context), size: 20)
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _currentSort = option;
+                      });
+                      Navigator.pop(context);
+                    },
                   ),
-                  trailing: _currentSort == option
-                      ? const Icon(Icons.check, color: kPurple, size: 20)
-                      : null,
-                  onTap: () {
-                    setState(() { _currentSort = option; });
-                    Navigator.pop(context);
-                  },
-                ),
-                if (option != SortOption.nameDesc) const Divider(color: kBorder, height: 0),
-              ],
-            )),
+                  if (option != SortOption.nameDesc)
+                    Divider(color: kBorder(context), height: 0),
+                ],
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ),
@@ -232,13 +255,20 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   }
 
   // ─── CUSTOM ITEMS METHODS ─────────────────────────────────────────────────
-  List<OwnedCustomItem> getFilteredAndSortedCustomItems(List<OwnedCustomItem> items) {
+  List<OwnedCustomItem> getFilteredAndSortedCustomItems(
+    List<OwnedCustomItem> items,
+  ) {
     // Create a modifiable copy FIRST
-    List<OwnedCustomItem> result = [...items];  // or List.from(items)
-    
+    List<OwnedCustomItem> result = [...items]; // or List.from(items)
+
     if (_customSearchQuery.isNotEmpty) {
-      result = result.where((item) =>
-          item.customItem.name.toLowerCase().contains(_customSearchQuery.toLowerCase())).toList();
+      result = result
+          .where(
+            (item) => item.customItem.name.toLowerCase().contains(
+              _customSearchQuery.toLowerCase(),
+            ),
+          )
+          .toList();
     }
 
     switch (_currentCustomSort) {
@@ -255,16 +285,26 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         result.sort((a, b) => a.purchasedAt.compareTo(b.purchasedAt));
         break;
       case CustomSortOption.priceAsc:
-        result.sort((a, b) => a.customItem.priceGold.compareTo(b.customItem.priceGold));
+        result.sort(
+          (a, b) => a.customItem.priceGold.compareTo(b.customItem.priceGold),
+        );
         break;
       case CustomSortOption.priceDesc:
-        result.sort((a, b) => b.customItem.priceGold.compareTo(a.customItem.priceGold));
+        result.sort(
+          (a, b) => b.customItem.priceGold.compareTo(a.customItem.priceGold),
+        );
         break;
       case CustomSortOption.remainingAsc:
-        result.sort((a, b) => a.getRemainingDuration().compareTo(b.getRemainingDuration()));
+        result.sort(
+          (a, b) =>
+              a.getRemainingDuration().compareTo(b.getRemainingDuration()),
+        );
         break;
       case CustomSortOption.remainingDesc:
-        result.sort((a, b) => b.getRemainingDuration().compareTo(a.getRemainingDuration()));
+        result.sort(
+          (a, b) =>
+              b.getRemainingDuration().compareTo(a.getRemainingDuration()),
+        );
         break;
     }
     return result;
@@ -273,7 +313,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   void _showCustomItemSortOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: kCard,
+      backgroundColor: kCard(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -284,41 +324,54 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              margin: EdgeInsets.only(top: 12, bottom: 16),
               decoration: BoxDecoration(
-                color: kBorder,
+                color: kBorder(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'Sort Custom Items',
-                style: TextStyle(color: kTxt, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: kTxt(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            ...CustomSortOption.values.map((option) => Column(
-              children: [
-                ListTile(
-                  title: Text(
-                    option.label,
-                    style: TextStyle(
-                      color: _currentCustomSort == option ? kOrange : kTxt,
-                      fontWeight: _currentCustomSort == option ? FontWeight.bold : FontWeight.normal,
+            SizedBox(height: 8),
+            ...CustomSortOption.values.map(
+              (option) => Column(
+                children: [
+                  ListTile(
+                    title: Text(
+                      option.label,
+                      style: TextStyle(
+                        color: _currentCustomSort == option
+                            ? kOrange
+                            : kTxt(context),
+                        fontWeight: _currentCustomSort == option
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
                     ),
+                    trailing: _currentCustomSort == option
+                        ? Icon(Icons.check, color: kOrange, size: 20)
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _currentCustomSort = option;
+                      });
+                      Navigator.pop(context);
+                    },
                   ),
-                  trailing: _currentCustomSort == option
-                      ? const Icon(Icons.check, color: kOrange, size: 20)
-                      : null,
-                  onTap: () {
-                    setState(() { _currentCustomSort = option; });
-                    Navigator.pop(context);
-                  },
-                ),
-                if (option != CustomSortOption.remainingDesc) const Divider(color: kBorder, height: 0),
-              ],
-            )),
+                  if (option != CustomSortOption.remainingDesc)
+                    Divider(color: kBorder(context), height: 0),
+                ],
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         ),
@@ -329,10 +382,10 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   void _showCustomItemOptions(OwnedCustomItem ownedItem) {
     final isActive = ownedItem.isActive;
     final isPaused = ownedItem.isPaused;
-    
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: kCard,
+      backgroundColor: kCard(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -343,84 +396,103 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
             Container(
               width: 40,
               height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              margin: EdgeInsets.only(top: 12, bottom: 16),
               decoration: BoxDecoration(
-                color: kBorder,
+                color: kBorder(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             // Custom item info
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 children: [
                   Text(
                     ownedItem.customItem.name,
-                    style: const TextStyle(color: kTxt, fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: kTxt(context),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     ownedItem.customItem.description,
-                    style: const TextStyle(color: kTxtSub, fontSize: 12),
+                    style: TextStyle(color: kTxtSub(context), fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: kCardAlt,
+                      color: kCardAlt(context),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       'Stack count: ${ownedItem.stackCount}',
-                      style: const TextStyle(color: kTxt, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: kTxt(context),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(color: kBorder, height: 0),
-            
+            Divider(color: kBorder(context), height: 0),
+
             // Play/Pause button (only if active)
             if (isActive)
               ListTile(
-                leading: Icon(isPaused ? Icons.play_arrow : Icons.pause, color: isPaused ? kGreen : kOrange),
+                leading: Icon(
+                  isPaused ? Icons.play_arrow : Icons.pause,
+                  color: isPaused ? kGreen : kOrange,
+                ),
                 title: Text(
                   isPaused ? 'Resume' : 'Pause',
-                  style: const TextStyle(color: kTxt),
+                  style: TextStyle(color: kTxt(context)),
                 ),
                 subtitle: Text(
-                  isPaused ? 'Continue counting down' : 'Temporarily stop timer',
-                  style: const TextStyle(color: kTxtSub, fontSize: 11),
+                  isPaused
+                      ? 'Continue counting down'
+                      : 'Temporarily stop timer',
+                  style: TextStyle(color: kTxtSub(context), fontSize: 11),
                 ),
                 onTap: () {
                   Navigator.pop(context);
                   if (isPaused) {
-                    context.read<CustomItemInventoryController>().resumeCustomItem(ownedItem.id);
+                    context
+                        .read<CustomItemInventoryController>()
+                        .resumeCustomItem(ownedItem.id);
                   } else {
-                    context.read<CustomItemInventoryController>().pauseCustomItem(ownedItem.id);
+                    context
+                        .read<CustomItemInventoryController>()
+                        .pauseCustomItem(ownedItem.id);
                   }
                 },
               ),
-            
+
             // Stack/Add more button
             // ListTile(
-            //   leading: const Icon(Icons.add_circle, color: kBlue),
-            //   title: const Text('Add Stack (+1)', style: TextStyle(color: kTxt)),
-            //   subtitle: const Text('Add another instance of this reward', style: TextStyle(color: kTxtSub, fontSize: 11)),
+            //   leading: Icon(Icons.add_circle, color: kBlue),
+            //   title: Text('Add Stack (+1)', style: TextStyle(color: kTxt(context))),
+            //   subtitle: Text('Add another instance of this reward', style: TextStyle(color: kTxtSub(context), fontSize: 11)),
             //   onTap: () {
             //     Navigator.pop(context);
             //     context.read<CustomItemInventoryController>().addStackToCustomItem(ownedItem.id);
             //   },
             // ),
-            
-            // const Divider(color: kBorder, height: 0),
-            
+
+            // Divider(color: kBorder(context), height: 0),
+
             // Delete button
             ListTile(
-              leading: const Icon(Icons.delete, color: kRed),
-              title: const Text('Delete', style: TextStyle(color: kTxt)),
-              subtitle: const Text('Remove this reward from inventory', style: TextStyle(color: kTxtSub, fontSize: 11)),
+              leading: Icon(Icons.delete, color: kRed),
+              title: Text('Delete', style: TextStyle(color: kTxt(context))),
+              subtitle: Text(
+                'Remove this reward from inventory',
+                style: TextStyle(color: kTxtSub(context), fontSize: 11),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _showDeleteConfirmation(ownedItem);
@@ -437,23 +509,28 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: kCard,
-        title: const Text('Delete Custom Item?', style: TextStyle(color: kTxt)),
+        backgroundColor: kCard(context),
+        title: Text(
+          'Delete Custom Item?',
+          style: TextStyle(color: kTxt(context)),
+        ),
         content: Text(
           'Are you sure you want to delete "${ownedItem.customItem.name}"?\n\nThis will remove all stacks of this reward from your inventory.',
-          style: const TextStyle(color: kTxtSub),
+          style: TextStyle(color: kTxtSub(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: kTxtSub)),
+            child: Text('Cancel', style: TextStyle(color: kTxtSub(context))),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<CustomItemInventoryController>().deleteCustomItem(ownedItem.id);
+              context.read<CustomItemInventoryController>().deleteCustomItem(
+                ownedItem.id,
+              );
             },
-            child: const Text('Delete', style: TextStyle(color: kRed)),
+            child: Text('Delete', style: TextStyle(color: kRed)),
           ),
         ],
       ),
@@ -464,33 +541,38 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   Widget build(BuildContext context) {
     // final itemTimerService = context.watch<ItemTimerService>();
     final inventoryController = context.watch<InventoryController>();
-    final customInventoryController = context.watch<CustomItemInventoryController>();
-    
+    final customInventoryController = context
+        .watch<CustomItemInventoryController>();
+
     final activatedItems = inventoryController.activatedItems;
     final inventoryItems = inventoryController.inventoryItems;
     final ownedCustomItems = customInventoryController.ownedCustomItems;
-    
+
     final userController = context.watch<UserController>();
     final user = userController.user;
 
     return Scaffold(
-      backgroundColor: kBg,
+      backgroundColor: kBg(context),
       appBar: AppBar(
-        backgroundColor: kCard,
+        backgroundColor: kCard(context),
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Inventory',
-          style: TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            color: kTxt(context),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
         ),
         centerTitle: true,
-        iconTheme: const IconThemeData(color: kTxt),
+        iconTheme: IconThemeData(color: kTxt(context)),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: kPurple,
+          indicatorColor: kPurple(context),
           indicatorWeight: 3,
-          labelColor: kPurple,
-          unselectedLabelColor: kTxtSub,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          labelColor: kPurple(context),
+          unselectedLabelColor: kTxtSub(context),
+          labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           tabs: const [
             Tab(text: '⚔️ Items'),
             Tab(text: '🎁 Rewards'),
@@ -511,36 +593,48 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   }
 
   // ─── REAL ITEMS TAB (ORIGINAL UI - MOSTLY UNCHANGED) ──────────────────────
-  Widget _buildRealItemsTab(List<Item> activatedItems, List<Item> inventoryItems, User user) {
+  Widget _buildRealItemsTab(
+    List<Item> activatedItems,
+    List<Item> inventoryItems,
+    User user,
+  ) {
     return Column(
       children: [
         // Top 1/3 - Activated Items Section
         Container(
           height: MediaQuery.of(context).size.height / 3,
-          color: kCardAlt,
+          color: kCardAlt(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.power_settings_new, color: kGreen, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.power_settings_new, color: kGreen, size: 20),
+                    SizedBox(width: 8),
+                    Text(
                       'Active Effects',
-                      style: TextStyle(color: kTxt, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        color: kTxt(context),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
-                    const Spacer(),
+                    Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: kPurple,
+                        color: kPurple(context),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${activatedItems.length}/${user.maxEquippedItemAmount} active',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -548,30 +642,46 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
               ),
               Expanded(
                 child: activatedItems.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.tv_off, size: 48, color: kTxtSub),
+                            Icon(
+                              Icons.tv_off,
+                              size: 48,
+                              color: kTxtSub(context),
+                            ),
                             SizedBox(height: 12),
-                            Text('No active items', style: TextStyle(color: kTxtSub, fontSize: 14)),
+                            Text(
+                              'No active items',
+                              style: TextStyle(
+                                color: kTxtSub(context),
+                                fontSize: 14,
+                              ),
+                            ),
                             SizedBox(height: 4),
-                            Text('Activate items from your inventory', style: TextStyle(color: kTxtSub, fontSize: 12)),
+                            Text(
+                              'Activate items from your inventory',
+                              style: TextStyle(
+                                color: kTxtSub(context),
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: 16),
                         itemCount: activatedItems.length,
                         itemBuilder: (context, index) {
                           final item = activatedItems[index];
                           return Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
+                            margin: EdgeInsets.only(bottom: 8),
+                            padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: kCard,
+                              color: kCard(context),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: kBorder),
+                              border: Border.all(color: kBorder(context)),
                             ),
                             child: Row(
                               children: [
@@ -581,18 +691,23 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                       width: 40,
                                       height: 40,
                                       decoration: BoxDecoration(
-                                        color: kCardAlt,
+                                        color: kCardAlt(context),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: Image.asset(item.imageUrl),
                                     ),
                                     const SizedBox(height: 5),
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
                                       child: Text(
                                         'Lv.${item.level}',
-                                        style: const TextStyle(
-                                          color: AppColors.textSecondary,
+                                        style: TextStyle(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.secondary,
                                           fontSize: 11,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -600,31 +715,49 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                     ),
                                   ],
                                 ),
-                                const SizedBox(width: 12),
+                                SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item.name,
-                                        style: const TextStyle(color: kTxt, fontWeight: FontWeight.w600, fontSize: 14),
+                                        style: TextStyle(
+                                          color: kTxt(context),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
                                       ),
                                       Text(
                                         item.generateDescription(),
-                                        style: const TextStyle(color: kPurple, fontWeight: FontWeight.bold, fontSize: 13),
+                                        style: TextStyle(
+                                          color: kPurple(context),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.textSecondaryLight,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary.withOpacity(0.4),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
                                     item.getFormattedRemainingDuration(),
-                                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -642,86 +775,133 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
                 child: Row(
                   children: [
                     Expanded(
                       child: Container(
                         height: 45,
                         decoration: BoxDecoration(
-                          color: kCard,
+                          color: kCard(context),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: kBorder),
+                          border: Border.all(color: kBorder(context)),
                         ),
                         child: TextField(
                           controller: _searchController,
                           onChanged: (value) {
-                            setState(() { _searchQuery = value; });
+                            setState(() {
+                              _searchQuery = value;
+                            });
                           },
-                          style: const TextStyle(color: kTxt, fontSize: 14),
+                          style: TextStyle(color: kTxt(context), fontSize: 14),
                           decoration: InputDecoration(
                             hintText: 'Search items...',
-                            hintStyle: const TextStyle(color: kTxtSub, fontSize: 13),
-                            prefixIcon: const Icon(Icons.search, color: kTxtSub, size: 20),
+                            hintStyle: TextStyle(
+                              color: kTxtSub(context),
+                              fontSize: 13,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: kTxtSub(context),
+                              size: 20,
+                            ),
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     GestureDetector(
                       onTap: _showRealItemSortOptions,
                       child: Container(
                         width: 45,
                         height: 45,
                         decoration: BoxDecoration(
-                          color: kCard,
+                          color: kCard(context),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: kBorder),
+                          border: Border.all(color: kBorder(context)),
                         ),
-                        child: const Icon(Icons.sort, color: kPurple, size: 24),
+                        child: Icon(
+                          Icons.sort,
+                          color: kPurple(context),
+                          size: 24,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${inventoryItems.length}/${UserService().currentUser.inventorySlot} items', style: const TextStyle(color: kTxtSub, fontSize: 12)),
-                    Text('Showing ${_currentSort.label}', style: const TextStyle(color: kTxtSub, fontSize: 11, fontStyle: FontStyle.italic)),
+                    Text(
+                      '${inventoryItems.length}/${UserService().currentUser.inventorySlot} items',
+                      style: TextStyle(color: kTxtSub(context), fontSize: 12),
+                    ),
+                    Text(
+                      'Showing ${_currentSort.label}',
+                      style: TextStyle(
+                        color: kTxtSub(context),
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Expanded(
                 child: inventoryItems.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.inventory, size: 64, color: kTxtSub),
+                            Icon(
+                              Icons.inventory,
+                              size: 64,
+                              color: kTxtSub(context),
+                            ),
                             SizedBox(height: 16),
-                            Text('No items found', style: TextStyle(color: kTxtSub, fontSize: 16, fontWeight: FontWeight.w500)),
+                            Text(
+                              'No items found',
+                              style: TextStyle(
+                                color: kTxtSub(context),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             SizedBox(height: 8),
-                            Text('Try a different search term', style: TextStyle(color: kTxtSub, fontSize: 13)),
+                            Text(
+                              'Try a different search term',
+                              style: TextStyle(
+                                color: kTxtSub(context),
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       )
                     : GridView.builder(
                         padding: const EdgeInsets.all(12),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          childAspectRatio: 0.65,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: getFilteredAndSortedItems(inventoryItems).length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4,
+                              childAspectRatio: 0.65,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                            ),
+                        itemCount: getFilteredAndSortedItems(
+                          inventoryItems,
+                        ).length,
                         itemBuilder: (context, index) {
-                          final item = getFilteredAndSortedItems(inventoryItems)[index];
+                          final item = getFilteredAndSortedItems(
+                            inventoryItems,
+                          )[index];
                           return GestureDetector(
                             onTap: () => _showItemOptions(item),
                             child: Column(
@@ -731,9 +911,11 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                   height: 60,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: kCardAlt,
+                                    color: kCardAlt(context),
                                     border: Border.all(
-                                      color: item.isActivated ? kGreen : kBorder,
+                                      color: item.isActivated
+                                          ? kGreen
+                                          : kBorder(context),
                                       width: 2,
                                     ),
                                     boxShadow: [
@@ -747,41 +929,60 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                   ),
                                   child: ClipOval(
                                     child: Container(
-                                      color: kCard,
+                                      color: kCard(context),
                                       child: Image.asset(item.imageUrl),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: 4),
                                 Text(
                                   item.name,
-                                  style: const TextStyle(color: kTxt, fontSize: 10, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                    color: kTxt(context),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
                                   "${item.generateDescription()} (${item.getFormattedBaseDuration()})",
-                                  style: const TextStyle(color: kTxt, fontSize: 10, fontWeight: FontWeight.w500),
+                                  style: TextStyle(
+                                    color: kTxt(context),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                 ),
                                 Text(
                                   'Lv.${item.level}',
-                                  style: const TextStyle(color: kGold, fontSize: 9, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: kGold,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 if (item.isActivated)
                                   Container(
                                     margin: const EdgeInsets.only(top: 2),
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 1,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: kGreen,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'ACTIVE',
-                                      style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 7,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -801,13 +1002,13 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
   Widget _buildCustomItemsTab(List<OwnedCustomItem> ownedCustomItems) {
     final filteredItems = getFilteredAndSortedCustomItems(ownedCustomItems);
     // final totalStacks = ownedCustomItems.fold<int>(0, (sum, item) => sum + item.stackCount);
-    
+
     return Column(
       children: [
         // // Top section - Stats and summary
         // Container(
-        //   padding: const EdgeInsets.all(16),
-        //   color: kCardAlt,
+        //   padding: EdgeInsets.all(16),
+        //   color: kCardAlt(context),
         //   child: Column(
         //     children: [
         //       Row(
@@ -817,7 +1018,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         //             icon: Icons.card_giftcard,
         //             label: 'Unique Items',
         //             value: ownedCustomItems.length.toString(),
-        //             color: kPurple,
+        //             color: kPurple(context),
         //           ),
         //           _buildStatCard(
         //             icon: Icons.layers,
@@ -839,23 +1040,23 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
         //           ),
         //         ],
         //       ),
-        //       const SizedBox(height: 12),
+        //       SizedBox(height: 12),
         //       Container(
-        //         padding: const EdgeInsets.all(8),
+        //         padding: EdgeInsets.all(8),
         //         decoration: BoxDecoration(
-        //           color: kCard,
+        //           color: kCard(context),
         //           borderRadius: BorderRadius.circular(8),
-        //           border: Border.all(color: kBorder),
+        //           border: Border.all(color: kBorder(context)),
         //         ),
-        //         child: const Row(
+        //         child: Row(
         //           mainAxisAlignment: MainAxisAlignment.center,
         //           children: [
-        //             Icon(Icons.info_outline, color: kTxtSub, size: 16),
+        //             Icon(Icons.info_outline, color: kTxtSub(context), size: 16),
         //             SizedBox(width: 8),
         //             Expanded(
         //               child: Text(
         //                 'Custom rewards have no usage limit. Tap on an item to pause, resume, or add more stacks.',
-        //                 style: TextStyle(color: kTxtSub, fontSize: 11),
+        //                 style: TextStyle(color: kTxtSub(context), fontSize: 11),
         //                 textAlign: TextAlign.center,
         //               ),
         //             ),
@@ -868,43 +1069,52 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
         // Search and sort bar
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: [
               Expanded(
                 child: Container(
                   height: 45,
                   decoration: BoxDecoration(
-                    color: kCard,
+                    color: kCard(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: kBorder),
+                    border: Border.all(color: kBorder(context)),
                   ),
                   child: TextField(
                     controller: _customSearchController,
                     onChanged: (value) {
-                      setState(() { _customSearchQuery = value; });
+                      setState(() {
+                        _customSearchQuery = value;
+                      });
                     },
-                    style: const TextStyle(color: kTxt, fontSize: 14),
+                    style: TextStyle(color: kTxt(context), fontSize: 14),
                     decoration: InputDecoration(
                       hintText: 'Search rewards...',
-                      hintStyle: const TextStyle(color: kTxtSub, fontSize: 13),
-                      prefixIcon: const Icon(Icons.search, color: kTxtSub, size: 20),
+                      hintStyle: TextStyle(
+                        color: kTxtSub(context),
+                        fontSize: 13,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: kTxtSub(context),
+                        size: 20,
+                      ),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               GestureDetector(
                 onTap: _showCustomItemSortOptions,
                 child: Container(
                   width: 45,
                   height: 45,
                   decoration: BoxDecoration(
-                    color: kCard,
+                    color: kCard(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: kBorder),
+                    border: Border.all(color: kBorder(context)),
                   ),
                   child: const Icon(Icons.sort, color: kOrange, size: 24),
                 ),
@@ -915,30 +1125,54 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
         // Sort label
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${filteredItems.length} rewards', style: const TextStyle(color: kTxtSub, fontSize: 12)),
-              Text('Sorted: ${_currentCustomSort.label}', style: const TextStyle(color: kTxtSub, fontSize: 11, fontStyle: FontStyle.italic)),
+              Text(
+                '${filteredItems.length} rewards',
+                style: TextStyle(color: kTxtSub(context), fontSize: 12),
+              ),
+              Text(
+                'Sorted: ${_currentCustomSort.label}',
+                style: TextStyle(
+                  color: kTxtSub(context),
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
             ],
           ),
         ),
 
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
 
         // Custom items list
         Expanded(
           child: filteredItems.isEmpty
-              ? const Center(
+              ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.card_giftcard, size: 64, color: kTxtSub),
+                      Icon(
+                        Icons.card_giftcard,
+                        size: 64,
+                        color: kTxtSub(context),
+                      ),
                       SizedBox(height: 16),
-                      Text('No rewards redeemed', style: TextStyle(color: kTxtSub, fontSize: 16, fontWeight: FontWeight.w500)),
+                      Text(
+                        'No rewards redeemed',
+                        style: TextStyle(
+                          color: kTxtSub(context),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       SizedBox(height: 8),
-                      Text('Go to shop to redeem rewards!', style: TextStyle(color: kTxtSub, fontSize: 13)),
+                      Text(
+                        'Go to shop to redeem rewards!',
+                        style: TextStyle(color: kTxtSub(context), fontSize: 13),
+                      ),
                     ],
                   ),
                 )
@@ -951,17 +1185,21 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                     final isPaused = ownedItem.isPaused;
                     final remaining = ownedItem.getRemainingDuration();
                     final isExpired = remaining <= 0;
-                    
+
                     return GestureDetector(
                       onTap: () => _showCustomItemOptions(ownedItem),
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
+                        margin: EdgeInsets.only(bottom: 8),
+                        padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: kCard,
+                          color: kCard(context),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isExpired ? kRed : (isPaused ? kOrange : (isActive ? kGreen : kBorder)),
+                            color: isExpired
+                                ? kRed
+                                : (isPaused
+                                      ? kOrange
+                                      : (isActive ? kGreen : kBorder(context))),
                             width: isExpired || isPaused || isActive ? 1.5 : 1,
                           ),
                         ),
@@ -972,7 +1210,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                               width: 50,
                               height: 50,
                               decoration: BoxDecoration(
-                                color: kCardAlt,
+                                color: kCardAlt(context),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: ownedItem.customItem.imagePath != null
@@ -981,13 +1219,21 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                       child: Image.file(
                                         File(ownedItem.customItem.imagePath!),
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard, color: kPurpleMid, size: 30),
+                                        errorBuilder: (_, __, ___) => Icon(
+                                          Icons.card_giftcard,
+                                          color: kPurpleMid(context),
+                                          size: 30,
+                                        ),
                                       ),
                                     )
-                                  : const Icon(Icons.card_giftcard, color: kPurpleMid, size: 30),
+                                  : Icon(
+                                      Icons.card_giftcard,
+                                      color: kPurpleMid(context),
+                                      size: 30,
+                                    ),
                             ),
                             const SizedBox(width: 12),
-                            
+
                             // Item info
                             Expanded(
                               child: Column(
@@ -998,8 +1244,8 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                       Expanded(
                                         child: Text(
                                           ownedItem.customItem.name,
-                                          style: const TextStyle(
-                                            color: kTxt,
+                                          style: TextStyle(
+                                            color: kTxt(context),
                                             fontWeight: FontWeight.bold,
                                             fontSize: 15,
                                           ),
@@ -1009,76 +1255,133 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                       ),
                                       if (isExpired)
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: kRed,
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
-                                          child: const Text(
+                                          child: Text(
                                             'EXPIRED',
-                                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                       if (isPaused && !isExpired)
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: kOrange,
-                                            borderRadius: BorderRadius.circular(4),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
-                                          child: const Text(
+                                          child: Text(
                                             'PAUSED',
-                                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     ownedItem.customItem.description,
-                                    style: const TextStyle(color: kTxtSub, fontSize: 11),
+                                    style: TextStyle(
+                                      color: kTxtSub(context),
+                                      fontSize: 11,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 6),
+                                  SizedBox(height: 6),
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: kCardAlt,
-                                          borderRadius: BorderRadius.circular(10),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
                                         ),
-                                        child: Row(
-                                          children: [
-                                            const Icon(Icons.layers, size: 12, color: kTxtSub),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'x${ownedItem.stackCount}',
-                                              style: const TextStyle(color: kTxt, fontSize: 11, fontWeight: FontWeight.bold),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: isExpired ? kRed.withOpacity(0.2) : (isPaused ? kOrange.withOpacity(0.2) : kCardAlt),
-                                          borderRadius: BorderRadius.circular(10),
+                                          color: kCardAlt(context),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                         child: Row(
                                           children: [
                                             Icon(
-                                              isExpired ? Icons.timer_off : (isPaused ? Icons.pause : Icons.timer),
+                                              Icons.layers,
                                               size: 12,
-                                              color: isExpired ? kRed : (isPaused ? kOrange : kGreen),
+                                              color: kTxtSub(context),
                                             ),
-                                            const SizedBox(width: 4),
+                                            SizedBox(width: 4),
                                             Text(
-                                              isExpired ? 'Expired' : _formatDuration(remaining),
+                                              'x${ownedItem.stackCount}',
                                               style: TextStyle(
-                                                color: isExpired ? kRed : (isPaused ? kOrange : kTxt),
+                                                color: kTxt(context),
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isExpired
+                                              ? kRed.withOpacity(0.2)
+                                              : (isPaused
+                                                    ? kOrange.withOpacity(0.2)
+                                                    : kCardAlt(context)),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              isExpired
+                                                  ? Icons.timer_off
+                                                  : (isPaused
+                                                        ? Icons.pause
+                                                        : Icons.timer),
+                                              size: 12,
+                                              color: isExpired
+                                                  ? kRed
+                                                  : (isPaused
+                                                        ? kOrange
+                                                        : kGreen),
+                                            ),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              isExpired
+                                                  ? 'Expired'
+                                                  : _formatDuration(remaining),
+                                              style: TextStyle(
+                                                color: isExpired
+                                                    ? kRed
+                                                    : (isPaused
+                                                          ? kOrange
+                                                          : kTxt(context)),
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.bold,
                                               ),
@@ -1091,24 +1394,36 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                 ],
                               ),
                             ),
-                            
+
                             // Action buttons
                             Column(
                               children: [
                                 if (isActive && !isPaused && !isExpired)
                                   IconButton(
-                                    icon: const Icon(Icons.pause_circle, color: kOrange, size: 28),
+                                    icon: const Icon(
+                                      Icons.pause_circle,
+                                      color: kOrange,
+                                      size: 28,
+                                    ),
                                     onPressed: () {
-                                      context.read<CustomItemInventoryController>().pauseCustomItem(ownedItem.id);
+                                      context
+                                          .read<CustomItemInventoryController>()
+                                          .pauseCustomItem(ownedItem.id);
                                     },
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
                                   ),
                                 if (isPaused && !isExpired)
                                   IconButton(
-                                    icon: const Icon(Icons.play_circle, color: kGreen, size: 28),
+                                    icon: const Icon(
+                                      Icons.play_circle,
+                                      color: kGreen,
+                                      size: 28,
+                                    ),
                                     onPressed: () {
-                                      context.read<CustomItemInventoryController>().resumeCustomItem(ownedItem.id);
+                                      context
+                                          .read<CustomItemInventoryController>()
+                                          .resumeCustomItem(ownedItem.id);
                                     },
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(),
@@ -1124,8 +1439,13 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
                                 //   ),
                                 // const SizedBox(height: 4),
                                 IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: kRed, size: 24),
-                                  onPressed: () => _showDeleteConfirmation(ownedItem),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: kRed,
+                                    size: 24,
+                                  ),
+                                  onPressed: () =>
+                                      _showDeleteConfirmation(ownedItem),
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 ),
@@ -1144,23 +1464,23 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
 
   // Widget _buildStatCard({required IconData icon, required String label, required String value, required Color color}) {
   //   return Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  //     padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   //     decoration: BoxDecoration(
-  //       color: kCard,
+  //       color: kCard(context),
   //       borderRadius: BorderRadius.circular(10),
-  //       border: Border.all(color: kBorder),
+  //       border: Border.all(color: kBorder(context)),
   //     ),
   //     child: Column(
   //       children: [
   //         Icon(icon, color: color, size: 20),
-  //         const SizedBox(height: 4),
+  //         SizedBox(height: 4),
   //         Text(
   //           value,
   //           style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
   //         ),
   //         Text(
   //           label,
-  //           style: const TextStyle(color: kTxtSub, fontSize: 10),
+  //           style: TextStyle(color: kTxtSub(context), fontSize: 10),
   //         ),
   //       ],
   //     ),
@@ -1172,7 +1492,7 @@ class _InventoryScreenState extends State<InventoryScreen> with SingleTickerProv
     final hours = seconds ~/ 3600;
     final minutes = (seconds % 3600) ~/ 60;
     final remainingSeconds = seconds % 60;
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else if (minutes > 0) {

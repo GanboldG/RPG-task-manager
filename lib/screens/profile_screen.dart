@@ -10,7 +10,6 @@ import 'package:rpg_task_manager/screens/Statistics/Detailed_Statistics.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -20,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
     final taskController = context.watch<TaskController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -102,19 +101,19 @@ class _MiniWeekChart extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'This week',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Text(
                 'Avg ${_formatHM(avg)}/day',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: Color(0xFF7E57C2),
+                  color: Theme.of(context).colorScheme.secondary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -127,7 +126,8 @@ class _MiniWeekChart extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: data.map((d) {
-                final isToday = d.day.day == today.day &&
+                final isToday =
+                    d.day.day == today.day &&
                     d.day.month == today.month &&
                     d.day.year == today.year;
                 final heightFraction = d.minutes / effectiveMax;
@@ -144,7 +144,7 @@ class _MiniWeekChart extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 8,
                               color: isToday
-                                  ? const Color(0xFF7E57C2)
+                                  ? Theme.of(context).colorScheme.secondary
                                   : Colors.grey,
                               fontWeight: FontWeight.w600,
                             ),
@@ -157,8 +157,8 @@ class _MiniWeekChart extends StatelessWidget {
                           height: heightFraction * 48,
                           decoration: BoxDecoration(
                             color: isToday
-                                ? const Color(0xFF7E57C2)
-                                : const Color(0xFFB39DDB),
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
@@ -168,7 +168,7 @@ class _MiniWeekChart extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 10,
                             color: isToday
-                                ? const Color(0xFF7E57C2)
+                                ? Theme.of(context).colorScheme.secondary
                                 : Colors.grey,
                             fontWeight: isToday
                                 ? FontWeight.w700
@@ -189,7 +189,6 @@ class _MiniWeekChart extends StatelessWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final userController = context.watch<UserController>();
@@ -205,20 +204,25 @@ class _ProfileHeader extends StatelessWidget {
                 height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFFE8E0F5),
-                  border: Border.all(color: const Color(0xFFB39DDB), width: 2),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
                 ),
                 child: ClipOval(
                   child: userController.user.avatarPath == null
-                    ? Image.asset(
-                        "assets/images/profile.png",
-                        fit: BoxFit.cover,
-                      )
-                    : Image.file(
-                        File(userController.user.avatarPath!),
-                        key: ValueKey(user.avatarPath! + DateTime.now().toString()),
-                        fit: BoxFit.cover,
-                      ),
+                      ? Image.asset(
+                          "assets/images/profile.png",
+                          fit: BoxFit.cover,
+                        )
+                      : Image.file(
+                          File(userController.user.avatarPath!),
+                          key: ValueKey(
+                            user.avatarPath! + DateTime.now().toString(),
+                          ),
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
 
@@ -250,7 +254,7 @@ class _ProfileHeader extends StatelessWidget {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
               letterSpacing: 1.5,
             ),
           ),
@@ -289,16 +293,22 @@ class _XPProgressBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("LVL${user.level}", style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(
+              "LVL${user.level}",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
             Text(
               '${user.experiencePoints}/${user.experienceThreshold}XP',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            Text("LVL${user.level+1}", style: TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(
+              "LVL${user.level + 1}",
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -307,8 +317,12 @@ class _XPProgressBar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: user.experiencePoints / user.experienceThreshold,
             minHeight: 10,
-            backgroundColor: const Color(0xFFE0E0E0),
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7E57C2)),
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withOpacity(0.3),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).colorScheme.secondary,
+            ),
           ),
         ),
       ],
@@ -323,7 +337,8 @@ class _StatsRow extends StatelessWidget {
       children: [
         Expanded(
           child: _StatBox(
-            value: "${HelperFunctions.secToHoursDecimal(UserService().currentUser.secondsSpentOnTasks)}h",
+            value:
+                "${HelperFunctions.secToHoursDecimal(UserService().currentUser.secondsSpentOnTasks)}h",
             label: 'Total time',
             color: const Color(0xFF26C6DA),
           ),
@@ -431,11 +446,13 @@ class _ViewStatsButton extends StatelessWidget {
               'assets/icons/chart.png',
               width: 20,
               height: 20,
-              color: const Color(0xFF7E57C2),
-              errorBuilder: (_, __, ___) => const SizedBox(
+              color: Theme.of(context).colorScheme.secondary,
+              errorBuilder: (_, __, ___) => SizedBox(
                 width: 20,
                 height: 20,
-                child: Placeholder(color: Color(0xFF7E57C2)),
+                child: Placeholder(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -477,10 +494,7 @@ class _TaskHistorySection extends StatelessWidget {
       children: [
         const Text(
           "Recent Tasks History",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 12),
@@ -505,9 +519,10 @@ class _TaskHistorySection extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _TaskHistoryTile(
                     title: task.name,
-                    time: "${HelperFunctions.formatDuration(task.getSecondsSinceCompletion() ?? 0).toString()} ago",
+                    time:
+                        "${HelperFunctions.formatDuration(task.getSecondsSinceCompletion() ?? 0).toString()} ago",
                     xp: task.reward.xp.toString(),
-                    gold: task.reward.gold.toString()
+                    gold: task.reward.gold.toString(),
                   ),
                 ),
               ),
@@ -516,9 +531,7 @@ class _TaskHistorySection extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => FullTaskHistoryScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => FullTaskHistoryScreen()),
                   );
                 },
                 child: Container(
@@ -528,11 +541,11 @@ class _TaskHistorySection extends StatelessWidget {
                     color: const Color(0xFFF4F0FB),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
                       "View Full History",
                       style: TextStyle(
-                        color: Color(0xFF7E57C2),
+                        color: Theme.of(context).colorScheme.secondary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -562,72 +575,69 @@ class _TaskHistoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      return Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEDE7F6),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.check_circle_outline,
-              color: Color(0xFF7E57C2),
-            ),
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEDE7F6),
+            borderRadius: BorderRadius.circular(10),
           ),
-
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-
-                const SizedBox(height: 3),
-
-                Text(
-                  time,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+          child: Icon(
+            Icons.check_circle_outline,
+            color: Theme.of(context).colorScheme.secondary,
           ),
+        ),
 
-          Column(
-            children:[
+        const SizedBox(width: 12),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Text(
-                "$xp XP",
+                title,
                 style: const TextStyle(
-                  color: const Color(0xFF26C6DA),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
               ),
+
+              const SizedBox(height: 3),
+
               Text(
-                "$gold GOLD",
-                style: const TextStyle(
-                  color: const Color(0xFFFFA726),
-                  fontWeight: FontWeight.bold,
-                ),
+                time,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
-            ]
-          )
-        ],
-      );
-  }}
+            ],
+          ),
+        ),
+
+        Column(
+          children: [
+            Text(
+              "$xp XP",
+              style: const TextStyle(
+                color: const Color(0xFF26C6DA),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              "$gold GOLD",
+              style: const TextStyle(
+                color: const Color(0xFFFFA726),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
 
 class FullTaskHistoryScreen extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final taskController = context.watch<TaskController>();
@@ -637,15 +647,15 @@ class FullTaskHistoryScreen extends StatelessWidget {
       tasksData.length,
       (index) => {
         "title": "#${index + 1}: ${tasksData[index].name}",
-        "time": "${HelperFunctions.formatDuration(tasksData[index].getSecondsSinceCompletion() ?? 0)} ago",
+        "time":
+            "${HelperFunctions.formatDuration(tasksData[index].getSecondsSinceCompletion() ?? 0)} ago",
         "xp": "${tasksData[index].reward.xp}",
         "gold": "${tasksData[index].reward.gold}",
       },
     );
-    
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F2),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text("Task History"),
         backgroundColor: Colors.white,
@@ -668,7 +678,7 @@ class FullTaskHistoryScreen extends StatelessWidget {
               title: task["title"]!,
               time: task["time"]!,
               xp: task["xp"]!,
-              gold: task["gold"]!
+              gold: task["gold"]!,
             ),
           );
         },

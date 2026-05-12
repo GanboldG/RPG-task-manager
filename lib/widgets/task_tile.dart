@@ -35,13 +35,10 @@ class _TaskTileState extends State<TaskTile> {
     return Container(
       decoration: BoxDecoration(
         // Soft pink background
-        color: AppColors.primaryLight,
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
         // Difficulty color as border
-        border: Border.all(
-          color: _getDifficultyColor(),
-          width: 2,
-        ),
+        border: Border.all(color: _getDifficultyColor(), width: 2),
         boxShadow: [
           BoxShadow(
             color: _getDifficultyColor().withOpacity(0.2),
@@ -54,7 +51,7 @@ class _TaskTileState extends State<TaskTile> {
         children: [
           // Subtle pattern overlay
           _buildPatternOverlay(),
-          
+
           // Main content
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -80,9 +77,7 @@ class _TaskTileState extends State<TaskTile> {
     return Positioned.fill(
       child: Opacity(
         opacity: 0.05,
-        child: CustomPaint(
-          painter: DotPatternPainter(),
-        ),
+        child: CustomPaint(painter: DotPatternPainter()),
       ),
     );
   }
@@ -91,11 +86,11 @@ class _TaskTileState extends State<TaskTile> {
   Widget _buildDragHandle() {
     return ReorderableDragStartListener(
       index: widget.index,
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.symmetric(vertical: 8),
         child: Icon(
-          Icons.drag_handle, 
-          color: Colors.black54, 
+          Icons.drag_handle,
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
           size: 28,
         ),
       ),
@@ -127,9 +122,11 @@ class _TaskTileState extends State<TaskTile> {
           child: CircularProgressIndicator(
             value: widget.task.progress,
             strokeWidth: 6,
-            backgroundColor: AppColors.textSecondary.withOpacity(0.3),
-            valueColor: const AlwaysStoppedAnimation<Color>(
-              AppColors.textSecondary,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.secondary.withOpacity(0.3),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).colorScheme.secondary,
             ),
           ),
         ),
@@ -137,16 +134,16 @@ class _TaskTileState extends State<TaskTile> {
           width: 45,
           height: 45,
           decoration: BoxDecoration(
-            color: AppColors.textSecondary.withOpacity(0.1),
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
               "${(widget.task.progress * 100).toStringAsFixed(0)}%",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -157,25 +154,29 @@ class _TaskTileState extends State<TaskTile> {
 
   Widget _buildRemainingTime() {
     String timeLeft = widget.task.getRemainingTimeString();
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.textSecondary.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.timer, size: 12, color: Colors.black54),
+          Icon(
+            Icons.timer,
+            size: 12,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
           const SizedBox(width: 4),
           Flexible(
             child: Text(
               timeLeft,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -193,22 +194,21 @@ class _TaskTileState extends State<TaskTile> {
         // Task Name
         Text(
           widget.task.name,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 8),
-        
+
         // Deadline
-        if (widget.task.deadline != null)
-          _buildDeadlineRow(),
-          
+        if (widget.task.deadline != null) _buildDeadlineRow(),
+
         const SizedBox(height: 6),
-        
+
         // Rewards (XP & Gold with icons)
         _buildRewardsRow(),
       ],
@@ -219,18 +219,22 @@ class _TaskTileState extends State<TaskTile> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.textSecondary.withOpacity(0.1),
+        color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.calendar_today, size: 12, color: Colors.black54),
+          Icon(
+            Icons.calendar_today,
+            size: 12,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
           const SizedBox(width: 4),
           Text(
             HelperFunctions.formatDateTimeToString(widget.task.deadline),
-            style: const TextStyle(
-              color: Colors.black87,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
               fontSize: 11,
             ),
           ),
@@ -246,18 +250,22 @@ class _TaskTileState extends State<TaskTile> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.textSecondary.withOpacity(0.15),
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.auto_awesome, size: 14, color: AppColors.textSecondary),
+              Icon(
+                Icons.auto_awesome,
+                size: 14,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
               const SizedBox(width: 4),
               Text(
                 "${widget.task.getRewardXp()} XP",
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.secondary,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
@@ -266,7 +274,7 @@ class _TaskTileState extends State<TaskTile> {
           ),
         ),
         const SizedBox(width: 8),
-        
+
         // Gold Chip
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -277,7 +285,11 @@ class _TaskTileState extends State<TaskTile> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.attach_money, size: 14, color: const Color.fromARGB(255, 255, 85, 0)),
+              Icon(
+                Icons.attach_money,
+                size: 14,
+                color: const Color.fromARGB(255, 255, 85, 0),
+              ),
               const SizedBox(width: 4),
               Text(
                 "${widget.task.getRewardGold()}  ",
@@ -297,8 +309,11 @@ class _TaskTileState extends State<TaskTile> {
   // ==================== MENU BUTTON ====================
   Widget _buildMenuButton() {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert, color: Colors.black54),
-      color: AppColors.primaryLight,
+      icon: Icon(
+        Icons.more_vert,
+        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+      ),
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
       onSelected: (String value) {
         switch (value) {
           case "edit":
@@ -313,33 +328,60 @@ class _TaskTileState extends State<TaskTile> {
         }
       },
       itemBuilder: (BuildContext context) => [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'finish',
           child: Row(
             children: [
-              Icon(Icons.done, size: 20, color: Colors.black87),
+              Icon(
+                Icons.done,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               SizedBox(width: 12),
-              Text('Finish', style: TextStyle(color: Colors.black87)),
+              Text(
+                'Finish',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'edit',
           child: Row(
             children: [
-              Icon(Icons.edit, size: 20, color: Colors.black87),
+              Icon(
+                Icons.edit,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               SizedBox(width: 12),
-              Text('Edit', style: TextStyle(color: Colors.black87)),
+              Text(
+                'Edit',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'delete',
           child: Row(
             children: [
-              Icon(Icons.delete, size: 20, color: Colors.black87),
+              Icon(
+                Icons.delete,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               SizedBox(width: 12),
-              Text('Delete', style: TextStyle(color: Colors.black87)),
+              Text(
+                'Delete',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
         ),
@@ -360,10 +402,10 @@ class DotPatternPainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.black
       ..style = PaintingStyle.fill;
-    
+
     const dotSpacing = 20.0;
     const dotRadius = 1.0;
-    
+
     for (double x = 0; x < size.width; x += dotSpacing) {
       for (double y = 0; y < size.height; y += dotSpacing) {
         canvas.drawCircle(Offset(x, y), dotRadius, paint);
