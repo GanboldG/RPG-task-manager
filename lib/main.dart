@@ -1,13 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rpg_task_manager/app_state.dart';
 import 'package:rpg_task_manager/controllers/custom_inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/inventory_controller.dart';
 import 'package:rpg_task_manager/controllers/item_shop_controller.dart';
 import 'package:rpg_task_manager/controllers/task_controller.dart';
 import 'package:rpg_task_manager/controllers/user_controller.dart';
-import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/helpers/theme_notifier.dart';
 import 'package:rpg_task_manager/screens/inventory_screen.dart';
 import 'package:rpg_task_manager/screens/login_screen.dart';
@@ -21,7 +20,6 @@ import 'package:rpg_task_manager/services/config_service.dart';
 import 'package:rpg_task_manager/services/hive_service.dart';
 import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
-import 'package:rpg_task_manager/storage/achievement_database.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
 
@@ -43,13 +41,12 @@ void main() async {
   await AudioService.instance.init();
   await ConfigService.loadAllConfigs();
 
-  // TODO: Firebase-г идэвхжүүлэх үед доорхыг uncommент хий
-  // try {
-  //   await Firebase.initializeApp();
-  //   debugPrint('✅ Firebase амжилттай холбогдлоо.');
-  // } catch (e) {
-  //   debugPrint('❌ Firebase холболтолд алдаа гарлаа: $e');
-  // }
+  try {
+    await Firebase.initializeApp();
+    debugPrint('✅ Firebase амжилттай холбогдлоо.');
+  } catch (e) {
+    debugPrint('❌ Firebase холболтолд алдаа гарлаа: $e');
+  }
 
   await UserService().loadUserData();
 
