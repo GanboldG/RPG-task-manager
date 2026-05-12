@@ -11,19 +11,19 @@ import 'package:rpg_task_manager/models/task/task_snapshot.dart';
 import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/models/user.dart';
 
-class HiveService{
+class HiveService {
   static Map<String, Type> boxes = {
-    'active_tasks' : Task,
-    'archived_tasks' : Task,
-    'user' : User,
-    'shop_items' : Item,
-    'custom_shop_items' : CustomItem
+    'active_tasks': Task,
+    'archived_tasks': Task,
+    'user': User,
+    'shop_items': Item,
+    'custom_shop_items': CustomItem,
   };
 
   static bool initialized = false;
 
   // Initialize Hive
-  static Future<void> initializeHive() async{
+  static Future<void> initializeHive() async {
     await Hive.initFlutter();
 
     // Register your adapters
@@ -58,6 +58,10 @@ class HiveService{
     if (!Hive.isBoxOpen('task_snapshots')) {
       await Hive.openBox<TaskSnapshot>('task_snapshots');
       print("HIVE Task Snapshot initialized");
+    }
+
+    if (!Hive.isBoxOpen('settings')) {
+      await Hive.openBox('settings');
     }
 
     initialized = true;

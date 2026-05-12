@@ -11,17 +11,16 @@ import 'dart:io';
 import 'dart:convert';
 
 class UserService {
-
   //--------------Singleton Variables---------------
   static final UserService _instance = UserService._internal();
   factory UserService() => _instance;
   UserService._internal();
-  
+
   User? _currentUser;
-  final fb.FirebaseAuth _auth = fb.FirebaseAuth.instance;
+  fb.FirebaseAuth? _auth;
   final GoogleSignIn googleSignIn = GoogleSignIn.instance;
-  
-  bool currentUserisNull(){
+
+  bool currentUserisNull() {
     // print("(Debug) Current user is null: ${_currentUser == null}}");
     return _currentUser == null;
   }
@@ -34,10 +33,10 @@ class UserService {
     _currentUser = user;
     await saveCurrentUserData();
   }
-  
+
   //----------------Hive Stuff---------------
   final Box<User> _userBox = Hive.box<User>('user');
-  
+
   Future<bool> loadUserData() async {
     final stored = _userBox.get('user');
 
@@ -48,7 +47,7 @@ class UserService {
     _currentUser = stored;
     return true;
   }
-  
+
   bool hasUserData() {
     return _userBox.containsKey('user');
   }
@@ -73,15 +72,14 @@ class UserService {
       shopSlot: 3,
       customShopSlot: 5,
       inventorySlot: 15,
-      shopRerolls: 1
+      shopRerolls: 1,
     );
   }
-
 
   // ----------------FIRESTORE METHODS---------------------
   // This downloads user avatar image every time it's called
   Future<User?> getFromFirestore() async {
-    if (fb.FirebaseAuth.instance.currentUser == null){
+    if (fb.FirebaseAuth.instance.currentUser == null) {
       return null;
     }
 
@@ -97,16 +95,19 @@ class UserService {
       if (!doc.exists) return null;
 
       final User user = User.fromMap(doc.data()!);
-    
+
       // 2) Download image from cloudinary
-      if (user.avatarUrl != null){
-        File userAvatarImg = await CloudinaryService.downloadImageToFile(user.avatarUrl!, "user_avatar");
+      if (user.avatarUrl != null) {
+        File userAvatarImg = await CloudinaryService.downloadImageToFile(
+          user.avatarUrl!,
+          "user_avatar",
+        );
 
         // Delete the old user image (if exists)
-        if (user.avatarPath != null){
+        if (user.avatarPath != null) {
           HelperFunctions.deleteImage(user.avatarPath!);
         }
-        
+
         String? userAvatarUrl = await saveUserAvatarPermanently(userAvatarImg);
 
         // 3) Set user avatar local path
@@ -120,20 +121,20 @@ class UserService {
     }
   }
 
-    // Save image permanently from picked file
+  // Save image permanently from picked file
   Future<String?> saveUserAvatarPermanently(File tempImageFile) async {
     try {
       final appDir = await getApplicationDocumentsDirectory();
       final avatar = Directory('${appDir.path}/user_avatar');
-      
+
       if (!await avatar.exists()) {
         await avatar.create(recursive: true);
       }
-      
+
       final fileName = 'avatar_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final savedPath = '${avatar.path}/$fileName';
       await tempImageFile.copy(savedPath);
-      
+
       return savedPath;
     } catch (e) {
       print('Error saving image: $e');
@@ -141,25 +142,29 @@ class UserService {
     }
   }
 
-
   Future<void> uploadToFirestore(User user) async {
-    if (fb.FirebaseAuth.instance.currentUser == null){
+    if (fb.FirebaseAuth.instance.currentUser == null) {
       return;
     }
 
     try {
       // 1) Upload image to cloudinary (if there is an image), and set imageUrl
-      if (user.avatarPath != null){
-        // returns 
+      if (user.avatarPath != null) {
+        // returns
         // 'url': json['secure_url'],
         // 'publicId': json['public_id'],
-        Map<String, dynamic>? imageUrls = await CloudinaryService.uploadUserAvatarImage(File(user.avatarPath!));
+        Map<String, dynamic>? imageUrls =
+            await CloudinaryService.uploadUserAvatarImage(
+              File(user.avatarPath!),
+            );
 
         print("Cloudinary image Url: $imageUrls");
-        if (imageUrls != null){
+        if (imageUrls != null) {
           // 1.5) Remove the old image, if exists
-          if (user.avatarUrl != null && user.avatarPublicId != null){
-            final deleted = await CloudinaryService.deleteImageByPublicId(user.avatarPublicId!);
+          if (user.avatarUrl != null && user.avatarPublicId != null) {
+            final deleted = await CloudinaryService.deleteImageByPublicId(
+              user.avatarPublicId!,
+            );
             print("(Cloudinary) Deleted old image: $deleted");
           }
 
@@ -180,9 +185,8 @@ class UserService {
     }
   }
 
-
   /// Check if user is logged in
-  bool hasUser(){
+  bool hasUser() {
     final data = _userBox.get('user');
     return data != null;
   }
@@ -190,9 +194,9 @@ class UserService {
   // Check if user already has an account in firestore
   Future<bool> userExistInFirestore(String uid) async {
     final doc = await FirebaseFirestore.instance
-          .collection("users")
-          .doc(uid)
-          .get();
+        .collection("users")
+        .doc(uid)
+        .get();
 
     return doc.exists;
   }
@@ -200,49 +204,43 @@ class UserService {
   // Create account using info from creation screen
   // Store account info in firestore and hive
   Future<bool> initializeFirstTimeUser(String fullname, bool isOffline) async {
-
-    final user = fb.FirebaseAuth.instance.currentUser;
-    final email = user?.email;
+    final email = '';
 
     final newUser = getFirstTimeUser(fullname, email ?? "");
     setCurrentUser(newUser);
 
-    try{
+    try {
       await _userBox.put('user', newUser);
-    } catch (e){
-        print("(Debug) User local save failed");
-        return false;
+    } catch (e) {
+      print("(Debug) User local save failed");
+      return false;
     }
 
-    if (!isOffline){
-      try{
-          await uploadToFirestore(newUser);
-      } catch (e){
+    if (!isOffline) {
+      try {
+        await uploadToFirestore(newUser);
+      } catch (e) {
         print("(Debug) User Firestore save failed");
-          return false;
+        return false;
       }
     }
- 
+
     print("(Debug) Current user: ${currentUser.fullName}");
     return true;
   }
 
-
   // Downloads the user json file to phone's download folder
-  Future<void> downloadUserDateAsJson() async{
+  Future<void> downloadUserDateAsJson() async {
     final data = currentUser.toMap();
-    final encoder = JsonEncoder.withIndent(
-      '  ',
-      (object) {
-        if (object is DateTime) {
-          return object.toIso8601String();
-        }
-        if (object is DateTime?) {
-          return object?.toIso8601String();
-        }
-        return object.toString();
-      },
-    );
+    final encoder = JsonEncoder.withIndent('  ', (object) {
+      if (object is DateTime) {
+        return object.toIso8601String();
+      }
+      if (object is DateTime?) {
+        return object?.toIso8601String();
+      }
+      return object.toString();
+    });
 
     final jsonString = encoder.convert(currentUser.toMap());
 

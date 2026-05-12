@@ -38,24 +38,20 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
 
     if (username.length < 5) return;
 
-    bool hasUser = await UserService().initializeFirstTimeUser(username, widget.isOffline);
-    if (hasUser){
-      AppState appState = context.read<AppState>();
-      appState.setLoggedIn();
-    }
-    // Change the state to loggedIn
-
+    bool hasUser = await UserService().initializeFirstTimeUser(
+      username,
+      widget.isOffline,
+    );
     if (!mounted) return;
-    Navigator.pop(context, username);
+    if (hasUser) {
+      context.read<AppState>().setLoggedIn();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Create Account"),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text("Create Account"), centerTitle: true),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -76,10 +72,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                   const Text(
                     "Choose Your Username",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 10),
@@ -87,10 +80,7 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                   const Text(
                     "Minimum 5 characters",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.black54, fontSize: 14),
                   ),
 
                   const SizedBox(height: 28),
@@ -104,14 +94,12 @@ class _CreateUserScreenState extends State<CreateUserScreen> {
                       ),
 
                       /// Prevent 3 spaces in a row
-                      TextInputFormatter.withFunction(
-                        (oldValue, newValue) {
-                          if (newValue.text.contains(RegExp(r" {3,}"))) {
-                            return oldValue;
-                          }
-                          return newValue;
-                        },
-                      ),
+                      TextInputFormatter.withFunction((oldValue, newValue) {
+                        if (newValue.text.contains(RegExp(r" {3,}"))) {
+                          return oldValue;
+                        }
+                        return newValue;
+                      }),
                     ],
                     decoration: InputDecoration(
                       labelText: "Username",

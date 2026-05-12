@@ -7,21 +7,21 @@ import 'package:rpg_task_manager/screens/task/task_create_screen.dart';
 import 'package:rpg_task_manager/widgets/task_tile.dart';
 import 'package:provider/provider.dart';
 
-class TaskScreen extends StatefulWidget{
+class TaskScreen extends StatefulWidget {
   TaskScreen({super.key});
 
-  @override 
+  @override
   State<TaskScreen> createState() => _TaskScreenState();
 }
 
-class _TaskScreenState extends State<TaskScreen>{
+class _TaskScreenState extends State<TaskScreen> {
   @override
   void initState() {
     super.initState();
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     // This screen is subscribed to TaskController. Whenever TaskController method
     // calls notifyListeners(), it rebuilds this GUI, very nice!
     final controller = context.watch<TaskController>();
@@ -53,25 +53,25 @@ class _TaskScreenState extends State<TaskScreen>{
   }
 
   // Builds GUI of current running task (always shows the first task in the list)
-  Widget _buildChosenTask(BuildContext context){
+  Widget _buildChosenTask(BuildContext context) {
     final controller = context.read<TaskController>();
     final timerService = controller.timerService;
     final tasks = controller.tasks;
-    
+
     if (tasks.isEmpty) {
       return Container(
         width: double.infinity,
         padding: EdgeInsets.all(20),
         margin: EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: AppColors.primary,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.all(Radius.circular(20)),
         ),
         child: Center(
           child: Text(
             "No tasks available. Add a task to get started!",
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.secondary,
               fontSize: AppFonts.sizeMedium,
             ),
             textAlign: TextAlign.center,
@@ -79,12 +79,13 @@ class _TaskScreenState extends State<TaskScreen>{
         ),
       );
     }
-    
+
     // ALWAYS use the first task in the list (index 0)
     final currentTask = tasks[0];
     final isRunning = timerService.isRunning;
-    final isThisTaskRunning = timerService.activeTask?.id == currentTask.id && isRunning;
-    
+    final isThisTaskRunning =
+        timerService.activeTask?.id == currentTask.id && isRunning;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(15),
@@ -94,21 +95,21 @@ class _TaskScreenState extends State<TaskScreen>{
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.85),
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primary.withOpacity(0.85),
           ],
         ),
         borderRadius: BorderRadius.all(Radius.circular(20)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
             blurRadius: 8,
             offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        children:[
+        children: [
           Row(
             children: [
               // Circular Progress with animation
@@ -121,15 +122,15 @@ class _TaskScreenState extends State<TaskScreen>{
                     child: CircularProgressIndicator(
                       value: currentTask.progress,
                       strokeWidth: 6,
-                      backgroundColor: AppColors.textSecondary.withOpacity(0.3),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.secondary.withOpacity(0.3),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.textSecondary,
+                        Theme.of(context).colorScheme.secondary,
                       ),
                     ),
                   ),
-                  Text(
-                  "${(currentTask.progress * 100).toStringAsFixed(1)}%",
-                )
+                  Text("${(currentTask.progress * 100).toStringAsFixed(1)}%"),
                 ],
               ),
               SizedBox(width: 16),
@@ -150,7 +151,9 @@ class _TaskScreenState extends State<TaskScreen>{
                         style: TextStyle(
                           fontSize: 10,
                           letterSpacing: 1.5,
-                          color: AppColors.textSecondary.withOpacity(0.7),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondary.withOpacity(0.7),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -162,14 +165,14 @@ class _TaskScreenState extends State<TaskScreen>{
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: AppFonts.sizeMedium,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ),
                     ],
                   ),
                 ),
-              )
-            ]
+              ),
+            ],
           ),
 
           SizedBox(height: 15),
@@ -191,7 +194,9 @@ class _TaskScreenState extends State<TaskScreen>{
                 Container(
                   width: 1,
                   height: 40,
-                  color: AppColors.textSecondary.withOpacity(0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondary.withOpacity(0.3),
                 ),
                 _buildInfoCard(
                   title: "Studying for:",
@@ -200,7 +205,9 @@ class _TaskScreenState extends State<TaskScreen>{
                 Container(
                   width: 1,
                   height: 40,
-                  color: AppColors.textSecondary.withOpacity(0.3),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondary.withOpacity(0.3),
                 ),
                 _buildInfoCard(
                   title: "Till deadline:",
@@ -216,7 +223,7 @@ class _TaskScreenState extends State<TaskScreen>{
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               foregroundColor: AppColors.background,
-              backgroundColor: AppColors.textSecondary,
+              backgroundColor: Theme.of(context).colorScheme.secondary,
               padding: EdgeInsets.symmetric(horizontal: 40, vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -229,24 +236,34 @@ class _TaskScreenState extends State<TaskScreen>{
               setState(() {
                 if (isThisTaskRunning) {
                   timerService.stopTimer();
-                  HelperFunctions.showMessage(context, "Timer paused for \"${currentTask.name}\"");
+                  HelperFunctions.showMessage(
+                    context,
+                    "Timer paused for \"${currentTask.name}\"",
+                  );
 
                   // Update doneDuration for storage data
                   controller.updateHiveTaskDoneDuration(taskId: currentTask.id);
                 } else {
                   // If another task is running, stop it first
-                  if (timerService.isRunning && timerService.activeTask?.id != currentTask.id) {
+                  if (timerService.isRunning &&
+                      timerService.activeTask?.id != currentTask.id) {
                     timerService.stopTimer();
                   }
                   timerService.startTimer(currentTask);
-                  HelperFunctions.showMessage(context, "Started working on \"${currentTask.name}\"");
+                  HelperFunctions.showMessage(
+                    context,
+                    "Started working on \"${currentTask.name}\"",
+                  );
                 }
               });
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(isThisTaskRunning ? Icons.pause : Icons.play_arrow, size: 24),
+                Icon(
+                  isThisTaskRunning ? Icons.pause : Icons.play_arrow,
+                  size: 24,
+                ),
                 SizedBox(width: 8),
                 Text(
                   isThisTaskRunning ? "Pause" : "Start",
@@ -258,21 +275,21 @@ class _TaskScreenState extends State<TaskScreen>{
               ],
             ),
           ),
-          
+
           SizedBox(height: 8),
-          
+
           // Show timer status
           if (isThisTaskRunning)
             Text(
               "Timer is running...",
               style: TextStyle(
                 fontSize: 12,
-                color: AppColors.textSecondary.withOpacity(0.8),
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
                 fontStyle: FontStyle.italic,
               ),
             ),
-        ]
-      )
+        ],
+      ),
     );
   }
 
@@ -284,7 +301,7 @@ class _TaskScreenState extends State<TaskScreen>{
           title,
           style: TextStyle(
             fontSize: AppFonts.sizeSmall,
-            color: AppColors.textSecondary.withOpacity(0.9),
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.9),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -294,7 +311,7 @@ class _TaskScreenState extends State<TaskScreen>{
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: AppFonts.sizeMedium,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
           ),
         ),
       ],
@@ -302,7 +319,7 @@ class _TaskScreenState extends State<TaskScreen>{
   }
 
   // Builds GUI of tasks list
-  Widget _buildTaskList(BuildContext context){
+  Widget _buildTaskList(BuildContext context) {
     final controller = context.read<TaskController>();
     final tasks = controller.tasks;
 
@@ -310,35 +327,41 @@ class _TaskScreenState extends State<TaskScreen>{
       child: Container(
         margin: EdgeInsets.only(top: 8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.05),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(30),
             topRight: Radius.circular(30),
           ),
         ),
         child: ReorderableListView(
-          buildDefaultDragHandles: true, 
+          buildDefaultDragHandles: true,
           padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           children: <Widget>[
-            for (int i = 0; i < tasks.length; i++)
-              _buildTaskTile(i),
+            for (int i = 0; i < tasks.length; i++) _buildTaskTile(i),
           ],
           onReorder: (oldIndex, newIndex) {
             setState(() {
-              controller.reorderTasks(oldIndex, newIndex); // mutates _tasks directly
+              controller.reorderTasks(
+                oldIndex,
+                newIndex,
+              ); // mutates _tasks directly
               controller.updateTaskOrderId();
 
               final timerService = controller.timerService;
-              if (timerService.activeTask != null && controller.tasks.isNotEmpty) {
+              if (timerService.activeTask != null &&
+                  controller.tasks.isNotEmpty) {
                 if (timerService.activeTask!.id != controller.tasks[0].id) {
                   timerService.stopTimer();
-                  HelperFunctions.showMessage(context, "Task reordered - Timer stopped");
+                  HelperFunctions.showMessage(
+                    context,
+                    "Task reordered - Timer stopped",
+                  );
                 }
               }
             });
           },
         ),
-      )
+      ),
     );
   }
 
@@ -346,64 +369,91 @@ class _TaskScreenState extends State<TaskScreen>{
     final controller = context.watch<TaskController>(); // watch, not read
 
     final labels = {
-      TaskSortOrder.manual:             "Manual",
-      TaskSortOrder.newest:             "Newest first",
-      TaskSortOrder.oldest:             "Oldest first",
-      TaskSortOrder.closestDeadline:    "Closest deadline",
-      TaskSortOrder.closestToCompletion:"Closest to done",
+      TaskSortOrder.manual: "Manual",
+      TaskSortOrder.newest: "Newest first",
+      TaskSortOrder.oldest: "Oldest first",
+      TaskSortOrder.closestDeadline: "Closest deadline",
+      TaskSortOrder.closestToCompletion: "Closest to done",
     };
 
     return PopupMenuButton<TaskSortOrder>(
-      color: AppColors.primary,
+      color: Theme.of(context).colorScheme.primary,
       onSelected: (order) => controller.setSortOrder(order),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.sort, color: AppColors.textSecondary, size: 18),
+          Icon(
+            Icons.sort,
+            color: Theme.of(context).colorScheme.secondary,
+            size: 18,
+          ),
           SizedBox(width: 4),
           Text(
             labels[controller.sortOrder]!,
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.secondary,
               fontSize: AppFonts.sizeMedium,
               fontWeight: FontWeight.w500,
             ),
           ),
-          Icon(Icons.arrow_drop_down, color: AppColors.textSecondary, size: 18),
+          Icon(
+            Icons.arrow_drop_down,
+            color: Theme.of(context).colorScheme.secondary,
+            size: 18,
+          ),
         ],
       ),
       itemBuilder: (_) => [
-        _sortMenuItem(TaskSortOrder.manual,               Icons.drag_handle, "Manual"),
-        _sortMenuItem(TaskSortOrder.newest,               Icons.fiber_new,   "Newest first"),
-        _sortMenuItem(TaskSortOrder.oldest,               Icons.history,     "Oldest first"),
-        _sortMenuItem(TaskSortOrder.closestDeadline,      Icons.timer,       "Closest deadline"),
-        _sortMenuItem(TaskSortOrder.closestToCompletion,  Icons.percent,     "Closest to done"),
+        _sortMenuItem(TaskSortOrder.manual, Icons.drag_handle, "Manual"),
+        _sortMenuItem(TaskSortOrder.newest, Icons.fiber_new, "Newest first"),
+        _sortMenuItem(TaskSortOrder.oldest, Icons.history, "Oldest first"),
+        _sortMenuItem(
+          TaskSortOrder.closestDeadline,
+          Icons.timer,
+          "Closest deadline",
+        ),
+        _sortMenuItem(
+          TaskSortOrder.closestToCompletion,
+          Icons.percent,
+          "Closest to done",
+        ),
       ],
     );
   }
 
-  PopupMenuItem<TaskSortOrder> _sortMenuItem(TaskSortOrder value, IconData icon, String label) {
+  PopupMenuItem<TaskSortOrder> _sortMenuItem(
+    TaskSortOrder value,
+    IconData icon,
+    String label,
+  ) {
     return PopupMenuItem(
       value: value,
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary, size: 20),
+          Icon(icon, color: Theme.of(context).colorScheme.secondary, size: 20),
           SizedBox(width: 10),
-          Text(label, style: TextStyle(color: AppColors.textSecondary)),
+          Text(
+            label,
+            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+          ),
         ],
       ),
     );
   }
 
   // Builds floating task add button
-  Widget _buildAddButton(BuildContext context){
+  Widget _buildAddButton(BuildContext context) {
     final taskCount = context.read<TaskController>().tasks.length;
 
     return FloatingActionButton(
       heroTag: "add_button_fab",
       onPressed: () async {
-        if (taskCount >= 60){
-          HelperFunctions.showMessage(context, "Task limit reached, complete or delete a task to add.", duration: 2);
+        if (taskCount >= 60) {
+          HelperFunctions.showMessage(
+            context,
+            "Task limit reached, complete or delete a task to add.",
+            duration: 2,
+          );
           return;
         }
 
@@ -417,17 +467,15 @@ class _TaskScreenState extends State<TaskScreen>{
         }
       },
       child: Icon(Icons.add),
-      backgroundColor: AppColors.textSecondary,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       foregroundColor: AppColors.background,
       elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
   }
 
   // Builds labels
-  Widget _buildLabel(String label, [double margin = 3]){
+  Widget _buildLabel(String label, [double margin = 3]) {
     return Align(
       alignment: Alignment.topLeft,
       child: Container(
@@ -435,22 +483,23 @@ class _TaskScreenState extends State<TaskScreen>{
         child: Text(
           label,
           style: TextStyle(
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.secondary,
             fontWeight: FontWeight.bold,
             fontSize: AppFonts.sizeBig,
             letterSpacing: 0.5,
-          )
+          ),
         ),
-      )
+      ),
     );
   }
 
-  Widget _buildTaskTile(int i){
+  Widget _buildTaskTile(int i) {
     final TaskController controller = context.read<TaskController>();
     final timerService = controller.timerService;
     final task = controller.tasks[i];
-    final isThisTaskRunning = timerService.activeTask?.id == task.id && timerService.isRunning;
-    
+    final isThisTaskRunning =
+        timerService.activeTask?.id == task.id && timerService.isRunning;
+
     // Highlight the first task (current task)
     final isFirstTask = i == 0;
 
@@ -460,7 +509,7 @@ class _TaskScreenState extends State<TaskScreen>{
       // decoration: isFirstTask && !isThisTaskRunning ? BoxDecoration(
       //   borderRadius: BorderRadius.circular(12),
       //   border: Border.all(
-      //     color: AppColors.textSecondary.withAlpha(125),
+      //     color: Theme.of(context).colorScheme.secondary.withAlpha(125),
       //     width: 2,
       //   ),
       // ) : null,
@@ -469,7 +518,7 @@ class _TaskScreenState extends State<TaskScreen>{
         index: i,
         isRunning: isThisTaskRunning,
         isFirstTask: isFirstTask, // Pass this to TaskTile for styling
-        onRemoved: (){
+        onRemoved: () {
           showDialog(
             context: context,
             builder: (BuildContext dialogContext) {
@@ -481,7 +530,10 @@ class _TaskScreenState extends State<TaskScreen>{
                 ),
                 title: const Text(
                   'Delete Task?',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -499,7 +551,11 @@ class _TaskScreenState extends State<TaskScreen>{
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 16),
+                        const Icon(
+                          Icons.auto_awesome,
+                          color: Color(0xFFFFD700),
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${task.getRewardXp()} XP',
@@ -509,7 +565,11 @@ class _TaskScreenState extends State<TaskScreen>{
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.monetization_on, color: Color(0xFFFFD700), size: 16),
+                        const Icon(
+                          Icons.monetization_on,
+                          color: Color(0xFFFFD700),
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${task.getRewardGold()} Gold',
@@ -530,9 +590,13 @@ class _TaskScreenState extends State<TaskScreen>{
 
                       // ----------ACTUAL DELETE METHODS----------
                       if (isThisTaskRunning) timerService.stopTimer();
-                      String deletedTaskName = controller.abandonTask(task.id); // this deletes
-                      HelperFunctions.showMessage(context, "Removed Task \"$deletedTaskName\"");
-
+                      String deletedTaskName = controller.abandonTask(
+                        task.id,
+                      ); // this deletes
+                      HelperFunctions.showMessage(
+                        context,
+                        "Removed Task \"$deletedTaskName\"",
+                      );
                     },
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
                     child: const Text('Delete'),
@@ -542,14 +606,14 @@ class _TaskScreenState extends State<TaskScreen>{
             },
           );
         },
-        onFinished: (){
+        onFinished: () {
           if (isThisTaskRunning) {
             timerService.stopTimer();
           }
           controller.finishTask(task.id);
           // HelperFunctions.showMessage(context, "Finished Task \"$deletedTaskName\" - You earned 100 XP!");
         },
-        onEdited: (){
+        onEdited: () {
           Navigator.push(
             context,
             MaterialPageRoute(
