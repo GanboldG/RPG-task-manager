@@ -4,11 +4,14 @@ import 'package:rpg_task_manager/helpers/app_colors.dart';
 import 'package:rpg_task_manager/helpers/app_fonts.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/screens/task/task_create_screen.dart';
+import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:rpg_task_manager/widgets/task_tile.dart';
 import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/widgets/reward_animation_overlay.dart';
 
 class TaskScreen extends StatefulWidget {
-  TaskScreen({super.key});
+  final GlobalKey<AnimatedResourceBarState> resourceBarKey;
+  TaskScreen({super.key, required this.resourceBarKey});
 
   @override
   State<TaskScreen> createState() => _TaskScreenState();
@@ -607,11 +610,48 @@ class _TaskScreenState extends State<TaskScreen> {
           );
         },
         onFinished: () {
-          if (isThisTaskRunning) {
-            timerService.stopTimer();
-          }
+          if (isThisTaskRunning) timerService.stopTimer();
+
+          final rewardXp = task.getRewardXp();
+          final rewardGold = task.getRewardGold();
+
           controller.finishTask(task.id);
-          // HelperFunctions.showMessage(context, "Finished Task \"$deletedTaskName\" - You earned 100 XP!");
+
+          // Origin: center of this tile
+          final tileBox = context.findRenderObject() as RenderBox?;
+          final origin = tileBox != null
+              ? tileBox.localToGlobal(tileBox.size.center(Offset.zero))
+              : Offset(MediaQuery.of(context).size.width / 2, 400);
+
+          final barState = widget.resourceBarKey.currentState;
+
+          // Gold particles
+          final goldBox = barState?.goldKey
+              .currentContext?.findRenderObject() as RenderBox?;
+          if (goldBox != null && rewardGold > 0) {
+            launchRewardParticles(
+              context: context,
+              origin: origin,
+              target: goldBox.localToGlobal(goldBox.size.center(Offset.zero)),
+              type: 'gold',
+              count: (rewardGold ~/ 10).clamp(4, 10),
+              onComplete: () => barState?.triggerGoldFlash(),
+            );
+          }
+
+          // XP particles
+          final xpBox = barState?.xpKey
+              .currentContext?.findRenderObject() as RenderBox?;
+          if (xpBox != null && rewardXp > 0) {
+            launchRewardParticles(
+              context: context,
+              origin: origin,
+              target: xpBox.localToGlobal(xpBox.size.center(Offset.zero)),
+              type: 'xp',
+              count: (rewardXp ~/ 10).clamp(4, 10),
+              onComplete: () => barState?.triggerXpFlash(),
+            );
+          }
         },
         onEdited: () {
           Navigator.push(

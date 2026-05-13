@@ -179,8 +179,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _index = 0;
 
-  final List<Widget> _screens = [
-    TaskScreen(),
+  // ADD THIS
+  final GlobalKey<AnimatedResourceBarState> _resourceBarKey =
+      GlobalKey<AnimatedResourceBarState>();
+
+  // Change _screens from a field to a getter so it can reference _resourceBarKey
+  List<Widget> get _screens => [
+    TaskScreen(resourceBarKey: _resourceBarKey), // PASS KEY HERE
     ShopScreen(),
     InventoryScreen(),
     ProfileScreen(),
@@ -193,7 +198,8 @@ class _HomePageState extends State<HomePage> {
       extendBodyBehindAppBar: true,
       body: Column(
         children: [
-          ResourceBar(),
+          AnimatedResourceBar(key: _resourceBarKey),
+          // ResourceBar(),
           Expanded(
             child: IndexedStack(index: _index, children: _screens),
           ),

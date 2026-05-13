@@ -419,8 +419,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     late String path;
 
     try {
-      path = await TaskService().exportTasksToFile();
+      String? pat = await TaskService().exportTasksToFile();
+      if (pat == null) { return ;}
 
+      path = pat!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Exported to $path")),
       );

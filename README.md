@@ -4,7 +4,6 @@ In progress:
 - Add a lot of animations
 - Add SFX for everything
 
-
 - Make app work in the background, with full noification control
 - Make the app not turn off with screen turn-off time
 
