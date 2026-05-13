@@ -24,6 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // theme selected in initState
   double _volume = 0.5;
   bool _musicOn = true;
+  bool _exporting = false;
 
   void _toggleMusic(bool val) {
     setState(() => _musicOn = val);
@@ -259,7 +260,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _label('SYNC DATA'),
                 _card(
                   _row(
-                    icon: Icons.logout,
+                    icon: Icons.cloud,
                     label: 'Sync Data to cloud',
                     iconColor: const Color.fromARGB(255, 6, 168, 255),
                     labelColor: const Color.fromARGB(255, 6, 168, 255),
@@ -268,7 +269,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
 
                 const SizedBox(height: 20),
-            
+
+                // ── Download tasks as json ──────────────────────────────────────────────
+                _label('EXPORT TASKS'),
+                _card(
+                  _row(
+                    icon: Icons.share,
+                    label: 'Export Task History as json',
+                    iconColor: const Color.fromARGB(255, 3, 137, 72),
+                    labelColor: const Color.fromARGB(255, 3, 137, 72),
+                    onTap: _exportTaskHistoryAsJson,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
 
                 // ── Danger ──────────────────────────────────────────────
                 _label('DANGER ZONE'),
@@ -397,6 +411,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _exportTaskHistoryAsJson() async {
+    setState(() => _exporting = true);
+    late String path;
+
+    try {
+      String? pat = await TaskService().exportTasksToFile();
+      if (pat == null) { return ;}
+
+      path = pat!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Exported to $path")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Export failed: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _exporting = false);
     }
   }
 }

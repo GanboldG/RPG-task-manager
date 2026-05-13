@@ -189,6 +189,7 @@ class ItemDatabase {
     List<ItemEffect> newEffects = [];
 
     for (ItemEffect effect in original.effects) {
+      // double minValue = effect.value * (1 + userLevel * effectMultLvl);
       double minValue = effect.value + userLevel * effectMultLvl;
       double maxValue = minValue * (1 + effectMult);
       double randomValue = HelperFunctions.randomDouble(minValue, maxValue);
@@ -201,10 +202,17 @@ class ItemDatabase {
     }
 
     // 5. Calculate new cost
-    final costMultPerlevel = config.costMultPerLevel;
-    final int minCost = original.priceGold;
-    final int maxCost = (minCost * (1 + costMultPerlevel * userLevel)).round();
-    final int newCost = HelperFunctions.randomInt(minCost, maxCost);
+    final costMultPerLevel = config.costMultPerLevel;
+    final double scaledCost = original.priceGold * (1 + userLevel * costMultPerLevel);
+
+    final int minCost =
+        (scaledCost * 0.9).round();
+
+    final int maxCost =
+        (scaledCost * 1.1).round();
+
+    final int newCost =
+        HelperFunctions.randomInt(minCost, maxCost);
 
     // Create new item with randomized values
     return Item(
@@ -220,7 +228,7 @@ class ItemDatabase {
       thresholdLevel: original.thresholdLevel,
       effects: newEffects,
       rarity: newRarity,
-      level: original.level,
+      level: UserService().currentUser.level,
       isActivated: original.isActivated,
       acquiredDate: original.acquiredDate,
     );
@@ -275,12 +283,12 @@ class ShopManager {
 
   ItemRarity _getItemRarity(){
     Map<ItemRarity, double> rarities = 
-      {ItemRarity.common: 0.4,
-      ItemRarity.uncommon: 0.3,
+      {ItemRarity.common: 0.6,
+      ItemRarity.uncommon: 0.25,
       ItemRarity.rare: 0.1,
-      ItemRarity.epic: 0.05,
-      ItemRarity.legendary: 0.03,
-      ItemRarity.mythic: 0.02};
+      ItemRarity.epic: 0.03,
+      ItemRarity.legendary: 0.015,
+      ItemRarity.mythic: 0.005};
     
 
     // Calculate cumulative probabilities

@@ -1,9 +1,15 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rpg_task_manager/models/task/task_snapshot.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
 
 class TaskService {
 
@@ -275,5 +281,61 @@ class TaskService {
     for (final doc in collection.docs) {
       await doc.reference.delete();
     }
+  }
+
+
+  // -----------------------EXPORT TASKS INTO JSON------------------------------------
+  // Future<String> exportTasksToFile() async {
+  //   final data = {
+  //     "tasks": getAllActiveTasks().map((t) => t.toMap()).toList(),
+  //     "archivedTasks": getAllArchivedTasks().map((t) => t.toMap()).toList(),
+  //     "exportedAt": DateTime.now().toIso8601String(),
+  //   };
+
+  //   final jsonString = jsonEncode(HelperFunctions.safeEncode(data));
+  //   final fileName = "tasks_backup_${DateTime.now().millisecondsSinceEpoch}.json";
+
+  //   // Points to /storage/emulated/0/Downloads — visible in Files app
+  //   final dir = Directory('/storage/emulated/0/Downloads');
+  //   if (!await dir.exists()) await dir.create(recursive: true);
+
+  //   final file = File("${dir.path}/$fileName");
+  //   await file.writeAsString(jsonString);
+
+  //   return file.path;
+  // }
+
+    Future<String?> exportTasksToFile() async {
+    final data = {
+      "tasks": getAllActiveTasks().map((t) => t.toMap()).toList(),
+      "archivedTasks": getAllArchivedTasks().map((t) => t.toMap()).toList(),
+      "exportedAt": DateTime.now().toIso8601String(),
+    };
+
+    final jsonString = jsonEncode(HelperFunctions.safeEncode(data));
+
+    final fileName =
+        "tasks_backup_${DateTime.now().millisecondsSinceEpoch}.json";
+
+    final bytes = Uint8List.fromList(utf8.encode(jsonString));
+
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: "Save Tasks Backup",
+      fileName: fileName,
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+
+      // KEY PART: write directly as bytes (no file path handling)
+      bytes: bytes,
+    );
+
+    if (result == null) {
+      // user cancelled
+      return null;
+    }
+
+    // On mobile: result is not always a real path.
+    // On desktop: it may be a real file path.
+    return result;
   }
 }

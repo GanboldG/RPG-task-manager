@@ -128,18 +128,24 @@ class _ShopScreenState extends State<ShopScreen>
 
   void _refreshShop() {
     final shopController = context.read<ItemShopController>();
-    shopController.refreshShop();
-    // _shopController.refreshCustomItems();
+    final userController = context.read<UserController>();
+
+    if (userController.useShopReroll()){
+      shopController.refreshShop();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final userController = context.watch<UserController>();
+
     return Scaffold(
       backgroundColor: kBg(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _refreshShop,
-        child: Icon(Icons.refresh, color: kPurple(context)),
-      ),
+      floatingActionButton: FloatingActionButton.extended(
+          onPressed: _refreshShop,
+          icon: Icon(Icons.refresh, color: kPurple(context)),
+          label: Text("${UserService().currentUser.shopRerolls} rerolls"),
+        ),
       body: Column(
         children: [
           Container(
@@ -1243,6 +1249,7 @@ class _LootboxDialogState extends State<_LootboxDialog>
   @override
   void initState() {
     super.initState();
+    
     _scrollCtrl = ScrollController();
 
     _animCtrl = AnimationController(vsync: this, duration: _kRollDuration);

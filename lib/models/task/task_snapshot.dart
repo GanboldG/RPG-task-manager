@@ -28,4 +28,6 @@ class TaskSnapshot extends HiveObject {
       taskMinutes: Map<String, double>.from(map['taskMinutes']),
     );
   }
+
+  
 }

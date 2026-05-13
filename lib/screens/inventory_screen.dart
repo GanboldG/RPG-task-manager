@@ -129,6 +129,8 @@ class _InventoryScreenState extends State<InventoryScreen>
   }
 
   void _showItemOptions(Item item) {
+    final inventoryController = context.read<InventoryController>();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: kCard(context),
@@ -148,24 +150,7 @@ class _InventoryScreenState extends State<InventoryScreen>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.sell, color: kGold),
-              title: Text('Sell', style: TextStyle(color: kTxt(context))),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement sell function
-              },
-            ),
-            Divider(color: kBorder(context), height: 0),
-            ListTile(
-              leading: Icon(Icons.delete, color: kRed),
-              title: Text('Delete', style: TextStyle(color: kTxt(context))),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: Implement delete function
-              },
-            ),
-            if (!item.isActivated) Divider(color: kBorder(context), height: 0),
+
             if (!item.isActivated)
               ListTile(
                 leading: Icon(Icons.play_arrow, color: kGreen),
@@ -178,7 +163,16 @@ class _InventoryScreenState extends State<InventoryScreen>
                   context.read<InventoryController>().equipItem(item);
                 },
               ),
-            SizedBox(height: 8),
+
+            ListTile(
+              leading: Icon(Icons.delete, color: kRed),
+              title: Text('Delete', style: TextStyle(color: kTxt(context))),
+              onTap: () {
+                Navigator.pop(context);
+                // DELETE
+                inventoryController.deleteItem(item);
+              },
+            ),
           ],
         ),
       ),
