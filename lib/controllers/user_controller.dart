@@ -141,6 +141,17 @@ class UserController extends ChangeNotifier{
   }
 
 
+  bool useShopReroll(){
+    if (user.shopRerolls < 1){
+      return false;
+    }
+
+    user.shopRerolls--;
+    UserService().saveCurrentUserData();
+    notifyListeners();
+    return true;
+  }
+
   // ----------------- STATS ----------------------------
 
   // Update task total time

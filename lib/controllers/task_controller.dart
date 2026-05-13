@@ -38,6 +38,9 @@ class TaskController extends ChangeNotifier {
   TaskSortOrder _sortOrder = TaskSortOrder.manual;
   TaskSortOrder get sortOrder => _sortOrder;
 
+  // To instantly lookup task with taskId
+  final Map<String, Task> taskMap = {};
+
   List<Task> get tasks {
     final sorted = List<Task>.from(_tasks);
     switch (_sortOrder) {
@@ -82,6 +85,16 @@ class TaskController extends ChangeNotifier {
     _timerService.onProgressUpdate = (taskId, doneSeconds) {
       updateTaskProgress(taskId, doneSeconds);
     };
+
+
+    // Instant task lookup with id
+    for (final task in archivedTasks) {
+      taskMap[task.id] = task;
+    }
+
+    for (final task in tasks) {
+      taskMap[task.id] = task;
+    }
   }
 
 

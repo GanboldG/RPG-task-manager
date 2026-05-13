@@ -130,4 +130,20 @@ class HelperFunctions {
   static String formatYearMonthDay(DateTime date) {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
+
+  static dynamic safeEncode(dynamic value) {
+    if (value is DateTime) {
+      return value.toIso8601String();
+    }
+
+    if (value is Map) {
+      return value.map((k, v) => MapEntry(k, safeEncode(v)));
+    }
+
+    if (value is Iterable) {
+      return value.map((e) => safeEncode(e)).toList();
+    }
+
+    return value;
+  }
 }

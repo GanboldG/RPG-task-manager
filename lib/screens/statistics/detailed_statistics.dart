@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:rpg_task_manager/models/task/task_type.dart';
 import 'package:rpg_task_manager/services/task_service.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:provider/provider.dart';
+import 'package:rpg_task_manager/controllers/task_controller.dart';
 
 class DetailedStatisticsScreen extends StatefulWidget {
   const DetailedStatisticsScreen({super.key});
@@ -23,6 +27,8 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
   bool _loading = false;
 
   final List<String> _filters = ['Week', 'Month'];
+
+  List<_PieData> _pieData = [];
 
   @override
   void initState() {
@@ -58,12 +64,131 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
   Future<void> _loadData() async {
     setState(() => _loading = true);
 
-    final bars = _selectedFilter == 0 ? _buildWeekBars() : _buildMonthBars();
+    final bars = _selectedFilter == 0
+        ? _buildWeekBars()
+        : _buildMonthBars();
+
+    final pie = _selectedFilter == 0
+        ? _buildWeekPieData()
+        : _buildMonthPieData();
 
     setState(() {
       _bars = bars;
+      _pieData = pie;
       _loading = false;
     });
+  }
+
+  List<_PieData> _buildWeekPieData() {
+    final taskController = context.read<TaskController>();
+    final Map<TaskType, double> typeMinutes = {};
+
+    for (int i = 0; i < 7; i++) {
+      final day = _weekAnchor.add(Duration(days: i));
+      final snapshot = TaskService().taskSnapshotBox.get(_hiveKey(day));
+
+      if (snapshot == null) continue;
+
+      for (final entry in snapshot.taskMinutes.entries) {
+        final taskId = entry.key;
+        final minutes = entry.value;
+        final task = taskController.taskMap[taskId];
+        if (task == null) continue;
+        final type = task.type;
+
+        if (type != null){
+          typeMinutes[type] = (typeMinutes[type] ?? 0) + minutes;
+        }
+      }
+    }
+
+    final colors = [
+      Colors.purple,
+      Colors.blue,
+      Colors.orange,
+      Colors.green,
+      Colors.red,
+      Colors.teal,
+    ];
+
+    int index = 0;
+
+    return typeMinutes.entries.map((e) {
+
+      final data = _PieData(
+        label: e.key.name,
+        minutes: e.value,
+        color: colors[index % colors.length],
+      );
+
+      index++;
+      return data;
+    }).toList();
+  }
+
+  List<_PieData> _buildMonthPieData() {
+    final taskController = context.read<TaskController>();
+    final Map<TaskType, double> typeMinutes = {};
+    final year = _monthAnchor.year;
+    final month = _monthAnchor.month;
+    final firstDay = DateTime(year, month, 1);
+    final lastDay = DateTime(year, month + 1, 0);
+    DateTime current = firstDay;
+
+    while (!current.isAfter(lastDay)) {
+
+      final snapshot =
+          TaskService().taskSnapshotBox.get(_hiveKey(current));
+
+      if (snapshot != null) {
+
+        for (final entry in snapshot.taskMinutes.entries) {
+
+          final taskId = entry.key;
+          final minutes = entry.value;
+
+          final task =
+              taskController.taskMap[taskId];
+
+          if (task == null) continue;
+
+          final type = task.type;
+
+          if (type != null) {
+
+            typeMinutes[type] =
+                (typeMinutes[type] ?? 0) + minutes;
+          }
+        }
+      }
+
+      current = current.add(const Duration(days: 1));
+    }
+
+    final colors = [
+      Colors.purple,
+      Colors.blue,
+      Colors.orange,
+      Colors.green,
+      Colors.red,
+      Colors.teal,
+    ];
+
+    int index = 0;
+
+    return typeMinutes.entries.map((e) {
+
+      final data = _PieData(
+        label: e.key.name,
+        minutes: e.value,
+        color: colors[index % colors.length],
+      );
+
+      index++;
+
+      return data;
+
+    }).toList();
   }
 
   /// 7 bars: Mon–Sun of the anchored week
@@ -316,6 +441,8 @@ class _DetailedStatisticsScreenState extends State<DetailedStatisticsScreen> {
                           formatHM: _formatHM,
                         ),
                   const SizedBox(height: 20),
+
+                  _PieChartCard(data: _pieData),
                 ],
               ),
             ),
@@ -756,5 +883,103 @@ class _BarChartCard extends StatelessWidget {
   String _shortHours(double hours) {
     if (hours < 1) return '${(hours * 60).round()}m';
     return '${hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1)}h';
+  }
+}
+
+class _PieData {
+  final String label;
+  final double minutes;
+  final Color color;
+
+  const _PieData({
+    required this.label,
+    required this.minutes,
+    required this.color,
+  });
+}
+
+class _PieChartCard extends StatelessWidget {
+  final List<_PieData> data;
+
+  const _PieChartCard({
+    required this.data,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final total =
+        data.fold<double>(0, (sum, e) => sum + e.minutes);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Task Type Distribution',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 220,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 3,
+                centerSpaceRadius: 45,
+                sections: data.map((e) {
+                  final percent =
+                      total == 0 ? 0 : (e.minutes / total) * 100;
+
+                  return PieChartSectionData(
+                    value: e.minutes,
+                    title:
+                        '${percent.toStringAsFixed(0)}%',
+                    color: e.color,
+                    radius: 65,
+                    titleStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: data.map((e) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: e.color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(e.label),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 }

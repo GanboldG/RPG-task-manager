@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  fl_chart: ^0.68.0
   cupertino_icons: ^1.0.8
   image_picker: ^1.0.7
   just_audio: ^0.9.36 # To play audio
@@ -30,6 +29,8 @@ dependencies:
   crypto: ^3.0.3
   flutter_image_compress: ^2.0.4
   connectivity_plus: ^6.0.5
+  fl_chart: ^1.0.0
+
   
 dev_dependencies:
   flutter_test:

@@ -78,11 +78,6 @@ class InventoryController extends ChangeNotifier{
     UserService().saveCurrentUserData();
   }
 
-  // ---------------SELL-----------------
-  void sellItem(Item item){
-    // No functions for now
-    notifyListeners();
-  }
 
   bool inventoryIsFull(){
     return _inventoryItems.length >= UserService().currentUser.inventorySlot;

@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:rpg_task_manager/helpers/helper_functions.dart';
 import 'package:rpg_task_manager/models/task/task.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -276,4 +281,28 @@ class TaskService {
       await doc.reference.delete();
     }
   }
+
+
+  // -----------------------EXPORT TASKS INTO JSON------------------------------------
+  Future<String> exportTasksToFile() async {
+    final data = {
+      "tasks": getAllActiveTasks().map((t) => t.toMap()).toList(),
+      "archivedTasks": getAllArchivedTasks().map((t) => t.toMap()).toList(),
+      "exportedAt": DateTime.now().toIso8601String(),
+    };
+
+    final jsonString = jsonEncode(HelperFunctions.safeEncode(data));
+
+    final dir = await getApplicationDocumentsDirectory();
+
+    final fileName =
+        "tasks_backup_${DateTime.now().millisecondsSinceEpoch}.json";
+
+    final file = File("${dir.path}/$fileName");
+
+    await file.writeAsString(jsonString);
+
+    return file.path;
+  }
+
 }
