@@ -8,6 +8,9 @@ import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:rpg_task_manager/widgets/task_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:rpg_task_manager/widgets/reward_animation_overlay.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:rpg_task_manager/services/task_foreground_service.dart';
 
 class TaskScreen extends StatefulWidget {
   final GlobalKey<AnimatedResourceBarState> resourceBarKey;
@@ -21,14 +24,20 @@ class _TaskScreenState extends State<TaskScreen> {
   @override
   void initState() {
     super.initState();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    final notificationPermission =
+        await FlutterForegroundTask.checkNotificationPermission();
+    if (notificationPermission != NotificationPermission.granted) {
+      await FlutterForegroundTask.requestNotificationPermission();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This screen is subscribed to TaskController. Whenever TaskController method
-    // calls notifyListeners(), it rebuilds this GUI, very nice!
     final controller = context.watch<TaskController>();
-    // final timerService = controller.timerService;
     final tasks = controller.tasks;
 
     return Scaffold(
@@ -55,7 +64,6 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
-  // Builds GUI of current running task (always shows the first task in the list)
   Widget _buildChosenTask(BuildContext context) {
     final controller = context.read<TaskController>();
     final timerService = controller.timerService;
@@ -83,7 +91,6 @@ class _TaskScreenState extends State<TaskScreen> {
       );
     }
 
-    // ALWAYS use the first task in the list (index 0)
     final currentTask = tasks[0];
     final isRunning = timerService.isRunning;
     final isThisTaskRunning =
@@ -115,7 +122,6 @@ class _TaskScreenState extends State<TaskScreen> {
         children: [
           Row(
             children: [
-              // Circular Progress with animation
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -137,8 +143,6 @@ class _TaskScreenState extends State<TaskScreen> {
                 ],
               ),
               SizedBox(width: 16),
-
-              // Task name / description
               Expanded(
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -180,7 +184,6 @@ class _TaskScreenState extends State<TaskScreen> {
 
           SizedBox(height: 15),
 
-          // Time info
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -222,7 +225,7 @@ class _TaskScreenState extends State<TaskScreen> {
 
           SizedBox(height: 15),
 
-          // Timer control button
+          // Timer control button — async болгосон
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               foregroundColor: AppColors.background,
@@ -232,33 +235,36 @@ class _TaskScreenState extends State<TaskScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: () {
-              // DEBUG to check if idCounter is working
-              // HelperFunctions.showMessage(context, controller.tasks.map((k) => k.id).toString(), 1);
-
-              setState(() {
-                if (isThisTaskRunning) {
+            onPressed: () async {
+              if (isThisTaskRunning) {
+                // --- PAUSE ---
+                timerService.stopTimer();
+                TaskForegroundService.sendPause();
+                WakelockPlus.disable();
+                controller.updateHiveTaskDoneDuration(taskId: currentTask.id);
+                HelperFunctions.showMessage(
+                  context,
+                  "Timer paused for \"${currentTask.name}\"",
+                );
+                setState(() {});
+              } else {
+                // --- START ---
+                if (timerService.isRunning &&
+                    timerService.activeTask?.id != currentTask.id) {
                   timerService.stopTimer();
-                  HelperFunctions.showMessage(
-                    context,
-                    "Timer paused for \"${currentTask.name}\"",
-                  );
-
-                  // Update doneDuration for storage data
-                  controller.updateHiveTaskDoneDuration(taskId: currentTask.id);
-                } else {
-                  // If another task is running, stop it first
-                  if (timerService.isRunning &&
-                      timerService.activeTask?.id != currentTask.id) {
-                    timerService.stopTimer();
-                  }
-                  timerService.startTimer(currentTask);
-                  HelperFunctions.showMessage(
-                    context,
-                    "Started working on \"${currentTask.name}\"",
-                  );
                 }
-              });
+                timerService.startTimer(currentTask);
+                WakelockPlus.enable();
+                await TaskForegroundService.start(
+                  taskName: currentTask.name,
+                  remainingSeconds: currentTask.getRemainingSeconds(),
+                );
+                HelperFunctions.showMessage(
+                  context,
+                  "Started working on \"${currentTask.name}\"",
+                );
+                setState(() {});
+              }
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -281,7 +287,6 @@ class _TaskScreenState extends State<TaskScreen> {
 
           SizedBox(height: 8),
 
-          // Show timer status
           if (isThisTaskRunning)
             Text(
               "Timer is running...",
@@ -296,7 +301,6 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
-  // Helper widget for info cards
   Widget _buildInfoCard({required String title, required String value}) {
     return Column(
       children: [
@@ -321,7 +325,6 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
-  // Builds GUI of tasks list
   Widget _buildTaskList(BuildContext context) {
     final controller = context.read<TaskController>();
     final tasks = controller.tasks;
@@ -344,10 +347,7 @@ class _TaskScreenState extends State<TaskScreen> {
           ],
           onReorder: (oldIndex, newIndex) {
             setState(() {
-              controller.reorderTasks(
-                oldIndex,
-                newIndex,
-              ); // mutates _tasks directly
+              controller.reorderTasks(oldIndex, newIndex);
               controller.updateTaskOrderId();
 
               final timerService = controller.timerService;
@@ -355,6 +355,8 @@ class _TaskScreenState extends State<TaskScreen> {
                   controller.tasks.isNotEmpty) {
                 if (timerService.activeTask!.id != controller.tasks[0].id) {
                   timerService.stopTimer();
+                  TaskForegroundService.sendPause();
+                  WakelockPlus.disable();
                   HelperFunctions.showMessage(
                     context,
                     "Task reordered - Timer stopped",
@@ -369,7 +371,7 @@ class _TaskScreenState extends State<TaskScreen> {
   }
 
   Widget _buildSortButton(BuildContext context) {
-    final controller = context.watch<TaskController>(); // watch, not read
+    final controller = context.watch<TaskController>();
 
     final labels = {
       TaskSortOrder.manual: "Manual",
@@ -444,7 +446,6 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
-  // Builds floating task add button
   Widget _buildAddButton(BuildContext context) {
     final taskCount = context.read<TaskController>().tasks.length;
 
@@ -464,7 +465,6 @@ class _TaskScreenState extends State<TaskScreen> {
           context,
           MaterialPageRoute(builder: (context) => AddTaskScreen()),
         );
-        // Refresh if task was added
         if (result == true) {
           setState(() {});
         }
@@ -477,7 +477,6 @@ class _TaskScreenState extends State<TaskScreen> {
     );
   }
 
-  // Builds labels
   Widget _buildLabel(String label, [double margin = 3]) {
     return Align(
       alignment: Alignment.topLeft,
@@ -502,31 +501,22 @@ class _TaskScreenState extends State<TaskScreen> {
     final task = controller.tasks[i];
     final isThisTaskRunning =
         timerService.activeTask?.id == task.id && timerService.isRunning;
-
-    // Highlight the first task (current task)
     final isFirstTask = i == 0;
 
     return Container(
       key: ValueKey(task.id),
       margin: EdgeInsets.symmetric(vertical: 4, horizontal: 0),
-      // decoration: isFirstTask && !isThisTaskRunning ? BoxDecoration(
-      //   borderRadius: BorderRadius.circular(12),
-      //   border: Border.all(
-      //     color: Theme.of(context).colorScheme.secondary.withAlpha(125),
-      //     width: 2,
-      //   ),
-      // ) : null,
       child: TaskTile(
         task: task,
         index: i,
         isRunning: isThisTaskRunning,
-        isFirstTask: isFirstTask, // Pass this to TaskTile for styling
+        isFirstTask: isFirstTask,
         onRemoved: () {
           showDialog(
             context: context,
             builder: (BuildContext dialogContext) {
               return AlertDialog(
-                backgroundColor: const Color(0xFF1E1E2E), // Dark background
+                backgroundColor: const Color(0xFF1E1E2E),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
@@ -590,12 +580,12 @@ class _TaskScreenState extends State<TaskScreen> {
                   TextButton(
                     onPressed: () {
                       Navigator.pop(dialogContext);
-
-                      // ----------ACTUAL DELETE METHODS----------
-                      if (isThisTaskRunning) timerService.stopTimer();
-                      String deletedTaskName = controller.abandonTask(
-                        task.id,
-                      ); // this deletes
+                      if (isThisTaskRunning) {
+                        timerService.stopTimer();
+                        TaskForegroundService.stop();
+                        WakelockPlus.disable();
+                      }
+                      String deletedTaskName = controller.abandonTask(task.id);
                       HelperFunctions.showMessage(
                         context,
                         "Removed Task \"$deletedTaskName\"",
@@ -609,15 +599,16 @@ class _TaskScreenState extends State<TaskScreen> {
             },
           );
         },
-        onFinished: () {
+        onFinished: () async {
           if (isThisTaskRunning) timerService.stopTimer();
+          await TaskForegroundService.stop();
+          WakelockPlus.disable();
 
           final rewardXp = task.getRewardXp();
           final rewardGold = task.getRewardGold();
 
           controller.finishTask(task.id);
 
-          // Origin: center of this tile
           final tileBox = context.findRenderObject() as RenderBox?;
           final origin = tileBox != null
               ? tileBox.localToGlobal(tileBox.size.center(Offset.zero))
@@ -625,9 +616,9 @@ class _TaskScreenState extends State<TaskScreen> {
 
           final barState = widget.resourceBarKey.currentState;
 
-          // Gold particles
-          final goldBox = barState?.goldKey
-              .currentContext?.findRenderObject() as RenderBox?;
+          final goldBox =
+              barState?.goldKey.currentContext?.findRenderObject()
+                  as RenderBox?;
           if (goldBox != null && rewardGold > 0) {
             launchRewardParticles(
               context: context,
@@ -639,9 +630,8 @@ class _TaskScreenState extends State<TaskScreen> {
             );
           }
 
-          // XP particles
-          final xpBox = barState?.xpKey
-              .currentContext?.findRenderObject() as RenderBox?;
+          final xpBox =
+              barState?.xpKey.currentContext?.findRenderObject() as RenderBox?;
           if (xpBox != null && rewardXp > 0) {
             launchRewardParticles(
               context: context,
@@ -661,20 +651,26 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
           );
         },
-        onPlayPause: () {
-          setState(() {
-            if (isThisTaskRunning) {
-              timerService.stopTimer();
-              HelperFunctions.showMessage(context, "Paused \"${task.name}\"");
-            } else {
-              // Stop any other running timer first
-              if (timerService.isRunning) {
-                timerService.stopTimer();
-              }
-              timerService.startTimer(task);
-              HelperFunctions.showMessage(context, "Started \"${task.name}\"");
-            }
-          });
+        onPlayPause: () async {
+          if (isThisTaskRunning) {
+            // --- PAUSE ---
+            timerService.stopTimer();
+            TaskForegroundService.sendPause();
+            WakelockPlus.disable();
+            HelperFunctions.showMessage(context, "Paused \"${task.name}\"");
+            setState(() {});
+          } else {
+            // --- START ---
+            if (timerService.isRunning) timerService.stopTimer();
+            timerService.startTimer(task);
+            WakelockPlus.enable();
+            await TaskForegroundService.start(
+              taskName: task.name,
+              remainingSeconds: task.getRemainingSeconds(),
+            );
+            HelperFunctions.showMessage(context, "Started \"${task.name}\"");
+            setState(() {});
+          }
         },
       ),
     );
