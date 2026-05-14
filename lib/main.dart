@@ -22,21 +22,13 @@ import 'package:rpg_task_manager/services/timer/item_timer_service.dart';
 import 'package:rpg_task_manager/services/user_service.dart';
 import 'package:rpg_task_manager/widgets/resource_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:rpg_task_manager/services/task_foreground_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
-  // await Hive.initFlutter();
-  // await Hive.deleteBoxFromDisk("user");
-  // await Hive.deleteBoxFromDisk("shop_items");
-  // await Hive.deleteBoxFromDisk("custom_shop_items");
-  // await Hive.deleteBoxFromDisk("archived_tasks");
-  // await Hive.deleteBoxFromDisk("active_tasks");
-  // await Hive.deleteBoxFromDisk("task_snapshots");
-
-  // Initialize Hive for data storage
   await HiveService.initializeHive();
   await AudioService.instance.init();
   await ConfigService.loadAllConfigs();
@@ -50,11 +42,13 @@ void main() async {
 
   await UserService().loadUserData();
 
+  // ЗӨВХӨН НЭГ УДАА дуудна (өмнө 2 удаа байсан)
+  TaskForegroundService.initialize();
+
   final appState = AppState();
   if (!UserService().currentUserisNull()) {
     appState.setLoggedIn();
   } else {
-    // Firebase-гүй үед офлайн горимоор шууд орно
     appState.setOffline();
   }
 
@@ -68,8 +62,6 @@ void main() async {
     customInventoryController,
   );
 
-  // await AchievementDatabase.uploadToFirestore(); // Firebase шаардлагатай
-
   runApp(
     MultiProvider(
       providers: [
@@ -82,7 +74,7 @@ void main() async {
         ChangeNotifierProvider.value(value: appState),
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -94,45 +86,52 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeNotifier = context.watch<ThemeNotifier>();
     final t = themeNotifier.current;
-    return MaterialApp(
-      title: 'RPG Task Manager',
-      theme: ThemeData(
-        scaffoldBackgroundColor: t.scaffoldBg,
-        primaryColor: t.primary,
-        colorScheme: ColorScheme.light(primary: t.primary, secondary: t.accent),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: t.navBar,
-          selectedItemColor: t.navSelected,
-          unselectedItemColor: t.navUnselected,
-        ),
-        appBarTheme: AppBarTheme(backgroundColor: t.appBar),
-        datePickerTheme: DatePickerThemeData(
-          backgroundColor: Colors.white,
-          headerBackgroundColor: t.accent,
-          headerForegroundColor: Colors.white,
-          dayBackgroundColor: WidgetStateProperty.all(Colors.white),
-          dayOverlayColor: WidgetStateProperty.all(t.primary.withOpacity(0.1)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return WithForegroundTask(
+      child: MaterialApp(
+        title: 'RPG Task Manager',
+        theme: ThemeData(
+          scaffoldBackgroundColor: t.scaffoldBg,
+          primaryColor: t.primary,
+          colorScheme: ColorScheme.light(
+            primary: t.primary,
+            secondary: t.accent,
+          ),
+          bottomNavigationBarTheme: BottomNavigationBarThemeData(
+            backgroundColor: t.navBar,
+            selectedItemColor: t.navSelected,
+            unselectedItemColor: t.navUnselected,
+          ),
+          appBarTheme: AppBarTheme(backgroundColor: t.appBar),
+          datePickerTheme: DatePickerThemeData(
+            backgroundColor: Colors.white,
+            headerBackgroundColor: t.accent,
+            headerForegroundColor: Colors.white,
+            dayBackgroundColor: WidgetStateProperty.all(Colors.white),
+            dayOverlayColor: WidgetStateProperty.all(
+              t.primary.withOpacity(0.1),
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          timePickerTheme: TimePickerThemeData(
+            backgroundColor: Colors.white,
+            hourMinuteColor: t.primary.withOpacity(0.2),
+            hourMinuteTextColor: Colors.black87,
+            dialBackgroundColor: t.primary.withOpacity(0.1),
+            dialHandColor: t.accent,
+            dialTextColor: Colors.black87,
+            entryModeIconColor: t.accent,
+            hourMinuteShape: const CircleBorder(),
           ),
         ),
-        timePickerTheme: TimePickerThemeData(
-          backgroundColor: Colors.white,
-          hourMinuteColor: t.primary.withOpacity(0.2),
-          hourMinuteTextColor: Colors.black87,
-          dialBackgroundColor: t.primary.withOpacity(0.1),
-          dialHandColor: t.accent,
-          dialTextColor: Colors.black87,
-          entryModeIconColor: t.accent,
-          hourMinuteShape: const CircleBorder(),
-        ),
+        home: BootstrapScreen(),
       ),
-      home: BootstrapScreen(),
     );
   }
 }
 
-// Chooses between login screen & main screen
+// BootstrapScreen БУЦААЖ НЭМЛЭЭ
 class BootstrapScreen extends StatefulWidget {
   const BootstrapScreen({super.key});
 
@@ -141,6 +140,25 @@ class BootstrapScreen extends StatefulWidget {
 }
 
 class _BootstrapScreenState extends State<BootstrapScreen> {
+  bool initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!initialized) {
+      initialized = true;
+
+      Future.microtask(() {
+        context.read<UserController>().initialize();
+        context.read<TaskController>().initialize();
+        context.read<InventoryController>().initialize();
+        context.read<CustomItemInventoryController>().initialize();
+        context.read<ItemShopController>().initialize();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
@@ -152,17 +170,11 @@ class _BootstrapScreenState extends State<BootstrapScreen> {
       return LoginScreen();
     }
 
-    // Offline эсвэл logged in үед controllers-г initialize хийнэ
     if (appState.isLoggedIn || appState.isOffline) {
-      // User байхгүй бол (анх нэвтрэх) CreateUserScreen руу явна
       if (UserService().currentUserisNull()) {
         return CreateUserScreen(isOffline: true);
       }
-      context.read<UserController>().initialize();
-      context.read<TaskController>().initialize();
-      context.read<InventoryController>().initialize();
-      context.read<CustomItemInventoryController>().initialize();
-      context.read<ItemShopController>().initialize();
+
       return HomePage();
     }
 
@@ -170,7 +182,6 @@ class _BootstrapScreenState extends State<BootstrapScreen> {
   }
 }
 
-// This should be called after app state has been decided (offline, online)
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -179,13 +190,11 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _index = 0;
 
-  // ADD THIS
   final GlobalKey<AnimatedResourceBarState> _resourceBarKey =
       GlobalKey<AnimatedResourceBarState>();
 
-  // Change _screens from a field to a getter so it can reference _resourceBarKey
   List<Widget> get _screens => [
-    TaskScreen(resourceBarKey: _resourceBarKey), // PASS KEY HERE
+    TaskScreen(resourceBarKey: _resourceBarKey),
     ShopScreen(),
     InventoryScreen(),
     ProfileScreen(),
@@ -199,7 +208,6 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           AnimatedResourceBar(key: _resourceBarKey),
-          // ResourceBar(),
           Expanded(
             child: IndexedStack(index: _index, children: _screens),
           ),
@@ -210,8 +218,6 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _index,
         onTap: (i) {
           setState(() => _index = i);
-
-          // inventory
           if (i == 2) {
             AudioService.instance.playBackgroundMusic(
               "assets/audio/touhou_alice.mp3",
@@ -220,7 +226,6 @@ class _HomePageState extends State<HomePage> {
             AudioService.instance.stopBackgroundMusic();
           }
         },
-
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.task), label: "Tasks"),
           BottomNavigationBarItem(
